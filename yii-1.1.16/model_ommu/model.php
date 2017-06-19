@@ -174,11 +174,6 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 			<?php echo "'$name' => Yii::t('attribute', '$label'),\n"; ?>
 <?php endforeach; ?>
 		);
-		/*
-<?php foreach($labels as $name=>$label): ?>
-			<?php echo "'$label' => '$label',\n"; ?>
-<?php endforeach; ?>		
-		*/
 	}
 
 	/**

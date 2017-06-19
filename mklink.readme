@@ -6,13 +6,6 @@ mklink /J "D:\htdocs\yii-1.1.16\framework\gii\generators\crud\templates\crud_omm
 mklink /J "D:\htdocs\yii-1.1.16\framework\gii\generators\model\templates\model_ommu" "D:\htdocs\_project_ommu_bootstrap\yii-1.1.16\model_ommu"
 mklink /J "D:\htdocs\yii-1.1.16\framework\gii\generators\module\templates\module_ommu" "D:\htdocs\_project_ommu_bootstrap\yii-1.1.16\module_ommu" 
 
-
 mklink /J "D:\htdocs\yii-1.1.12\framework\gii\generators\crud\templates\carcentos_crud_office" "D:\htdocs\_project_ommu_bootstrap\yii-1.1.12\carcentos_crud_office"
 mklink /J "D:\htdocs\yii-1.1.12\framework\gii\generators\model\templates\carcentos_model_office" "D:\htdocs\_project_ommu_bootstrap\yii-1.1.12\carcentos_model_office"
 mklink /J  "D:\htdocs\yii-1.1.12\framework\gii\generators\module\templates\carcentos_module_sweeto" "D:\htdocs\_project_ommu_bootstrap\yii-1.1.12\carcentos_module_sweeto"
-
--------
-themes
-=======
-mklink /J "D:\htdocs\_project_ommu_bootstrap\themes\ommu" "D:\htdocs\_project_theme_back-ommu"
-
