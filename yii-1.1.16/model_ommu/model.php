@@ -67,7 +67,10 @@ foreach($relations as $name=>$relation): ?>
 	if (preg_match("~^array\(self::([^,]+), '([^']+)', '([^']+)'\)$~", $relation, $matches))
     {
         $relationType = $matches[1];
-        $relationModel = $matches[2];
+        $relationModel = preg_replace('(Ommu)', '', $matches[2]);
+		$name = preg_replace('(ommu_)', '', setRelationName($name));
+		if($name == 'cat')
+			$name = 'category';
 
         switch($relationType){
             case 'HAS_ONE':
@@ -158,8 +161,9 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 	foreach($relations as $name=>$relation): ?>
 			<?php
 			$name = setRelationName($name); 
-			//$name = $name."_relation";
-			echo "'$name' => $relation,\n"; ?>
+			$cName = preg_replace('(ommu_)', '', $name);
+			$cRelation = preg_replace('(Ommu)', '', $relation);
+			echo "'$cName' => $cRelation,\n"; ?>
 <?php endforeach; ?>
 		);
 	}
