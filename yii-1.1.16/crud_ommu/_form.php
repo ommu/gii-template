@@ -100,14 +100,13 @@ foreach($this->tableSchema->columns as $column)
 	</div>
 
 </fieldset>
-<?php echo "<?php /*\n"; ?>
-<?php echo "<div class=\"dialog-content\">\n"; ?>
-<?php echo "</div>\n"; ?>
-<?php echo "<div class=\"dialog-submit\">\n"; ?>
+
+<div class="dialog-content">
+</div>
+<div class="dialog-submit">
 <?php echo "\t<?php echo CHtml::submitButton(\$model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save') ,array('onclick' => 'setEnableSave()')); ?>\n"; ?>
 <?php echo "\t<?php echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>\n"; ?>
-<?php echo "</div>\n"; ?>
-<?php echo "*/?>\n"; ?>
+</div>
 <?php echo "<?php \$this->endWidget(); ?>\n"; ?>
 
 

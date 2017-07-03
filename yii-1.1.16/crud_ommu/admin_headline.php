@@ -36,7 +36,7 @@ echo "\t\$this->breadcrumbs=array(
 )); ?>\n"; ?>
 
 	<div class="dialog-content">
-		<?php echo "<?php echo Yii::t('phrase', 'Are you sure you want to headline this item?');?>";?>
+		<?php echo "<?php echo Yii::t('phrase', 'Are you sure you want to headline this item?');?>\n";?>
 	</div>
 	<div class="dialog-submit">
 		<?php echo "<?php echo CHtml::submitButton(Yii::t('phrase', 'Headline'), array('onclick' => 'setEnableSave()')); ?>\n";?>

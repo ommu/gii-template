@@ -85,24 +85,22 @@ echo "\t\$this->breadcrumbs=array(
 						'imageUrl' => false,
 						'options' => array(							
 							'class' => 'view',
-							'off_address' => '',
-							'target' => '_blank',
 						),
-						'url' => 'Yii::app()->controller->createUrl("site/view",array("id"=>$data->primaryKey))'),
+						'url' => 'Yii::app()->controller->createUrl(\'view\',array(\'id\'=>$data->primaryKey))'),
 					'update' => array(
 						'label' => 'update',
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'update'
 						),
-						'url' => 'Yii::app()->controller->createUrl("edit",array("id"=>$data->primaryKey))'),
+						'url' => 'Yii::app()->controller->createUrl(\'edit\',array(\'id\'=>$data->primaryKey))'),
 					'delete' => array(
 						'label' => 'delete',
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'delete'
 						),
-						'url' => 'Yii::app()->controller->createUrl("delete",array("id"=>$data->primaryKey))')
+						'url' => 'Yii::app()->controller->createUrl(\'delete\',array(\'id\'=>$data->primaryKey))')
 				),
 				'template' => '{view}|{update}|{delete}',
 			));

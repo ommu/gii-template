@@ -160,10 +160,11 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 	*/
 	foreach($relations as $name=>$relation): ?>
 			<?php
-			$name = setRelationName($name); 
-			$cName = preg_replace('(ommu_)', '', $name);
-			$cRelation = preg_replace('(Ommu)', '', $relation);
-			echo "'$cName' => $cRelation,\n"; ?>
+			$name = preg_replace('(ommu_)', '', setRelationName($name));
+			if($name == 'cat')
+				$name = 'category';
+			$relation = preg_replace('(Ommu)', '', $relation);
+			echo "'$name' => $relation,\n"; ?>
 <?php endforeach; ?>
 		);
 	}
@@ -174,8 +175,33 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 	public function attributeLabels()
 	{
 		return array(
-<?php foreach($labels as $name=>$label): ?>
-			<?php echo "'$name' => Yii::t('attribute', '$label'),\n"; ?>
+<?php 
+foreach($labels as $name=>$label):
+	if(strtolower($label) == 'cat')
+		$label = 'Category';
+	echo "\t\t\t'$name' => Yii::t('attribute', '$label'),\n";
+endforeach;
+foreach($columns as $name=>$column):
+	if($column->isForeignKey == '1') {
+		$arrayName = explode('_', $column->name);
+		$name = $arrayName[0];
+		if($name == 'cat')
+			$name = 'category';
+		$cName = $name.'_search';
+		$cLabel = ucwords(strtolower($name));
+		echo "\t\t\t'$cName' => Yii::t('attribute', '$cLabel'),\n";
+	}
+endforeach;
+foreach($labels as $name=>$label):
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id'))) {
+		$arrayName = explode('_', $name);
+		$name = $arrayName[0];
+		if($name == 'cat')
+			$name = 'category';
+		$name = $name.'_search';
+		echo "\t\t\t'$name' => Yii::t('attribute', '$label'),\n";
+	}		
+?>
 <?php endforeach; ?>
 		);
 	}
@@ -220,10 +246,13 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\$criteria->compare('t.$name',\$this->$name);\n";
 		echo "\t\t}\n";
 
-	} else if($column->isForeignKey == '1' || (in_array($column->name, array('user_id','creation_id','modified_id')))) {
+	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
 		$arrayName = explode('_', $column->name);
-		echo "\t\tif(isset(\$_GET['$arrayName[0]']))\n";
-		echo "\t\t\t\$criteria->compare('t.$name',\$_GET['$arrayName[0]']);\n";
+		$cName = $arrayName[0];
+		if($cName == 'cat')
+			$cName = 'category';
+		echo "\t\tif(isset(\$_GET['$cName']))\n";
+		echo "\t\t\t\$criteria->compare('t.$name',\$_GET['$cName']);\n";
 		echo "\t\telse\n";
 		echo "\t\t\t\$criteria->compare('t.$name',\$this->$name);\n";
 
@@ -311,20 +340,36 @@ foreach($columns as $name=>$column)
 {
 	if(!$column->isPrimaryKey) {
 		if($column->dbType == 'tinyint(1)') {
-			echo "\t\t\tif(!isset(\$_GET['type'])) {\n";
-			echo "\t\t\t\t\$this->defaultColumns[] = array(\n";
-			echo "\t\t\t\t\t'name' => '$name',\n";
-			echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\"$name\",array(\"id\"=>\$data->$isPrimaryKey)), \$data->$name, 1)',\n";
-			echo "\t\t\t\t\t'htmlOptions' => array(\n";
-			echo "\t\t\t\t\t\t'class' => 'center',\n";
-			echo "\t\t\t\t\t),\n";
-			echo "\t\t\t\t\t'filter'=>array(\n";
-			echo "\t\t\t\t\t\t1=>Yii::t('phrase', 'Yes'),\n";
-			echo "\t\t\t\t\t\t0=>Yii::t('phrase', 'No'),\n";
-			echo "\t\t\t\t\t),\n";
-			echo "\t\t\t\t\t'type' => 'raw',\n";
-			echo "\t\t\t\t);\n";
-			echo "\t\t\t}\n";
+			if(in_array($column->name, array('publish')))
+				echo "\t\t\tif(!isset(\$_GET['type'])) {\n";
+			echo "\t\t\t\$this->defaultColumns[] = array(\n";
+			echo "\t\t\t\t'name' => '$name',\n";
+			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\"$name\",array(\"id\"=>\$data->$isPrimaryKey)), \$data->$name, 1)',\n";
+			echo "\t\t\t\t'htmlOptions' => array(\n";
+			echo "\t\t\t\t\t'class' => 'center',\n";
+			echo "\t\t\t\t),\n";
+			echo "\t\t\t\t'filter'=>array(\n";
+			echo "\t\t\t\t\t1=>Yii::t('phrase', 'Yes'),\n";
+			echo "\t\t\t\t\t0=>Yii::t('phrase', 'No'),\n";
+			echo "\t\t\t\t),\n";
+			echo "\t\t\t\t'type' => 'raw',\n";
+			echo "\t\t\t);\n";
+			if(in_array($column->name, array('publish')))
+				echo "\t\t\t}\n";
+			
+		} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+			$arrayName = explode('_', $column->name);
+			$cName = 'displayname';
+			if($column->isForeignKey == '1')
+				$cName = 'column_name_relation';
+			$cRelation = $arrayName[0];
+			if($cRelation == 'cat')
+				$cRelation = 'category';
+			$name = $cRelation.'_search';
+			echo "\t\t\t\$this->defaultColumns[] = array(\n";
+			echo "\t\t\t\t'name' => '$name',\n";
+			echo "\t\t\t\t'value' => '\$data->{$cRelation}->{$cName}',\n";
+			echo "\t\t\t);\n";
 			
 		} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			echo "\t\t\t\$this->defaultColumns[] = array(\n";
@@ -355,7 +400,10 @@ foreach($columns as $name=>$column)
 			echo "\t\t\t);\n";
 			
 		} else {
-			echo "\t\t\t\$this->defaultColumns[] = '$name';\n";
+			echo "\t\t\t\$this->defaultColumns[] = array(\n";
+			echo "\t\t\t\t'name' => '$name',\n";
+			echo "\t\t\t\t'value' => '\$data->$name',\n";
+			echo "\t\t\t);\n";
 		}
 	}
 }

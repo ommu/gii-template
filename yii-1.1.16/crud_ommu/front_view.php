@@ -50,23 +50,34 @@ echo '</pre>';
 */
 
 foreach($this->tableSchema->columns as $name=>$column)
-	if(in_array($column->name, array('publish','status'))) {
+	if($column->name == $this->tableSchema->primaryKey) {
+		echo "\t\tarray(\n";
+		echo "\t\t\t'name'=>'$name',\n";
+		echo "\t\t\t'value'=>\$model->$name,\n";
+		echo "\t\t),\n";
+	} else if(in_array($column->name, array('publish','status'))) {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name == '1' ? Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
-		echo "\t\t\t//'value'=>\$model->$name,\n";
+		echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
-	} else if(in_array($column->name, array('creation_id','modified_id'))) {
+	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+		$arrayName = explode('_', $column->name);
+		$cName = 'displayname';
+		if($column->isForeignKey == '1')
+			$cName = 'column_name_relation';
+		$cRelation = $arrayName[0];
+		if($cRelation == 'cat')
+			$cRelation = 'category';
 		echo "\t\tarray(\n";
-		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name,\n";		
-		echo "\t\t\t//'value'=>\$model->$name != 0 ? \$model->$name : '-',\n";
+		echo "\t\t\t'name'=>'$name',\n";	
+		echo "\t\t\t'value'=>\$model->$name ? \$model->{$cRelation}->{$cName} : '-',\n";
 		echo "\t\t),\n";		
 	} else if($column->dbType == 'text') {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name != '' ? \$model->$name : '-',\n";
-		echo "\t\t\t//'value'=>\$model->$name != '' ? CHtml::link(\$model->$name, Yii::app()->request->baseUrl.'/public/visit/'.\$model->$name, array('target' => '_blank')) : '-',\n";
+		echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
+		echo "\t\t\t//'value'=>\$model->$name ? CHtml::link(\$model->$name, Yii::app()->request->baseUrl.'/public/visit/'.\$model->$name, array('target' => '_blank')) : '-',\n";
 		echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
 	} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
@@ -85,17 +96,17 @@ foreach($this->tableSchema->columns as $name=>$column)
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name,\n";		
-		echo "\t\t\t//'value'=>\$model->$name != '' ? \$model->$name : '-',\n";
+		echo "\t\t\t//'value'=>\$model->$name ? \$model->$name : '-',\n";
 		echo "\t\t),\n";
 	}
 ?>
 	),
 )); ?>
 
-<?php 
-echo "<div class=\"dialog-content\">\n";
-echo "</div>\n";
-echo "<div class=\"dialog-submit\">\n";
-echo "\t<?php echo CHtml::button(Yii::t('phrase', 'Close'), array('id'=>'closed')); ?>\n";
-echo "</div>\n";
-?>
+<div class="box">
+</div>
+<div class="dialog-content">
+</div>
+<div class="dialog-submit">
+<?php echo "\t<?php echo CHtml::button(Yii::t('phrase', 'Close'), array('id'=>'closed')); ?>\n";?>
+</div>

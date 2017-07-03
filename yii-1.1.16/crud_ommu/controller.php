@@ -21,10 +21,16 @@ $label = $this->pluralize($this->class2name($this->modelClass));
  *	Manage
  *	Add
  *	Edit
+<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
  *	RunAction
+<?php endif; ?>
  *	Delete
+<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
  *	Publish
+<?php endif; ?>
+<?php if(array_key_exists('headline', $this->tableSchema->columns)): ?>
  *	Headline
+<?php endif; ?>
  *
  *	LoadModel
  *	performAjaxValidation
@@ -57,12 +63,11 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				$arrThemes = Utility::getCurrentTemplate('admin');
 				Yii::app()->theme = $arrThemes['folder'];
 				$this->layout = $arrThemes['layout'];
-			} else {
-				$this->redirect(Yii::app()->createUrl('site/login'));
-			}
-		} else {
+			} else
+				throw new CHttpException(404, Yii::t('phrase', 'The requested page does not exist.'));
+		} else
 			$this->redirect(Yii::app()->createUrl('site/login'));
-		}
+		
 		/*
 		$arrThemes = Utility::getCurrentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
@@ -102,11 +107,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				'actions'=>array('manage','add','edit','runaction','delete','publish','headline'),
 				'users'=>array('@'),
 				'expression'=>'isset(Yii::app()->user->level) && (Yii::app()->user->level == 1)',
-			),
-			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('manage','add','edit','runaction','delete','publish','headline'),
-				'users'=>array('@'),
-				'expression'=>'isset(Yii::app()->user->level) && (in_array(Yii::app()->user->level, array(1,2)))',
+				//'expression'=>'isset(Yii::app()->user->level) && (in_array(Yii::app()->user->level, array(1,2)))',
 			),
 			array('allow', // allow admin user to perform 'admin' and 'delete' actions
 				'actions'=>array(),
@@ -204,7 +205,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		}
 		$columns = $model->getGridColumn($columnTemp);
 
-		$this->pageTitle = Yii::t('phrase', '<?php echo $label; ?> Manage');
+		$this->pageTitle = Yii::t('phrase', '<?php echo $label; ?>');
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_manage',array(
@@ -232,7 +233,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			if(strlen($jsonError) > 2) {
 				//echo $jsonError;
 				$errors = $model->getErrors();
-				$summary['msg'] = "<div class='errorSummary'><strong>Please fix the following input errors:</strong>";
+				$summary['msg'] = "<div class='errorSummary'><strong>".Yii::t('phrase', 'Please fix the following input errors:')."</strong>";
 				$summary['msg'] .= "<ul>";
 				foreach($errors as $key => $value) {
 					$summary['msg'] .= "<li>{$value[0]}</li>";
@@ -251,7 +252,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 							'type' => 5,
 							'get' => Yii::app()->controller->createUrl('manage'),
 							'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $this->modelClass; ?> success created.').'</strong></div>',
+							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success created.').'</strong></div>',
 						));
 					} else {
 						print_r($model->getErrors());
@@ -269,6 +270,10 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				}
 			}
 		}
+		
+		$this->dialogDetail = true; 
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage'); 
+		$this->dialogWidth = 600; 
 
 		$this->pageTitle = Yii::t('phrase', 'Create <?php echo $label; ?>');
 		$this->pageDescription = '';
@@ -298,7 +303,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			if(strlen($jsonError) > 2) {
 				//echo $jsonError;
 				$errors = $model->getErrors();
-				$summary['msg'] = "<div class='errorSummary'><strong>Please fix the following input errors:</strong>";
+				$summary['msg'] = "<div class='errorSummary'><strong>".Yii::t('phrase', 'Please fix the following input errors:')."</strong>";
 				$summary['msg'] .= "<ul>";
 				foreach($errors as $key => $value) {
 					$summary['msg'] .= "<li>{$value[0]}</li>";
@@ -317,7 +322,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 							'type' => 5,
 							'get' => Yii::app()->controller->createUrl('manage'),
 							'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $this->modelClass; ?> success updated.').'</strong></div>',
+							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
 						));
 					} else {
 						print_r($model->getErrors());
@@ -335,6 +340,10 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				}
 			}
 		}
+		
+		$this->dialogDetail = true; 
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage'); 
+		$this->dialogWidth = 600; 
 
 		$this->pageTitle = Yii::t('phrase', 'Update <?php echo $label; ?>');
 		$this->pageDescription = '';
@@ -344,6 +353,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		));
 	}
 
+<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
@@ -355,7 +365,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 
 		if(count($id) > 0) {
 			$criteria = new CDbCriteria;
-			$criteria->addInCondition('id', $id);
+			$criteria->addInCondition('<?php echo $this->tableSchema->primaryKey; ?>', $id);
 
 			if($actions == 'publish') {
 				<?php echo $this->modelClass; ?>::model()->updateAll(array(
@@ -380,6 +390,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		}
 	}
 
+<?php endif; ?>
 	/**
 	 * Deletes a particular model.
 	 * If deletion is successful, the browser will be redirected to the 'admin' page.
@@ -391,12 +402,18 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		
 		if(Yii::app()->request->isPostRequest) {
 			// we only allow deletion via POST request
+<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
+			$model->publish = 2;
+			
+			if($model->save()) {
+<?php else: ?>
 			if($model->delete()) {
+<?php endif; ?>
 				echo CJSON::encode(array(
 					'type' => 5,
 					'get' => Yii::app()->controller->createUrl('manage'),
 					'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $this->modelClass; ?> success deleted.').'</strong></div>',
+					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success deleted.').'</strong></div>',
 				));
 			}
 
@@ -405,13 +422,14 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
 			$this->dialogWidth = 350;
 
-			$this->pageTitle = Yii::t('phrase', '<?php echo $this->modelClass; ?> Delete.');
+			$this->pageTitle = Yii::t('phrase', 'Delete <?php echo $label; ?>');
 			$this->pageDescription = '';
 			$this->pageMeta = '';
 			$this->render('admin_delete');
 		}
 	}
 
+<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 	/**
 	 * Deletes a particular model.
 	 * If deletion is successful, the browser will be redirected to the 'admin' page.
@@ -421,38 +439,21 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	{
 		$model=$this->loadModel($id);
 		
-		if($model->publish == 1) {
-		//if($model->actived == 1) {
-		//if($model->enabled == 1) {
-		//if($model->status == 1) {
-			$title = Yii::t('phrase', 'Unpublish');
-			//$title = Yii::t('phrase', 'Deactived');
-			//$title = Yii::t('phrase', 'Disabled');
-			//$title = Yii::t('phrase', 'Unresolved');
-			$replace = 0;
-		} else {
-			$title = Yii::t('phrase', 'Publish');
-			//$title = Yii::t('phrase', 'Actived');
-			//$title = Yii::t('phrase', 'Enabled');
-			//$title = Yii::t('phrase', 'Resolved');
-			$replace = 1;
-		}
+		$title = $model->publish == 1 ? Yii::t('phrase', 'Unpublish') : Yii::t('phrase', 'Publish');
+		$replace = $model->publish == 1 ? 0 : 1;
 
 		if(Yii::app()->request->isPostRequest) {
 			// we only allow deletion via POST request
 			if(isset($id)) {
 				//change value active or publish
 				$model->publish = $replace;
-				//$model->actived = $replace;
-				//$model->enabled = $replace;
-				//$model->status = $replace;
 
 				if($model->update()) {
 					echo CJSON::encode(array(
 						'type' => 5,
 						'get' => Yii::app()->controller->createUrl('manage'),
 						'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $this->modelClass; ?> success updated.').'</strong></div>',
+						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
 					));
 				}
 			}
@@ -472,6 +473,8 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		}
 	}
 
+<?php endif;
+if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 	/**
 	 * Deletes a particular model.
 	 * If deletion is successful, the browser will be redirected to the 'admin' page.
@@ -493,7 +496,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 						'type' => 5,
 						'get' => Yii::app()->controller->createUrl('manage'),
 						'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $this->modelClass; ?> success updated.').'</strong></div>',
+						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
 					));
 				}
 			}
@@ -510,6 +513,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		}
 	}
 
+<?php endif; ?>
 	/**
 	 * Returns the data model based on the primary key given in the GET variable.
 	 * If the data model is not found, an HTTP exception will be raised.

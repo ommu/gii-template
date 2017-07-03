@@ -30,13 +30,24 @@ foreach($this->tableSchema->columns as $column)
 {
 	if($column->isPrimaryKey)
 		continue;
-	if(++$count==7)
-		echo "\t<?php /*\n";
 	echo "\t<b><?php echo CHtml::encode(\$data->getAttributeLabel('{$column->name}')); ?>:</b>\n";
-	echo "\t<?php echo CHtml::encode(\$data->{$column->name}); ?>\n\t<br />\n\n";
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+		$arrayName = explode('_', $column->name);
+		$cName = 'displayname';
+		if($column->isForeignKey == '1')
+			$cName = 'column_name_relation';
+		$cRelation = $arrayName[0];
+		if($cRelation == 'cat')
+			$cRelation = 'category';
+		echo "\t<?php echo CHtml::encode(\$data->{$cRelation}->{$cName}); ?>\n\t<br />\n\n";		
+	} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
+		if(in_array($column->dbType, array('timestamp','datetime')))
+			echo "\t<?php echo CHtml::encode(Utility::dateFormat(\$data->{$column->name}, true)); ?>\n\t<br />\n\n";			
+		else
+			echo "\t<?php echo CHtml::encode(Utility::dateFormat(\$data->{$column->name})); ?>\n\t<br />\n\n";	
+	} else 
+		echo "\t<?php echo CHtml::encode(\$data->{$column->name}); ?>\n\t<br />\n\n";
 }
-if($count>=7)
-	echo "\t*/ ?>\n";
 ?>
 
 </div>
