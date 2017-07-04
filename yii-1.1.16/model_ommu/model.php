@@ -452,10 +452,12 @@ foreach($columns as $name=>$column)
 			if($cRelation == 'cat')
 				$cRelation = 'category';
 			$name = $cRelation.'_search';
+			echo "\t\t\tif(!isset(\$_GET['$cRelation'])) {\n";
 			echo "\t\t\t\$this->defaultColumns[] = array(\n";
 			echo "\t\t\t\t'name' => '$name',\n";
 			echo "\t\t\t\t'value' => '\$data->{$cRelation}->{$cName}',\n";
 			echo "\t\t\t);\n";
+			echo "\t\t\t}\n";
 			
 		} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			echo "\t\t\t\$this->defaultColumns[] = array(\n";
