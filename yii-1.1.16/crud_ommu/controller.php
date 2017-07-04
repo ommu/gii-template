@@ -444,18 +444,16 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 
 		if(Yii::app()->request->isPostRequest) {
 			// we only allow deletion via POST request
-			if(isset($id)) {
-				//change value active or publish
-				$model->publish = $replace;
+			//change value active or publish
+			$model->publish = $replace;
 
-				if($model->update()) {
-					echo CJSON::encode(array(
-						'type' => 5,
-						'get' => Yii::app()->controller->createUrl('manage'),
-						'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
-					));
-				}
+			if($model->update()) {
+				echo CJSON::encode(array(
+					'type' => 5,
+					'get' => Yii::app()->controller->createUrl('manage'),
+					'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
+					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
+				));
 			}
 
 		} else {
@@ -463,7 +461,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
 			$this->dialogWidth = 350;
 
-			$this->pageTitle = $title;
+			$this->pageTitle = Yii::t('phrase', '$title <?php echo $label; ?>', array('$title'=>$title));
 			$this->pageDescription = '';
 			$this->pageMeta = '';
 			$this->render('admin_publish',array(

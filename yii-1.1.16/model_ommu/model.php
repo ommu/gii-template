@@ -97,6 +97,32 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 {
 	public $defaultColumns = array();
 
+	// Variable Search	
+<?php 
+$publicVariable = array();
+foreach($columns as $name=>$column):
+	if($column->isForeignKey == '1') {
+		$arrayName = explode('_', $column->name);
+		$name = $arrayName[0];
+		if($name == 'cat')
+			$name = 'category';
+		$cName = $name.'_search';
+		echo "\tpublic \${$cName};\n";
+		$publicVariable[] = $cName;
+	}
+endforeach;
+foreach($labels as $name=>$label):
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id'))) {
+		$arrayName = explode('_', $name);
+		$name = $arrayName[0];
+		if($name == 'cat')
+			$name = 'category';
+		$name = $name.'_search';
+		echo "\tpublic \${$name};\n";
+		$publicVariable[] = $name;
+	}	
+endforeach; ?>
+
 	/**
 	 * Returns the static model of the specified AR class.
 	 * Please note that you should have this exact method in all your CActiveRecord descendants!
@@ -136,10 +162,10 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 		return array(
 <?php foreach($rules as $rule): ?>
 			<?php echo $rule.",\n"; ?>
-<?php endforeach; ?>
+<?php endforeach;?>
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('<?php echo implode(', ', array_keys($columns)); ?>', 'safe', 'on'=>'search'),
+			array('<?php echo implode(', ', array_merge(array_keys($columns), $publicVariable)); ?>', 'safe', 'on'=>'search'),
 		);
 	}
 
@@ -165,7 +191,14 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 				$name = 'category';
 			$relation = preg_replace('(Ommu)', '', $relation);
 			echo "'$name' => $relation,\n"; ?>
-<?php endforeach; ?>
+<?php endforeach;
+	foreach($columns as $name=>$column):
+		if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))) {
+			$arrayName = explode('_', $column->name);
+			$cRelation = $arrayName[0];
+			echo "\t\t\t'$cRelation' => array(self::BELONGS_TO, 'Users', '{$column->name}'),\n";
+		}
+	endforeach;?>
 		);
 	}
 
@@ -200,9 +233,8 @@ foreach($labels as $name=>$label):
 			$name = 'category';
 		$name = $name.'_search';
 		echo "\t\t\t'$name' => Yii::t('attribute', '$label'),\n";
-	}		
-?>
-<?php endforeach; ?>
+	}
+endforeach; ?>
 		);
 	}
 
@@ -232,8 +264,47 @@ echo '</pre>';
 echo exit();
 */
 $isPrimaryKey = '';
-foreach($columns as $name=>$column)
-{
+$isVariableSearch = 0;
+
+foreach($columns as $name=>$column) {	
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))))
+		$isVariableSearch = 1;
+}
+if($isVariableSearch == 1) {?>
+		// Custom Search
+		$criteria->with = array(
+<?php foreach($columns as $name=>$column) {	
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+		$arrayName = explode('_', $column->name);
+		$cName = 'displayname';
+		if($column->isForeignKey == '1')
+			$cName = 'column_name_relation';
+		$cRelation = $arrayName[0];
+		if($cRelation == 'cat')
+			$cRelation = 'category';
+		echo "\t\t\t'$cRelation' => array(\n";
+		echo "\t\t\t\t'alias'=>'$cRelation',\n";
+		echo "\t\t\t\t'select'=>'$cName'\n";
+		echo "\t\t\t),\n";
+	}
+}?>
+		);
+		
+<?php }
+foreach($columns as $name=>$column) {	
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+		$arrayName = explode('_', $column->name);
+		$cName = 'displayname';
+		if($column->isForeignKey == '1')
+			$cName = 'column_name_relation';
+		$cRelation = $arrayName[0];
+		if($cRelation == 'cat')
+			$cRelation = 'category';
+		$name = $cRelation.'_search';
+		echo "\t\t\$criteria->compare('{$cRelation}.{$cName}',strtolower(\$this->$name),true);\n";
+	}
+}
+foreach($columns as $name=>$column) {
 	if($column->name == 'publish') {
 		echo "\t\tif(isset(\$_GET['type']) && \$_GET['type'] == 'publish')\n";
 		echo "\t\t\t\$criteria->compare('t.$name',1);\n";
@@ -272,6 +343,21 @@ foreach($columns as $name=>$column)
 	}
 	if($column->isPrimaryKey) {
 		$isPrimaryKey = $name;
+	}
+}
+if($isVariableSearch == 1)
+	echo "\n";
+foreach($columns as $name=>$column) {	
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+		$arrayName = explode('_', $column->name);
+		$cName = 'displayname';
+		if($column->isForeignKey == '1')
+			$cName = 'column_name_relation';
+		$cRelation = $arrayName[0];
+		if($cRelation == 'cat')
+			$cRelation = 'category';
+		$name = $cRelation.'_search';
+		echo "\t\t\$criteria->compare('{$cRelation}.{$cName}',strtolower(\$this->$name),true);\n";
 	}
 }
 	echo "\n\t\tif(!isset(\$_GET['{$modelClass}_sort']))\n";
@@ -432,38 +518,49 @@ foreach($columns as $name=>$column)
 	/**
 	 * before validate attributes
 	 */
-	/*
-	protected function beforeValidate() {
+	protected function beforeValidate() 
+	{
 		if(parent::beforeValidate()) {
-			// Create action
+<?php
+foreach($columns as $name=>$column)
+{
+	if(in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger') {
+		if($column->name == 'creation_id') {
+			echo "\t\t\tif(\$this->isNewRecord)\n";
+			echo "\t\t\t\t\$this->{$column->name} = Yii::app()->user->id;\n";
+		} else {
+			echo "\t\t\telse\n";
+			echo "\t\t\t\t\$this->{$column->name} = Yii::app()->user->id;\n";			
+		}
+	}
+}
+?>
 		}
 		return true;
 	}
-	*/
 
 	/**
 	 * after validate attributes
 	 */
-	/*
 	protected function afterValidate()
 	{
 		parent::afterValidate();
-			// Create action
+		// Create action
+		
 		return true;
 	}
-	*/
 	
 	/**
 	 * before save attributes
 	 */
-	/*
-	protected function beforeSave() {
+	protected function beforeSave() 
+	{
 		if(parent::beforeSave()) {
+			// Create action
 <?php
-$isDateTrigger = 0;
 foreach($columns as $name=>$column)
 {
-	if(in_array($column->dbType, array('datetime','date')) && $column->comment != 'trigger') {
+	if(in_array($column->dbType, array('date')) && $column->comment != 'trigger') {
 		echo "\t\t\t//\$this->$name = date('Y-m-d', strtotime(\$this->$name));\n";
 	}
 }
@@ -471,38 +568,34 @@ foreach($columns as $name=>$column)
 		}
 		return true;	
 	}
-	*/
 	
 	/**
 	 * After save attributes
 	 */
-	/*
-	protected function afterSave() {
+	protected function afterSave() 
+	{
 		parent::afterSave();
 		// Create action
 	}
-	*/
 
 	/**
 	 * Before delete attributes
 	 */
-	/*
-	protected function beforeDelete() {
+	protected function beforeDelete() 
+	{
 		if(parent::beforeDelete()) {
 			// Create action
 		}
 		return true;
 	}
-	*/
 
 	/**
 	 * After delete attributes
 	 */
-	/*
-	protected function afterDelete() {
+	protected function afterDelete() 
+	{
 		parent::afterDelete();
 		// Create action
 	}
-	*/
 
 }
