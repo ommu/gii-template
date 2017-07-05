@@ -430,7 +430,7 @@ foreach($columns as $name=>$column)
 				echo "\t\t\tif(!isset(\$_GET['type'])) {\n";
 			echo "\t\t\t\$this->defaultColumns[] = array(\n";
 			echo "\t\t\t\t'name' => '$name',\n";
-			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\"$name\",array(\"id\"=>\$data->$isPrimaryKey)), \$data->$name, 1)',\n";
+			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\',array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
 			echo "\t\t\t\t'htmlOptions' => array(\n";
 			echo "\t\t\t\t\t'class' => 'center',\n";
 			echo "\t\t\t\t),\n";
