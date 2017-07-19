@@ -505,7 +505,8 @@ class Utility
 				$phrase = $id == '0' ? Yii::t('phrase', 'Install Module') : Yii::t('phrase', 'Install Module');
 		}
 		
-		$publish = '<a href="'.$url.'" title="'.$phrase.'"><img src="'.$baseUrl.'/images/icons/publish.png"></a>';
+		$image = $id == '0' ? $baseUrl.'/images/icons/unpublish.png' : $baseUrl.'/images/icons/publish.png';
+		$publish = '<a href="'.$url.'" title="'.$phrase.'"><img src="'.$image.'"></a>';
 
 		return $publish;
 	}

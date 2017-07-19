@@ -89,6 +89,19 @@ foreach($relations as $name=>$relation): ?>
                 echo 'mixed $'.$name."\n";
         }
 	}
+foreach($labels as $name=>$label):
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
+		$arrayName = explode('_', $name);
+		$name = $arrayName[0];
+		if($name == 'cat')
+			$name = 'category';
+		if($name == 'member')
+			echo " * @property Members[] \${$name};\n";
+		else
+			echo " * @property Users[] \${$name};\n";
+		$publicVariable[] = $name;
+	}	
+endforeach;
     ?>
 <?php endforeach; ?>
 <?php endif; ?>
@@ -112,7 +125,7 @@ foreach($columns as $name=>$column):
 	}
 endforeach;
 foreach($labels as $name=>$label):
-	if(in_array($name, array('creation_id','modified_id','user_id','updated_id'))) {
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$arrayName = explode('_', $name);
 		$name = $arrayName[0];
 		if($name == 'cat')
@@ -193,10 +206,13 @@ endforeach; ?>
 			echo "'$name' => $relation,\n"; ?>
 <?php endforeach;
 	foreach($columns as $name=>$column):
-		if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))) {
+		if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 			$arrayName = explode('_', $column->name);
 			$cRelation = $arrayName[0];
-			echo "\t\t\t'$cRelation' => array(self::BELONGS_TO, 'Users', '{$column->name}'),\n";
+			if($column->name == 'member_id')
+				echo "\t\t\t'$cRelation' => array(self::BELONGS_TO, 'Members', '{$column->name}'),\n";
+			else
+				echo "\t\t\t'$cRelation' => array(self::BELONGS_TO, 'Users', '{$column->name}'),\n";
 		}
 	endforeach;?>
 		);
@@ -226,7 +242,7 @@ foreach($columns as $name=>$column):
 	}
 endforeach;
 foreach($labels as $name=>$label):
-	if(in_array($name, array('creation_id','modified_id','user_id','updated_id'))) {
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$arrayName = explode('_', $name);
 		$name = $arrayName[0];
 		if($name == 'cat')
@@ -267,14 +283,14 @@ $isPrimaryKey = '';
 $isVariableSearch = 0;
 
 foreach($columns as $name=>$column) {	
-	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))))
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))))
 		$isVariableSearch = 1;
 }
 if($isVariableSearch == 1) {?>
 		// Custom Search
 		$criteria->with = array(
 <?php foreach($columns as $name=>$column) {	
-	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
 		$arrayName = explode('_', $column->name);
 		$cName = 'displayname';
 		if($column->isForeignKey == '1')
@@ -282,17 +298,26 @@ if($isVariableSearch == 1) {?>
 		$cRelation = $arrayName[0];
 		if($cRelation == 'cat')
 			$cRelation = 'category';
+		if($cRelation == 'member')
+			$cName = 'member_id, publish, profile_id, member_private, member_header, member_photo, short_biography';			
 		echo "\t\t\t'$cRelation' => array(\n";
 		echo "\t\t\t\t'alias'=>'$cRelation',\n";
 		echo "\t\t\t\t'select'=>'$cName'\n";
 		echo "\t\t\t),\n";
+		if($column->name == 'member_id') {
+		echo "\t\t\t'{$cRelation}.view' => array(\n";
+			echo "\t\t\t\t'alias'=>'{$cRelation}_view',\n";
+			echo "\t\t\t\t'select'=>'member_name'\n";
+			echo "\t\t\t),\n";			
+		}
 	}
 }?>
 		);
 		
 <?php }
+/*
 foreach($columns as $name=>$column) {	
-	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
 		$arrayName = explode('_', $column->name);
 		$cName = 'displayname';
 		if($column->isForeignKey == '1')
@@ -300,10 +325,15 @@ foreach($columns as $name=>$column) {
 		$cRelation = $arrayName[0];
 		if($cRelation == 'cat')
 			$cRelation = 'category';
+		if($column->name == 'member_id') {
+			$cRelation = 'member_view';
+			$cName = 'member_name';	
+		}
 		$name = $cRelation.'_search';
 		echo "\t\t\$criteria->compare('{$cRelation}.{$cName}',strtolower(\$this->$name),true);\n";
 	}
 }
+*/
 foreach($columns as $name=>$column) {
 	if($column->name == 'publish') {
 		echo "\t\tif(isset(\$_GET['type']) && \$_GET['type'] == 'publish')\n";
@@ -317,7 +347,7 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\t\$criteria->compare('t.$name',\$this->$name);\n";
 		echo "\t\t}\n";
 
-	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
 		$arrayName = explode('_', $column->name);
 		$cName = $arrayName[0];
 		if($cName == 'cat')
@@ -348,7 +378,7 @@ foreach($columns as $name=>$column) {
 if($isVariableSearch == 1)
 	echo "\n";
 foreach($columns as $name=>$column) {	
-	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
 		$arrayName = explode('_', $column->name);
 		$cName = 'displayname';
 		if($column->isForeignKey == '1')
@@ -357,6 +387,10 @@ foreach($columns as $name=>$column) {
 		if($cRelation == 'cat')
 			$cRelation = 'category';
 		$name = $cRelation.'_search';
+		if($column->name == 'member_id') {
+			$cRelation = 'member_view';
+			$cName = 'member_name';	
+		}
 		echo "\t\t\$criteria->compare('{$cRelation}.{$cName}',strtolower(\$this->$name),true);\n";
 	}
 }
@@ -443,7 +477,7 @@ foreach($columns as $name=>$column)
 			if(in_array($column->name, array('publish')))
 				echo "\t\t\t}\n";
 			
-		} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
+		} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
 			$arrayName = explode('_', $column->name);
 			$cName = 'displayname';
 			if($column->isForeignKey == '1')
@@ -452,6 +486,10 @@ foreach($columns as $name=>$column)
 			if($cRelation == 'cat')
 				$cRelation = 'category';
 			$name = $cRelation.'_search';
+			if($column->name == 'member_id') {
+				$cRelation = 'member_view';
+				$cName = 'member_name';	
+			}
 			echo "\t\t\tif(!isset(\$_GET['$cRelation'])) {\n";
 			echo "\t\t\t\$this->defaultColumns[] = array(\n";
 			echo "\t\t\t\t'name' => '$name',\n";
