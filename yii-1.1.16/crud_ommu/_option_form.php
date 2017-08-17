@@ -19,6 +19,24 @@
  * @contact (+62)856-299-4114
  *
  */
+
+	$cs = Yii::app()->getClientScript();
+$js=<<<EOP
+	$('form[name="gridoption"] :checkbox').click(function(){
+		var url = $('form[name="gridoption"]').attr('action');
+		$.ajax({
+			url: url,
+			data: $('form[name="gridoption"] :checked').serialize(),
+			success: function(response) {
+				$.fn.yiiGridView.update('<?php echo $this->class2id($this->modelClass); ?>-grid', {
+					data: $('form[name="gridoption"]').serialize()
+				});
+				return false;
+			}
+		});
+	});
+EOP;
+	$cs->registerScript('grid-option', $js, CClientScript::POS_END);
 ?>
 
 <?php echo "<?php echo CHtml::beginForm(Yii::app()->createUrl(\$this->route), 'get', array(

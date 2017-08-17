@@ -162,7 +162,8 @@ endforeach; ?>
 	 */
 	public function tableName()
 	{
-		return '<?php echo $tableName; ?>';
+		preg_match("/dbname=([^;]+)/i", $this->dbConnection->connectionString, $matches);
+		return $matches[1].'.<?php echo $tableName; ?>';
 	}
 
 	/**
