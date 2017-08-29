@@ -1,12 +1,12 @@
 -------
 gii
 =======
-hln "/Users/putrasudaryanto/htdocs/_project_ommu_platform/protected/components/system" "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.16/components/system"
-hln "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.16/crud_ommu" "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/crud/templates/crud_ommu"
-ln -f "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/model/ModelCode.php" "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.16/ModelCode.php"
-hln "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.16/model_ommu" "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/model/templates/model_ommu"
-hln "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.16/module_ommu"  "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/module/templates/module_ommu"
+ln -f "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/model/ModelCode.php" "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.16/ModelCode.php"
+hln "/Users/putrasudaryanto/htdocs/project_ommu_platform/protected/components/system" "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.16/components/system"
+hln "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.16/crud_ommu" "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/crud/templates/crud_ommu"
+hln "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.16/model_ommu" "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/model/templates/model_ommu"
+hln "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.16/module_ommu"  "/Users/putrasudaryanto/htdocs/yii-1.1.16/framework/gii/generators/module/templates/module_ommu"
 
-hln "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.12/carcentos_crud_office" "/Users/putrasudaryanto/htdocs/yii-1.1.12/framework/gii/generators/crud/templates/carcentos_crud_office"
-hln "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.12/carcentos_model_office" "/Users/putrasudaryanto/htdocs/yii-1.1.12/framework/gii/generators/model/templates/carcentos_model_office"
-hln "/Users/putrasudaryanto/htdocs/_project_ommu_bootstrap/yii-1.1.12/carcentos_module_sweeto" "/Users/putrasudaryanto/htdocs/yii-1.1.12/framework/gii/generators/module/templates/carcentos_module_sweeto"
+hln "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.12/carcentos_crud_office" "/Users/putrasudaryanto/htdocs/yii-1.1.12/framework/gii/generators/crud/templates/carcentos_crud_office"
+hln "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.12/carcentos_model_office" "/Users/putrasudaryanto/htdocs/yii-1.1.12/framework/gii/generators/model/templates/carcentos_model_office"
+hln "/Users/putrasudaryanto/htdocs/project_ommu_module/gii_template/yii-1.1.12/carcentos_module_sweeto" "/Users/putrasudaryanto/htdocs/yii-1.1.12/framework/gii/generators/module/templates/carcentos_module_sweeto"
