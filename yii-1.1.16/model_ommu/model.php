@@ -407,7 +407,6 @@ foreach($columns as $name=>$column) {
 		));
 	}
 
-
 	/**
 	 * Get column for CGrid View
 	 */
