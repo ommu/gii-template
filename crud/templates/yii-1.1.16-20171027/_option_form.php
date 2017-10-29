@@ -43,18 +43,17 @@ EOP;
 	'name' => 'gridoption',
 ));
 \$columns   = array();
-\$exception = array('id');
-foreach(\$model->metaData->columns as \$key => \$val) {
-	if(!in_array(\$key, \$exception)) {
+\$exception = array('_option','_no','id');
+foreach(\$model->templateColumns as \$key => \$val) {
+	if(!in_array(\$key, \$exception))
 		\$columns[\$key] = \$key;
-	}
 }
 ?>\n"; ?>
 <ul>
 	<?php echo "<?php foreach(\$columns as \$val): ?>\n";?>
 	<li>
-		<?php echo "<?php echo CHtml::checkBox('GridColumn['.\$val.']'); ?>\n"; ?>
-		<?php echo "<?php echo CHtml::label(\$val, 'GridColumn_'.\$val); ?>\n";?>
+		<?php echo "<?php echo CHtml::checkBox('GridColumn['.\$val.']', in_array(\$key, \$gridColumns) ? true : false); ?>\n"; ?>
+		<?php echo "<?php echo CHtml::label(\$model->getAttributeLabel(\$val), 'GridColumn_'.\$val); ?>\n";?>
 	</li>
 	<?php echo "<?php endforeach; ?>\n";?>
 </ul>

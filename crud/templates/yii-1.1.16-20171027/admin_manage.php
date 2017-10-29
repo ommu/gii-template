@@ -44,18 +44,19 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 
 <?php echo "<?php //begin.Search ?>\n";?>
-<div class="search-form">
 <?php echo "<?php \$this->renderPartial('_search',array(
 	'model'=>\$model,
 )); ?>\n"; ?>
+<div class="search-form">
 </div>
 <?php echo "<?php //end.Search ?>\n";?>
 
 <?php echo "<?php //begin.Grid Option ?>\n";?>
-<div class="grid-form">
 <?php echo "<?php \$this->renderPartial('_option_form',array(
 	'model'=>\$model,
+	'gridColumns'=>Utility::getActiveDefaultColumns(\$columns),
 )); ?>\n"; ?>
+<div class="grid-form">
 </div>
 <?php echo "<?php //end.Grid Option ?>\n";?>
 
@@ -83,7 +84,7 @@ echo "\t\$this->breadcrumbs=array(
 					'view' => array(
 						'label' => 'view',
 						'imageUrl' => false,
-						'options' => array(							
+						'options' => array(
 							'class' => 'view',
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'view\',array(\'id\'=>$data->primaryKey))'),
