@@ -100,29 +100,29 @@ endforeach;
 foreach($relations as $name=>$relation): ?>
  * @property <?php
 	if (preg_match("~^array\(self::([^,]+), '([^']+)', '([^']+)'\)$~", $relation, $matches))
-    {
-        $relationType = $matches[1];
-        $relationModel = preg_replace('(Ommu)', '', $matches[2]);
+	{
+		$relationType = $matches[1];
+		$relationModel = preg_replace('(Ommu)', '', $matches[2]);
 		$relationName = setRelationName($name);
 		if($relationName == 'cat')
 			$relationName = 'category';
 
-        switch($relationType){
-            case 'HAS_ONE':
-                echo $relationModel.' $'.$relationName."\n";
-            break;
-            case 'BELONGS_TO':
-                echo $relationModel.' $'.$relationName."\n";
-            break;
-            case 'HAS_MANY':
-                echo $relationModel.'[] $'.$relationName."\n";
-            break;
-            case 'MANY_MANY':
-                echo $relationModel.'[] $'.$relationName."\n";
-            break;
-            default:
-                echo 'mixed $'.$name."\n";
-        }
+		switch($relationType){
+			case 'HAS_ONE':
+				echo $relationModel.' $'.$relationName."\n";
+			break;
+			case 'BELONGS_TO':
+				echo $relationModel.' $'.$relationName."\n";
+			break;
+			case 'HAS_MANY':
+				echo $relationModel.'[] $'.$relationName."\n";
+			break;
+			case 'MANY_MANY':
+				echo $relationModel.'[] $'.$relationName."\n";
+			break;
+			default:
+				echo 'mixed $'.$name."\n";
+		}
 	}
 endforeach;
 foreach($labels as $name=>$label):
@@ -139,8 +139,8 @@ endif; ?>
  */
 class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 {
-    public $defaultColumns = array();
-    public $templateColumns = array();
+	public $defaultColumns = array();
+	public $templateColumns = array();
 	public $gridForbiddenColumn = array();
 
 	// Variable Search
@@ -442,89 +442,58 @@ foreach($columns as $name=>$column) {
 		));
 	}
 
-    /**
-     * Get kolom untuk Grid View
-     *
-     * @param array $columns kolom dari view
-     * @return array dari grid yang aktif
-     */
-    public function getGridColumn($columns=null) 
-    {
-        // Jika $columns kosong maka isi defaultColumns dg templateColumns
-        if(empty($columns) || $columns == null) {
-            array_splice($this->defaultColumns, 0);
-            foreach($this->templateColumns as $key => $val) {
-                if(!in_array($key, $this->gridForbiddenColumn) && !in_array($key, $this->defaultColumns))
-                    $this->defaultColumns[] = $val;
-            }
-            return $this->defaultColumns;
-        }
-
-        foreach($columns as $val) {
-            if(!in_array($val, $this->gridForbiddenColumn) && !in_array($val, $this->defaultColumns)) {
-                $col = $this->getTemplateColumn($val);
-                if($col != null)
-                    $this->defaultColumns[] = $col;
-            }
-        }
-
-        array_unshift($this->defaultColumns, [
-            'header' => Yii::t('app', 'No'),
-            'class'  => 'yii\grid\SerialColumn'
-        ]);
-
-        return $this->defaultColumns;
-    }
-
-    /**
-     * Get kolom template berdasarkan id pengenal
-     *
-     * @param string $name nama pengenal
-     * @return mixed
-     */
-    public function getTemplateColumn($name) 
-    {
-        $data = null;
-        if(trim($name) == '') return $data;
-
-        foreach($this->templateColumns as $key => $item) {
-            if($name == $key) {
-                $data = $item;
-                break;
-            }
-        }
-        return $data;
-    }
-
 	/**
-	 * Get column for CGrid View
+	 * Get kolom untuk Grid View
+	 *
+	 * @param array $columns kolom dari view
+	 * @return array dari grid yang aktif
 	 */
-	public function getGridColumn($columns=null) {
-		if($columns !== null) {
-			foreach($columns as $val) {
-				/*
-				if(trim($val) == 'enabled') {
-					$this->defaultColumns[] = array(
-						'name'  => 'enabled',
-						'value' => '$data->enabled == 1? "Ya": "Tidak"',
-					);
-				}
-				*/
-				$this->defaultColumns[] = $val;
+	public function getGridColumn($columns=null) 
+	{
+		// Jika $columns kosong maka isi defaultColumns dg templateColumns
+		if(empty($columns) || $columns == null) {
+			array_splice($this->defaultColumns, 0);
+			foreach($this->templateColumns as $key => $val) {
+				if(!in_array($key, $this->gridForbiddenColumn) && !in_array($key, $this->defaultColumns))
+					$this->defaultColumns[] = $val;
 			}
-		} else {
-<?php
-foreach($columns as $name=>$column)
-{
-	if($column->isPrimaryKey)
-		echo "\t\t\t"."//"."\$this->defaultColumns[] = '$name';\n";
-	else
-		echo "\t\t\t\$this->defaultColumns[] = '$name';\n";
-}
-?>
+			return $this->defaultColumns;
 		}
 
+		foreach($columns as $val) {
+			if(!in_array($val, $this->gridForbiddenColumn) && !in_array($val, $this->defaultColumns)) {
+				$col = $this->getTemplateColumn($val);
+				if($col != null)
+					$this->defaultColumns[] = $col;
+			}
+		}
+
+		array_unshift($this->defaultColumns, array(
+			'header' => Yii::t('app', 'No'),
+			'value' => '$this->grid->dataProvider->pagination->currentPage*$this->grid->dataProvider->pagination->pageSize + $row+1'
+		));
+
 		return $this->defaultColumns;
+	}
+
+	/**
+	 * Get kolom template berdasarkan id pengenal
+	 *
+	 * @param string $name nama pengenal
+	 * @return mixed
+	 */
+	public function getTemplateColumn($name) 
+	{
+		$data = null;
+		if(trim($name) == '') return $data;
+
+		foreach($this->templateColumns as $key => $item) {
+			if($name == $key) {
+				$data = $item;
+				break;
+			}
+		}
+		return $data;
 	}
 
 	/**
@@ -539,32 +508,16 @@ foreach($columns as $name=>$column)
 				'checkBoxHtmlOptions' => array('name' => 'trash_id[]')
 			);
 			$this->templateColumns['_no'] = array(
-				'header' => 'No',
+				'header' => Yii::t('app', 'No'),
 				'value' => '$this->grid->dataProvider->pagination->currentPage*$this->grid->dataProvider->pagination->pageSize + $row+1'
 			);
 <?php
+//echo '<pre>';
+//print_r($columns);
 foreach($columns as $name=>$column)
 {
-	if(!$column->isPrimaryKey) {
-		if($column->dbType == 'tinyint(1)') {
-			if(in_array($column->name, array('publish')))
-				echo "\t\t\tif(!isset(\$_GET['type'])) {\n";
-			echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
-			echo "\t\t\t\t'name' => '$name',\n";
-			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\',array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
-			echo "\t\t\t\t'htmlOptions' => array(\n";
-			echo "\t\t\t\t\t'class' => 'center',\n";
-			echo "\t\t\t\t),\n";
-			echo "\t\t\t\t'filter'=>array(\n";
-			echo "\t\t\t\t\t1=>Yii::t('phrase', 'Yes'),\n";
-			echo "\t\t\t\t\t0=>Yii::t('phrase', 'No'),\n";
-			echo "\t\t\t\t),\n";
-			echo "\t\t\t\t'type' => 'raw',\n";
-			echo "\t\t\t);\n";
-			if(in_array($column->name, array('publish')))
-				echo "\t\t\t}\n";
-			
-		} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
+	if(!$column->isPrimaryKey && $column->dbType != 'tinyint(1)') {
+		if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
 			$arrayName = explode('_', $column->name);
 			$cName = 'displayname';
 			if($column->isForeignKey == '1')
@@ -587,7 +540,10 @@ foreach($columns as $name=>$column)
 		} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
 			echo "\t\t\t\t'name' => '$name',\n";
-			echo "\t\t\t\t'value' => 'Utility::dateFormat(\$data->$name)',\n";
+			if(in_array($column->dbType, array('timestamp','datetime')))
+				echo "\t\t\t\t'value' => '!in_array(\$data->$name, array(\'0000-00-00 00:00:00\', \'1970-01-01 00:00:00\')) ? Utility::dateFormat(\$data->$name) : \'-\'',\n";
+			else
+				echo "\t\t\t\t'value' => '!in_array(\$data->$name, array(\'0000-00-00\', \'1970-01-01\')) ? Utility::dateFormat(\$data->$name) : \'-\'',\n";
 			echo "\t\t\t\t'htmlOptions' => array(\n";
 			echo "\t\t\t\t\t'class' => 'center',\n";
 			echo "\t\t\t\t),\n";
@@ -618,6 +574,27 @@ foreach($columns as $name=>$column)
 			echo "\t\t\t\t'value' => '\$data->$name',\n";
 			echo "\t\t\t);\n";
 		}
+	}
+}
+foreach($columns as $name=>$column)
+{
+	if(!$column->isPrimaryKey && $column->dbType == 'tinyint(1)') {
+		if(in_array($name, array('publish')))
+			echo "\t\t\tif(!isset(\$_GET['type'])) {\n";
+		echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
+		echo "\t\t\t\t'name' => '$name',\n";
+		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\',array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
+		echo "\t\t\t\t'htmlOptions' => array(\n";
+		echo "\t\t\t\t\t'class' => 'center',\n";
+		echo "\t\t\t\t),\n";
+		echo "\t\t\t\t'filter'=>array(\n";
+		echo "\t\t\t\t\t1=>Yii::t('phrase', 'Yes'),\n";
+		echo "\t\t\t\t\t0=>Yii::t('phrase', 'No'),\n";
+		echo "\t\t\t\t),\n";
+		echo "\t\t\t\t'type' => 'raw',\n";
+		echo "\t\t\t);\n";
+		if(in_array($name, array('publish')))
+			echo "\t\t\t}\n";
 	}
 }
 ?>

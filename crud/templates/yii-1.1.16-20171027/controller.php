@@ -96,7 +96,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	{
 		return array(
 			array('allow',  // allow all users to perform 'index' and 'view' actions
-				'actions'=>array('index','view'),
+				'actions'=>array('index'),
 				'users'=>array('*'),
 			),
 			array('allow', // allow authenticated user to perform 'create' and 'update' actions
@@ -105,7 +105,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				'expression'=>'isset(Yii::app()->user->level)',
 			),
 			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('manage','add','edit','runaction','delete','publish','headline'),
+				'actions'=>array('manage','add','edit','view','runaction','delete','publish','headline'),
 				'users'=>array('@'),
 				'expression'=>'isset(Yii::app()->user->level) && (Yii::app()->user->level == 1)',
 				//'expression'=>'isset(Yii::app()->user->level) && (in_array(Yii::app()->user->level, array(1,2)))',
@@ -125,6 +125,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionIndex() 
 	{
+		/*
 		$arrThemes = Utility::getCurrentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
@@ -152,7 +153,8 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->render('front_index',array(
 			'dataProvider'=>$dataProvider,
 		));
-		//$this->redirect(array('manage'));
+		*/
+		$this->redirect(array('manage'));
 	}
 
 	/**
@@ -336,7 +338,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->layout = $arrThemes['layout'];
 		Utility::applyCurrentTheme($this->module);
 		
-		$setting = VideoSetting::model()->findByPk(1,array(
+		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1,array(
 			'select' => 'meta_keyword',
 		));
 		*/
