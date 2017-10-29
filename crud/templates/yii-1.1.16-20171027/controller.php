@@ -235,12 +235,10 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			Yii::app()->end();
 			*/
 
-			if(isset($_GET['enablesave']) && $_GET['enablesave'] == 1) {
-				if($model->save()) {
-					Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success created.'));
-					//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
-					$this->redirect(array('manage'));
-				}
+			if($model->save()) {
+				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success created.'));
+				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
+				$this->redirect(array('manage'));
 			}
 		}
 		
@@ -304,13 +302,11 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			}
 			Yii::app()->end();
 			*/
-
-			if(isset($_GET['enablesave']) && $_GET['enablesave'] == 1) {
-				if($model->save()) {
-					Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success updated.'));
-					//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
-					$this->redirect(array('manage'));
-				}
+			
+			if($model->save()) {
+				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success updated.'));
+				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
+				$this->redirect(array('manage'));
 			}
 		}
 		
