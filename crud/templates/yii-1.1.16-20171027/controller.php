@@ -17,10 +17,10 @@ $label = $this->pluralize($this->class2name($this->modelClass));
  *
  * TOC :
  *	Index
- *	View
  *	Manage
  *	Add
  *	Edit
+ *	View
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
  *	RunAction
 <?php endif; ?>
@@ -63,6 +63,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				$arrThemes = Utility::getCurrentTemplate('admin');
 				Yii::app()->theme = $arrThemes['folder'];
 				$this->layout = $arrThemes['layout'];
+				Utility::applyViewPath(__dir__);
 			} else
 				throw new CHttpException(404, Yii::t('phrase', 'The requested page does not exist.'));
 		} else
@@ -153,36 +154,6 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		));
 		//$this->redirect(array('manage'));
 	}
-	
-	/**
-	 * Displays a particular model.
-	 * @param integer $id the ID of the model to be displayed
-	 */
-	public function actionView($id) 
-	{
-		$arrThemes = Utility::getCurrentTemplate('public');
-		Yii::app()->theme = $arrThemes['folder'];
-		$this->layout = $arrThemes['layout'];
-		Utility::applyCurrentTheme($this->module);
-		
-		$setting = VideoSetting::model()->findByPk(1,array(
-			'select' => 'meta_keyword',
-		));
-
-		$model=$this->loadModel($id);
-
-		$this->pageTitle = Yii::t('phrase', 'View <?php echo $label; ?>');
-		$this->pageDescription = '';
-		$this->pageMeta = $setting->meta_keyword;
-		$this->render('front_view',array(
-			'model'=>$model,
-		));
-		/*
-		$this->render('admin_view',array(
-			'model'=>$model,
-		));
-		*/
-	}	
 
 	/**
 	 * Manages all models.
@@ -352,6 +323,35 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			'model'=>$model,
 		));
 	}
+	
+	/**
+	 * Displays a particular model.
+	 * @param integer $id the ID of the model to be displayed
+	 */
+	public function actionView($id) 
+	{
+		/*
+		$arrThemes = Utility::getCurrentTemplate('public');
+		Yii::app()->theme = $arrThemes['folder'];
+		$this->layout = $arrThemes['layout'];
+		Utility::applyCurrentTheme($this->module);
+		
+		$setting = VideoSetting::model()->findByPk(1,array(
+			'select' => 'meta_keyword',
+		));
+		*/
+
+		$model=$this->loadModel($id);
+
+		$this->pageTitle = Yii::t('phrase', 'View <?php echo $label; ?>');
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		//$this->pageMeta = $setting->meta_keyword;
+		//$this->render('front_view',array(
+		$this->render('admin_view',array(
+			'model'=>$model,
+		));
+	}	
 
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 	/**
@@ -455,20 +455,20 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
 				));
 			}
-
-		} else {
-			$this->dialogDetail = true;
-			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
-			$this->dialogWidth = 350;
-
-			$this->pageTitle = Yii::t('phrase', '$title <?php echo $label; ?>', array('$title'=>$title));
-			$this->pageDescription = '';
-			$this->pageMeta = '';
-			$this->render('admin_publish',array(
-				'title'=>$title,
-				'model'=>$model,
-			));
+			Yii::app()->end();
 		}
+
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 350;
+
+		$this->pageTitle = Yii::t('phrase', '$title <?php echo $label; ?>', array('$title'=>$title));
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		$this->render('admin_publish',array(
+			'title'=>$title,
+			'model'=>$model,
+		));
 	}
 
 <?php endif;
@@ -498,17 +498,17 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 					));
 				}
 			}
-
-		} else {
-			$this->dialogDetail = true;
-			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
-			$this->dialogWidth = 350;
-
-			$this->pageTitle = Yii::t('phrase', 'Headline');
-			$this->pageDescription = '';
-			$this->pageMeta = '';
-			$this->render('admin_headline');
+			Yii::app()->end();
 		}
+
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 350;
+
+		$this->pageTitle = Yii::t('phrase', 'Headline');
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		$this->render('admin_headline');
 	}
 
 <?php endif; ?>
