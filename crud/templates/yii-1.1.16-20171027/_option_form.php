@@ -39,22 +39,22 @@ EOP;
 	$cs->registerScript('grid-option', $js, CClientScript::POS_END);
 ?>
 
-<?php echo "<?php echo CHtml::beginForm(Yii::app()->createUrl(\$this->route), 'get', array(
+<?php echo "<?php ";?>echo CHtml::beginForm(Yii::app()->createUrl($this->route), 'get', array(
 	'name' => 'gridoption',
 ));
-\$columns   = array();
-\$exception = array('_option','_no','id');
-foreach(\$model->templateColumns as \$key => \$val) {
-	if(!in_array(\$key, \$exception))
-		\$columns[\$key] = \$key;
+$columns   = array();
+$exception = array('_option','_no','id');
+foreach($model->templateColumns as $key => $val) {
+	if(!in_array($key, $exception))
+		$columns[$key] = $key;
 }
-?>\n"; ?>
+?>
 <ul>
-	<?php echo "<?php foreach(\$columns as \$val): ?>\n";?>
+	<?php echo "<?php ";?>foreach($columns as $val): ?>
 	<li>
-		<?php echo "<?php echo CHtml::checkBox('GridColumn['.\$val.']', in_array(\$key, \$gridColumns) ? true : false); ?>\n"; ?>
-		<?php echo "<?php echo CHtml::label(\$model->getAttributeLabel(\$val), 'GridColumn_'.\$val); ?>\n";?>
+		<?php echo "<?php ";?>echo CHtml::checkBox('GridColumn['.$val.']', in_array($key, $gridColumns) ? true : false); ?>
+		<?php echo "<?php ";?>echo CHtml::label($model->getAttributeLabel($val), 'GridColumn_'.$val); ?>
 	</li>
-	<?php echo "<?php endforeach; ?>\n";?>
+	<?php echo "<?php ";?>endforeach; ?>
 </ul>
-<?php echo "<?php echo CHtml::endForm(); ?>\n"; ?>
+<?php echo "<?php ";?>echo CHtml::endForm(); ?>

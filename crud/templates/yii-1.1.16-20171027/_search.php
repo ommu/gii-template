@@ -21,26 +21,33 @@
  */
 ?>
 
-<?php echo "<?php \$form=\$this->beginWidget('CActiveForm', array(
-	'action'=>Yii::app()->createUrl(\$this->route),
+<?php echo "<?php ";?>$form=$this->beginWidget('CActiveForm', array(
+	'action'=>Yii::app()->createUrl($this->route),
 	'method'=>'get',
-)); ?>\n"; ?>
+)); ?>
 	<ul>
-<?php foreach($this->tableSchema->columns as $column): ?>
-<?php
+<?php foreach($this->tableSchema->columns as $column):
 	$field=$this->generateInputField($this->modelClass,$column);
-	if(strpos($field,'password')!==false)
+	if(strpos($field,'password')!==false || $column->type==='boolean' || $column->dbType == 'tinyint(1)')
 		continue;
 ?>
 		<li>
 			<?php echo "<?php echo \$model->getAttributeLabel('{$column->name}'); ?><br/>\n"; ?>
-			<?php echo "<?php echo \$form->textField(\$model,'{$column->name}'); ?><br/>\n"; ?>
-			<?php /* echo "<?php echo ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; */ ?>
+			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column,false)."; ?>\n"; ?>
 		</li>
 
-<?php endforeach; ?>
+<?php endforeach;
+foreach($this->tableSchema->columns as $column):
+	if($column->type==='boolean' || $column->dbType == 'tinyint(1)'): ?>
+		<li>
+			<?php echo "<?php echo \$model->getAttributeLabel('{$column->name}'); ?><br/>\n"; ?>
+			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column,false)."; ?>\n"; ?>
+		</li>
+
+<?php endif;
+endforeach; ?>
 		<li class="submit">
-			<?php echo "<?php echo CHtml::submitButton(Yii::t('phrase', 'Search')); ?>\n"; ?>
+			<?php echo "<?php ";?>echo CHtml::submitButton(Yii::t('phrase', 'Search')); ?>
 		</li>
 	</ul>
-<?php echo "<?php \$this->endWidget(); ?>\n"; ?>
+<?php echo "<?php ";?>$this->endWidget(); ?>

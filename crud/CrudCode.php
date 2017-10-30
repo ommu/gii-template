@@ -202,26 +202,63 @@ class CrudCode extends CCodeModel
 		return "\$form->labelEx(\$model,'{$column->name}')";
 	}
 
-	public function generateActiveField($modelClass,$column)
+	public function generateActiveField($modelClass,$column,$form=true)
 	{
-		if($column->type==='boolean')
-			return "\$form->checkBox(\$model,'{$column->name}')";
-		elseif(stripos($column->dbType,'text')!==false)
-			return "\$form->textArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50))";
-		else
-		{
+		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
+if($form == true)
+			return "echo \$form->checkBox(\$model,'{$column->name}')";
+else
+			return "echo \$form->checkBox(\$model,'{$column->name}')";
+		} elseif(stripos($column->dbType,'text')!==false) {
+			if($form == true)
+				$return = "//echo \$form->textArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50));";
+			$return .= "\$this->widget('application.vendor.yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
+				'model'=>\$model,
+				'attribute'=>'{$column->name}',
+				'options'=>array(
+					'buttons'=>array(
+						'html', 'formatting', '|', 
+						'bold', 'italic', 'deleted', '|',
+						'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
+						'link', '|',
+					),
+				),
+				'plugins' => array(
+					'fontcolor' => array('js' => array('fontcolor.js')),
+					'table' => array('js' => array('table.js')),
+					'fullscreen' => array('js' => array('fullscreen.js')),
+				),
+			));";
+			return $return;
+		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
+			if($form == true)
+				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
+			$return .= "//echo \$form->textField(\$model,'{$column->name}');
+			\$this->widget('application.components.system.CJuiDatePicker',array(
+				'model'=>\$model,
+				'attribute'=>'{$column->name}',
+				//'mode'=>'datetime',
+				'options'=>array(
+					'dateFormat' => 'dd-mm-yy',
+				),
+				'htmlOptions'=>array(
+					'class' => 'span-4',
+				 ),
+			));";
+			return $return;
+		} else {
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
 				$inputField='passwordField';
 			else
 				$inputField='textField';
 
 			if($column->type!=='string' || $column->size===null)
-				return "\$form->{$inputField}(\$model,'{$column->name}')";
+				return "echo \$form->{$inputField}(\$model,'{$column->name}')";
 			else
 			{
 				if(($size=$maxLength=$column->size)>60)
 					$size=60;
-				return "\$form->{$inputField}(\$model,'{$column->name}',array('size'=>$size,'maxlength'=>$maxLength))";
+				return "echo \$form->{$inputField}(\$model,'{$column->name}',array('size'=>$size,'maxlength'=>$maxLength))";
 			}
 		}
 	}
