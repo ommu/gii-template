@@ -31,7 +31,7 @@ echo "\t\$this->breadcrumbs=array(
 
 <?php echo '<?php'?> /*
 <div class="form" name="post-on">
-	<?php echo "<?php echo \$this->renderPartial('_form', array('model'=>\$model)); ?>\n"; ?>
+	<?php echo "<?php ";?>echo $this->renderPartial('_form', array('model'=>$model)); ?>
 </div>
 */?>
-<?php echo "<?php echo \$this->renderPartial('_form', array('model'=>\$model)); ?>\n"; ?>
+<?php echo "<?php ";?>echo $this->renderPartial('_form', array('model'=>$model)); ?>

@@ -43,38 +43,37 @@ echo "\t\$this->breadcrumbs=array(
 
 ?>
 
-<?php echo "<?php //begin.Search ?>\n";?>
-<?php echo "<?php \$this->renderPartial('_search',array(
-	'model'=>\$model,
-)); ?>\n"; ?>
+<?php echo "<?php ";?>//begin.Search ?>
 <div class="search-form">
+<?php echo "<?php ";?>$this->renderPartial('_search',array(
+	'model'=>$model,
+)); ?>
 </div>
-<?php echo "<?php //end.Search ?>\n";?>
+<?php echo "<?php ";?>//end.Search ?>
 
-<?php echo "<?php //begin.Grid Option ?>\n";?>
-<?php echo "<?php \$this->renderPartial('_option_form',array(
-	'model'=>\$model,
-	'gridColumns'=>Utility::getActiveDefaultColumns(\$columns),
-)); ?>\n"; ?>
+<?php echo "<?php ";?>//begin.Grid Option ?>
 <div class="grid-form">
+<?php echo "<?php ";?>$this->renderPartial('_option_form',array( 
+	'model'=>$model, 
+	'gridColumns'=>Utility::getActiveDefaultColumns($columns), 
+)); ?>
 </div>
-<?php echo "<?php //end.Grid Option ?>\n";?>
+<?php echo "<?php ";?>//end.Grid Option ?>
 
 <div id="partial-<?php echo $this->class2id($this->modelClass); ?>">
-	<?php 
-	echo "<?php //begin.Messages ?>\n";
-	echo "\t<div id=\"ajax-message\">\n";
-	echo "\t<?php\n";
-	echo "\tif(Yii::app()->user->hasFlash('error'))
-		echo Utility::flashError(Yii::app()->user->getFlash('error'));
-	if(Yii::app()->user->hasFlash('success'))
-		echo Utility::flashSuccess(Yii::app()->user->getFlash('success'));
-	?>\n";
-	echo "\t</div>\n";
-	echo "\t<?php //begin.Messages ?>\n";?>
+	<?php echo "<?php ";?>//begin.Messages ?>
+	<div id="ajax-message">
+	<?php echo "<?php \n";?>
+	if(Yii::app()->user->hasFlash('error')) 
+		echo Utility::flashError(Yii::app()->user->getFlash('error')); 
+	if(Yii::app()->user->hasFlash('success')) 
+		echo Utility::flashSuccess(Yii::app()->user->getFlash('success')); 
+	?>
+	</div>
+	<?php echo "<?php ";?>//begin.Messages ?>
 
 	<div class="boxed">
-		<?php echo "<?php //begin.Grid Item ?>\n";?>
+		<?php echo "<?php ";?>//begin.Grid Item ?>
 		<?php echo "<?php"; ?> 
 			$columnData   = $columns;
 			array_push($columnData, array(
@@ -115,6 +114,6 @@ echo "\t\$this->breadcrumbs=array(
 				'pager' => array('header' => ''),
 			));
 		?>
-		<?php echo "<?php //end.Grid Item ?>\n";?>
+		<?php echo "<?php ";?>//end.Grid Item ?>
 	</div>
 </div>

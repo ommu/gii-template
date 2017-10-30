@@ -29,25 +29,17 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php 
-echo "<?php //begin.Messages ?>\n";
-echo "<?php\n";
-echo "if(Yii::app()->user->hasFlash('success'))
-	echo Utility::flashSuccess(Yii::app()->user->getFlash('success'));
-?>\n";
-echo "<?php //end.Messages ?>\n";?>
+<?php echo "<?php ";?>//begin.Messages ?>
+<?php echo "<?php \n";?>
+if(Yii::app()->user->hasFlash('success')) 
+	echo Utility::flashSuccess(Yii::app()->user->getFlash('success')); 
+?>
+<?php echo "<?php ";?>//end.Messages ?>
 
 <?php echo "<?php"; ?> $this->widget('application.components.system.FDetailView', array(
 	'data'=>$model,
 	'attributes'=>array(
 <?php
-/*
-echo '<pre>';
-print_r($this->tableSchema);
-print_r($this->tableSchema->columns);
-echo '</pre>';
-//echo exit();
-*/
 
 foreach($this->tableSchema->columns as $name=>$column)
 	if($column->name == $this->tableSchema->primaryKey) {
@@ -55,23 +47,27 @@ foreach($this->tableSchema->columns as $name=>$column)
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name,\n";
 		echo "\t\t),\n";
-	} else if(in_array($column->name, array('publish','status'))) {
+	} else if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name == '1' ? Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
 		echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
 	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
-		$arrayName = explode('_', $column->name);
-		$cName = 'displayname';
-		if($column->isForeignKey == '1')
-			$cName = 'column_name_relation';
-		$cRelation = $arrayName[0];
-		if($cRelation == 'cat')
-			$cRelation = 'category';
+		$relationArray = explode('_',$column->name);
+		$relationName = $relationArray[0];
+		$publicAttribute = $relationName.'_search';
+		$relationAttribute = 'displayname';
+		if($column->isForeignKey == '1') {
+			$relationName = setRelationName($name, true);
+			if($relationName == 'cat')
+				$relationName = 'category';
+			$publicAttribute = $relationName.'_search';
+			$relationAttribute = 'column_name_relation';
+		}
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";	
-		echo "\t\t\t'value'=>\$model->$name ? \$model->{$cRelation}->{$cName} : '-',\n";
+		echo "\t\t\t'value'=>\$model->$name ? \$model->{$relationName}->{$relationAttribute} : '-',\n";
 		echo "\t\t),\n";		
 	} else if($column->dbType == 'text') {
 		echo "\t\tarray(\n";
@@ -94,9 +90,8 @@ foreach($this->tableSchema->columns as $name=>$column)
 		}		
 	} else {
 		echo "\t\tarray(\n";
-		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name,\n";		
-		echo "\t\t\t//'value'=>\$model->$name ? \$model->$name : '-',\n";
+		echo "\t\t\t'name'=>'$name',\n";	
+		echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
 		echo "\t\t),\n";
 	}
 ?>
@@ -108,5 +103,5 @@ foreach($this->tableSchema->columns as $name=>$column)
 <div class="dialog-content">
 </div>
 <div class="dialog-submit">
-<?php echo "\t<?php echo CHtml::button(Yii::t('phrase', 'Close'), array('id'=>'closed')); ?>\n";?>
+	<?php echo "<?php ";?>echo CHtml::button(Yii::t('phrase', 'Close'), array('id'=>'closed')); ?>
 </div>

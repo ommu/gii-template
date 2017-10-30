@@ -29,18 +29,18 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php echo "<?php \$form=\$this->beginWidget('application.components.system.OActiveForm', array(
-	'id'=>'".$this->class2id($this->modelClass)."-form',
+<?php echo "<?php ";?>$form=$this->beginWidget('application.components.system.OActiveForm', array(
+	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
 	'enableAjaxValidation'=>true,
 	//'htmlOptions' => array('enctype' => 'multipart/form-data')
-)); ?>\n"; ?>
+)); ?>
 
 	<div class="dialog-content">
-		<?php echo "<?php echo \$model->publish == 1 ? Yii::t('phrase', 'Are you sure you want to unpublish this item?') : Yii::t('phrase', 'Are you sure you want to publish this item?')?>\n";?>
+		<?php echo "<?php ";?>echo $model->publish == 1 ? Yii::t('phrase', 'Are you sure you want to unpublish this item?') : Yii::t('phrase', 'Are you sure you want to publish this item?')?>
 	</div>
 	<div class="dialog-submit">
-		<?php echo "<?php echo CHtml::submitButton(\$title, array('onclick' => 'setEnableSave()')); ?>\n";?>
-		<?php echo "<?php echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>\n";?>
+		<?php echo "<?php ";?>echo CHtml::submitButton(\$title, array('onclick' => 'setEnableSave()')); ?>
+		<?php echo "<?php ";?>echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>
 	</div>
 	
-<?php echo "<?php \$this->endWidget(); ?>\n"; ?>
+<?php echo "<?php ";?>$this->endWidget(); ?>
