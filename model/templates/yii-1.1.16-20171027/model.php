@@ -395,8 +395,10 @@ foreach($columns as $name=>$column) {
 
 	} else if(in_array($column->dbType, array('int','smallint')) || ($column->type==='string' && $column->isPrimaryKey == '1'))
 		echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
+
 	else if($column->type==='string')
 		echo "\t\t\$criteria->compare('t.$name', strtolower(\$this->$name),true);\n";
+		
 	else
 		echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
 

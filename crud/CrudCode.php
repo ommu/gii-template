@@ -208,11 +208,11 @@ class CrudCode extends CCodeModel
 if($form == true)
 			return "echo \$form->checkBox(\$model,'{$column->name}')";
 else
-			return "echo \$form->checkBox(\$model,'{$column->name}')";
+			return "echo \$form->dropDownList(\$model,'{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')))";
 		} elseif(stripos($column->dbType,'text')!==false) {
-			if($form == true)
-				$return = "//echo \$form->textArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50));";
-			$return .= "\$this->widget('application.vendor.yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
+if($form == true) {
+			$return = "//echo \$form->textArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50));
+			\$this->widget('application.vendor.yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
 				'options'=>array(
@@ -229,6 +229,8 @@ else
 					'fullscreen' => array('js' => array('fullscreen.js')),
 				),
 			));";
+} else
+			$return = "echo \$form->textField(\$model,'{$column->name}')";
 			return $return;
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if($form == true)
@@ -252,13 +254,30 @@ else
 			else
 				$inputField='textField';
 
+				$columnName = $column->name;
+if($form == false) {
+			if($column->isForeignKey == '1') {
+				$relationName = $this->setRelationName($column->name, true);
+				if($relationName == 'cat')
+					$relationName = 'category';
+				$columnName = $relationName.'_search';
+			} else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
+				$relationArray = explode('_',$column->name);
+				$relationName = $relationArray[0];
+				$columnName = $relationName.'_search';
+			}
+}
+
 			if($column->type!=='string' || $column->size===null)
-				return "echo \$form->{$inputField}(\$model,'{$column->name}')";
+				return "echo \$form->{$inputField}(\$model,'{$columnName}')";
 			else
 			{
 				if(($size=$maxLength=$column->size)>60)
 					$size=60;
-				return "echo \$form->{$inputField}(\$model,'{$column->name}',array('size'=>$size,'maxlength'=>$maxLength))";
+if($form == true)
+				return "echo \$form->{$inputField}(\$model,'{$columnName}',array('size'=>$size,'maxlength'=>$maxLength))";
+else
+				return "echo \$form->{$inputField}(\$model,'{$columnName}')";
 			}
 		}
 	}
@@ -281,5 +300,37 @@ else
 				return $column->name;
 		}
 		return 'id';
+	}
+ 
+	/* 
+	* set name relation with underscore
+	*/
+	public function setRelationName($names, $column=false) {
+		$patterns = array();
+		$patterns[0] = '(_ommu)';
+		$patterns[1] = '(_core)';
+		
+		if($column == false) {
+			$char=range("A","Z");
+			foreach($char as $val) {
+				if(strpos($names, $val) !== false) {
+					$names = str_replace($val, '_'.strtolower($val), $names);
+				}
+			}
+		} else
+			$names = rtrim($names, 'id');
+
+		$return = trim(preg_replace($patterns, '', $names), '_');
+		$return = array_map('strtolower', explode('_', $return));
+		//print_r($return);
+
+		if(count($return) != 1)
+			return end($return);
+		else {
+			if(is_array($return))
+				return implode('', $return);
+			else
+				return $return;
+		}
 	}
 }
