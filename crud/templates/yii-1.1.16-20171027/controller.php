@@ -201,7 +201,6 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		if(isset($_POST['<?php echo $this->modelClass; ?>'])) {
 			$model->attributes=$_POST['<?php echo $this->modelClass; ?>'];
 
-			/* 
 			$jsonError = CActiveForm::validate($model);
 			if(strlen($jsonError) > 2) {
 				//echo $jsonError;
@@ -233,13 +232,14 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				}
 			}
 			Yii::app()->end();
-			*/
 
+			/* 
 			if($model->save()) {
 				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success created.'));
 				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
 				$this->redirect(array('manage'));
 			}
+			*/
 		}
 		
 		$this->dialogDetail = true; 
@@ -269,7 +269,6 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		if(isset($_POST['<?php echo $this->modelClass; ?>'])) {
 			$model->attributes=$_POST['<?php echo $this->modelClass; ?>'];
 
-			/* 
 			$jsonError = CActiveForm::validate($model);
 			if(strlen($jsonError) > 2) {
 				//echo $jsonError;
@@ -301,13 +300,14 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				}
 			}
 			Yii::app()->end();
-			*/
-			
+
+			/* 
 			if($model->save()) {
 				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success updated.'));
 				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
 				$this->redirect(array('manage'));
 			}
+			*/
 		}
 		
 		$this->dialogDetail = true; 
@@ -414,17 +414,17 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success deleted.').'</strong></div>',
 				));
 			}
-
-		} else {
-			$this->dialogDetail = true;
-			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
-			$this->dialogWidth = 350;
-
-			$this->pageTitle = Yii::t('phrase', 'Delete <?php echo $label; ?>');
-			$this->pageDescription = '';
-			$this->pageMeta = '';
-			$this->render('admin_delete');
+			Yii::app()->end();
 		}
+
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 350;
+
+		$this->pageTitle = Yii::t('phrase', 'Delete <?php echo $label; ?>');
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		$this->render('admin_delete');
 	}
 
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>

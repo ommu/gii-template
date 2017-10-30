@@ -21,19 +21,17 @@
  */
 ?>
 
-<?php echo "<?php \$form=\$this->beginWidget('application.components.system.OActiveForm', array(
-	'id'=>'".$this->class2id($this->modelClass)."-form',
+<?php echo "<?php ";?>$form=$this->beginWidget('application.components.system.OActiveForm', array(
+	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
 	'enableAjaxValidation'=>true,
 	//'htmlOptions' => array('enctype' => 'multipart/form-data')
-)); ?>\n"; ?>
+)); ?>
 
-<?php 
-echo "<?php //begin.Messages ?>\n";?>
+<?php echo "<?php ";?>//begin.Messages ?>
 <div id="ajax-message">
-	<?php echo "<?php echo \$form->errorSummary(\$model); ?>\n"; ?>
+	<?php echo "<?php "; ?>echo $form->errorSummary($model); ?>
 </div>
-<?php 
-echo "<?php //begin.Messages ?>\n";?>
+<?php echo "<?php ";?>//begin.Messages ?>
 
 <fieldset>
 
@@ -41,40 +39,57 @@ echo "<?php //begin.Messages ?>\n";?>
 //print_r($this->tableSchema->columns);
 foreach($this->tableSchema->columns as $column)
 {
-	if($column->autoIncrement)
+	if($column->autoIncrement || $column->comment == 'trigger' || $column->dbType == 'tinyint(1)' || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
 		continue;
-?>
-<?php if($column->dbType == 'tinyint(1)') {?>
-	<div class="clearfix publish">
+
+if(in_array($column->dbType, array('timestamp','datetime','date')) && $column->comment != 'trigger') {?>
+<div class="clearfix">
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
 		<div class="desc">
-			<?php echo "<?php echo \$form->checkBox(\$model,'{$column->name}'); ?>\n"; ?>
-			<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php echo \$form->error(\$model,'{$column->name}'); ?>\n"; ?>
-			<?php echo "<?php /*<div class=\"small-px silent\"></div>*/?>\n";?>
+		<?php echo "<?php \n";?>
+			$model-><?php echo $column->name;?> = !$model->isNewRecord ? (!in_array($model-><?php echo $column->name;?>, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime($model-><?php echo $column->name;?>)) : '') : '';
+			//echo $form->textField($model,'<?php echo $column->name;?>');
+			$this->widget('application.components.system.CJuiDatePicker',array(
+				'model'=>$model,
+				'attribute'=>'<?php echo $column->name;?>',
+				//'mode'=>'datetime',
+				'options'=>array(
+					'dateFormat' => 'dd-mm-yy',
+				),
+				'htmlOptions'=>array(
+					'class' => 'span-4',
+				 ),
+			)); ?>
+			<?php echo "<?php "; ?>echo $form->error($model,'<?php echo $column->name;?>'); ?>
+			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
 		</div>
 	</div>
 
-<?php } else if(in_array($column->dbType, array('timestamp','datetime','date')) && $column->comment != 'trigger') {?>
+<?php } else if($column->dbType == 'text') {?>
 	<div class="clearfix">
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
 		<div class="desc">
-			<?php echo "<?php\n"; ?>
-			<?php echo "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n"; ?>
-			<?php echo "//echo \$form->textField(\$model,'{$column->name}');\n"; ?>
-			<?php echo "\$this->widget('application.components.system.CJuiDatePicker',array(\n"; ?>
-				<?php echo "'model'=>\$model,\n"; ?>
-				<?php echo "'attribute'=>'{$column->name}',\n"; ?>
-				<?php echo "//'mode'=>'datetime',\n"; ?>
-				<?php echo "'options'=>array(\n"; ?>
-					<?php echo "'dateFormat' => 'dd-mm-yy',\n"; ?>
-				<?php echo "),\n"; ?>
-				<?php echo "'htmlOptions'=>array(\n"; ?>
-					<?php echo "'class' => 'span-4',\n"; ?>
-				 <?php echo "),\n"; ?>
-			<?php echo ")); ?>\n"; ?>
-			<?php echo "<?php echo \$form->error(\$model,'{$column->name}'); ?>\n"; ?>
-			<?php echo "<?php /*<div class=\"small-px silent\"></div>*/?>\n";?>
+			<?php echo "<?php \n"?>
+			//echo $form->textArea($model,'<?php echo $column->name;?>',array('rows'=>6, 'cols'=>50));
+			$this->widget('application.vendor.yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
+				'model'=>$model,
+				'attribute'=>'<?php echo $column->name;?>',
+				'options'=>array(
+					'buttons'=>array(
+						'html', 'formatting', '|', 
+						'bold', 'italic', 'deleted', '|',
+						'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
+						'link', '|',
+					),
+				),
+				'plugins' => array(
+					'fontcolor' => array('js' => array('fontcolor.js')),
+					'table' => array('js' => array('table.js')),
+					'fullscreen' => array('js' => array('fullscreen.js')),
+				),
+			)); ?>
+			<?php echo "<?php "; ?>echo $form->error($model,'<?php echo $column->name;?>'); ?>
+			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
 		</div>
 	</div>
 
@@ -83,30 +98,44 @@ foreach($this->tableSchema->columns as $column)
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
 		<div class="desc">
 			<?php echo "<?php echo ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php echo \$form->error(\$model,'{$column->name}'); ?>\n"; ?>
-			<?php echo "<?php /*<div class=\"small-px silent\"></div>*/?>\n";?>
+			<?php echo "<?php "; ?>echo $form->error($model,'<?php echo $column->name;?>'); ?>
+			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
 		</div>
 	</div>
 
-<?php }?>
-<?php
+<?php }
+}
+//print_r($this->tableSchema->columns);
+foreach($this->tableSchema->columns as $column)
+{
+if($column->dbType == 'tinyint(1)') {?>
+	<div class="clearfix publish">
+		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
+		<div class="desc">
+			<?php echo "<?php echo \$form->checkBox(\$model,'{$column->name}'); ?>\n"; ?>
+			<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
+			<?php echo "<?php "; ?>echo $form->error($model,'<?php echo $column->name;?>'); ?>
+		</div>
+	</div>
+
+<?php }
 }
 ?>
+	<?php echo '<?php'?> /*
 	<div class="submit clearfix">
 		<label>&nbsp;</label>
 		<div class="desc">
-			<?php echo "<?php echo CHtml::submitButton(\$model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>\n"; ?>
+			<?php echo "<?php "; ?>echo CHtml::submitButton(\$model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
 		</div>
 	</div>
+	*/?>
 
 </fieldset>
 
 <div class="dialog-content">
 </div>
 <div class="dialog-submit">
-<?php echo "\t<?php echo CHtml::submitButton(\$model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save') ,array('onclick' => 'setEnableSave()')); ?>\n"; ?>
-<?php echo "\t<?php echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>\n"; ?>
+	<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save') ,array('onclick' => 'setEnableSave()')); ?>
+	<?php echo "<?php "; ?>echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>
 </div>
-<?php echo "<?php \$this->endWidget(); ?>\n"; ?>
-
-
+<?php echo "<?php "; ?>$this->endWidget(); ?>
