@@ -133,6 +133,10 @@ foreach($labels as $name=>$label):
 			echo " * @property Members \${$relationName};\n";
 		else
 			echo " * @property Users \${$relationName};\n";
+	} else if($name == 'tag_id') {
+		$relationArray = explode('_', $name);
+		$relationName = $relationArray[0];
+		echo " * @property OmmuTags \${$relationName};\n";
 	}	
 endforeach;
 endif; ?>
@@ -142,6 +146,15 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 	public $defaultColumns = array();
 	public $templateColumns = array();
 	public $gridForbiddenColumn = array();
+<?php 
+foreach($labels as $name=>$label):
+	if(in_array($name, array('tag_id'))) {
+		$relationArray = explode('_', $name);
+		$relationName = $relationArray[0];
+		$publicAttribute = $relationName.'_i';
+		echo "\tpublic \${$publicAttribute};\n";
+	}	
+endforeach; ?>
 
 	// Variable Search
 <?php 
@@ -159,7 +172,7 @@ foreach($columns as $name=>$column):
 	}
 endforeach;
 foreach($labels as $name=>$label):
-	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 		$publicAttribute = $relationName.'_search';
@@ -206,7 +219,9 @@ endforeach; ?>
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-<?php foreach($rules as $rule): ?>
+<?php 
+//print_r($rules);
+foreach($rules as $rule): ?>
 			<?php echo $rule.",\n"; ?>
 <?php endforeach;?>
 			// The following rule is used by search().
@@ -242,6 +257,10 @@ endforeach; ?>
 				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Members', '{$name}'),\n";
 			else
 				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Users', '{$name}'),\n";
+		} else if($name == 'tag_id') {
+			$relationArray = explode('_', $name);
+			$relationName = $relationArray[0];
+			echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'OmmuTags', '{$name}'),\n";
 		}
 	endforeach;?>
 		);
@@ -270,7 +289,7 @@ foreach($columns as $name=>$column):
 	}
 endforeach;
 foreach($labels as $name=>$label):
-	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 		$publicAttribute = $relationName.'_search';
@@ -339,6 +358,13 @@ foreach($columns as $name=>$column) {
 			echo "\t\t\t\t'select'=>'displayname'\n";
 			echo "\t\t\t),\n";
 		}
+	} else if($name == 'tag_id') {
+		$relationArray = explode('_',$name);
+		$relationName = $relationArray[0];
+		echo "\t\t\t'$relationName' => array(\n";
+		echo "\t\t\t\t'alias'=>'$relationName',\n";
+		echo "\t\t\t\t'select'=>'body'\n";
+		echo "\t\t\t),\n";
 	}
 }?>
 		);
@@ -378,7 +404,7 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\t\$criteria->compare('t.$name', \$this->$name);\n";
 		echo "\t\t}\n";
 
-	} else if($column->isForeignKey == '1' || (in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
+	} else if($column->isForeignKey == '1' || (in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 		$relationArray = explode('_',$name);
 		$relationName = $relationArray[0];
 		if($relationName == 'cat')
@@ -430,6 +456,14 @@ foreach($columns as $name=>$column) {
 			$relationAttribute = 'member_name';
 		}
 		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}',strtolower(\$this->$publicAttribute),true);\n";
+	} else if($name == 'tag_id') {
+		$relationArray = explode('_',$name);
+		$relationName = $relationArray[0];
+		$publicAttribute = $relationName.'_search';
+		$relationAttribute = 'body';
+
+		echo "\t\t\$$publicAttribute = Utility::getUrlTitle(strtolower(trim(\$this->$publicAttribute)));\n";
+		echo "\t\t\$criteria->compare('$relationName.$relationAttribute',\$$publicAttribute,true);\n";
 	}
 }
 	echo "\n\t\tif(!isset(\$_GET['{$modelClass}_sort']))\n";
@@ -526,11 +560,13 @@ foreach($columns as $name=>$column) {
 foreach($columns as $name=>$column)
 {
 	if(!$column->isPrimaryKey && $column->dbType != 'tinyint(1)') {
-		if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id')))) {
+		if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 			$arrayName = explode('_', $column->name);
 			$cName = 'displayname';
 			if($column->isForeignKey == '1')
 				$cName = 'column_name_relation';
+			if($column->name == 'tag_id')
+				$cName = 'body';
 			$cRelation = $arrayName[0];
 			if($cRelation == 'cat')
 				$cRelation = 'category';
@@ -542,6 +578,9 @@ foreach($columns as $name=>$column)
 			echo "\t\t\tif(!isset(\$_GET['$cRelation'])) {\n";
 			echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
 			echo "\t\t\t\t'name' => '$name',\n";
+if($column->name == 'tag_id')
+			echo "\t\t\t\t'value' => 'str_replace(\'-\', \' \', \$data->{$cRelation}->{$cName})',\n";
+else
 			echo "\t\t\t\t'value' => '\$data->{$cRelation}->{$cName}',\n";
 			echo "\t\t\t);\n";
 			echo "\t\t\t}\n";
@@ -716,9 +755,32 @@ foreach($columns as $name=>$column)
 {
 	if(in_array($column->dbType, array('date')) && $column->comment != 'trigger') {
 		echo "\t\t\t//\$this->$name = date('Y-m-d', strtotime(\$this->$name));\n";
-	}
-}
-?>
+	} else if($column->name == 'tag_id') {
+		$relationArray = explode('_', $name);
+		$relationName = $relationArray[0];
+		$publicAttribute = $relationName.'_i';?>
+			if($this->isNewRecord) {
+				$<?php echo $publicAttribute;?> = Utility::getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
+				if($this-><?php echo $column->name;?> == 0) {
+					$<?php echo $relationName;?> = OmmuTags::model()->find(array(
+						'select' => '<?php echo $column->name;?>, body',
+						'condition' => 'body = :body',
+						'params' => array(
+							':body' => $<?php echo $publicAttribute;?>,
+						),
+					));
+					if($<?php echo $relationName;?> != null)
+						$this-><?php echo $column->name;?> = $<?php echo $relationName;?>-><?php echo $column->name;?>;
+					else {
+						$data = new OmmuTags;
+						$data->body = $this-><?php echo $publicAttribute;?>;
+						if($data->save())
+							$this-><?php echo $column->name;?> = $data-><?php echo $column->name;?>;
+					}
+				}
+			}
+<?php }
+} ?>
 			// Create action
 		}
 		return true;
