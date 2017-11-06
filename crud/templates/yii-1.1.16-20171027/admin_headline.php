@@ -3,10 +3,13 @@
  * The following variables are available in this template:
  * - $this: the CrudCode object
  */
+Yii::import('application.libraries.gii.Inflector');
+$inflector = new Inflector;
+
 ?>
 <?php echo "<?php\n"; ?>
 /**
- * <?php echo $this->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  * @var $form CActiveForm
@@ -21,7 +24,7 @@
  */
 
 <?php
-$label=$this->pluralize($this->class2name($this->modelClass));
+$label=$inflector->pluralize($this->class2name($this->modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
 	\t'Headline',

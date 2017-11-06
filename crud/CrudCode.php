@@ -207,8 +207,12 @@ class CrudCode extends CCodeModel
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
 if($form == true)
 			return "echo \$form->checkBox(\$model,'{$column->name}')";
+else {
+if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
+			return "echo \$form->textField(\$model,'{$column->name}')";
 else
 			return "echo \$form->dropDownList(\$model,'{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')))";
+}
 		} elseif(stripos($column->dbType,'text')!==false) {
 if($form == true) {
 			$return = "//echo \$form->textArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50));

@@ -3,10 +3,13 @@
  * The following variables are available in this template:
  * - $this: the CrudCode object
  */
+Yii::import('application.libraries.gii.Inflector');
+$inflector = new Inflector;
+
 ?>
 <?php echo "<?php\n"; ?>
 /**
- * <?php echo $this->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  * version: 0.0.1
@@ -21,7 +24,7 @@
 
 <?php
 $nameColumn=$this->guessNameColumn($this->tableSchema->columns);
-$label=$this->pluralize($this->class2name($this->modelClass));
+$label=$inflector->pluralize($this->class2name($this->modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
 	\t\$model->{$nameColumn},
@@ -41,6 +44,7 @@ if(Yii::app()->user->hasFlash('success'))
 	'attributes'=>array(
 <?php
 
+//print_r($this->tableSchema->columns);
 foreach($this->tableSchema->columns as $name=>$column)
 	if($column->name == $this->tableSchema->primaryKey) {
 		echo "\t\tarray(\n";
@@ -50,8 +54,12 @@ foreach($this->tableSchema->columns as $name=>$column)
 	} else if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name == '1' ? Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
-		echo "\t\t\t'type'=>'raw',\n";
+		if($column->dbType == 'tinyint(1)' && $column->defaultValue === null) {
+			echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
+		} else {
+			echo "\t\t\t'value'=>\$model->$name == '1' ? Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
+			echo "\t\t\t'type'=>'raw',\n";
+		}
 		echo "\t\t),\n";
 	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
 		$relationArray = explode('_',$column->name);

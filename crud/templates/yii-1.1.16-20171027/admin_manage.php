@@ -3,10 +3,13 @@
  * The following variables are available in this template:
  * - $this: the CrudCode object
  */
+Yii::import('application.libraries.gii.Inflector');
+$inflector = new Inflector;
+
 ?>
 <?php echo "<?php\n"; ?>
 /**
- * <?php echo $this->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  * version: 0.0.1
@@ -20,9 +23,9 @@
  */
 
 <?php
-$label=$this->pluralize($this->class2name($this->modelClass));
+$label=$this->class2name($this->modelClass);
 echo "\t\$this->breadcrumbs=array(
-	\t'$label'=>array('manage'),
+	\t'{$inflector->pluralize($label)}'=>array('manage'),
 	\t'Manage',
 \t);\n";
 ?>
@@ -81,21 +84,21 @@ echo "\t\$this->breadcrumbs=array(
 				'class'=>'CButtonColumn',
 				'buttons' => array(
 					'view' => array(
-						'label' => 'view',
+						'label' => Yii::t('phrase', 'View <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'view',
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'view\',array(\'id\'=>$data->primaryKey))'),
 					'update' => array(
-						'label' => 'update',
+						'label' => Yii::t('phrase', 'Update <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'update'
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'edit\',array(\'id\'=>$data->primaryKey))'),
 					'delete' => array(
-						'label' => 'delete',
+						'label' => Yii::t('phrase', 'Delete <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'delete'
