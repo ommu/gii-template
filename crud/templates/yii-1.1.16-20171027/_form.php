@@ -5,7 +5,6 @@
  */
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
-
 ?>
 <?php echo "<?php\n"; ?>
 /**
