@@ -423,7 +423,7 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
 
 	else if($column->type==='string')
-		echo "\t\t\$criteria->compare('t.$name', strtolower(\$this->$name),true);\n";
+		echo "\t\t\$criteria->compare('t.$name', strtolower(\$this->$name), true);\n";
 		
 	else
 		echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
@@ -441,7 +441,7 @@ foreach($columns as $name=>$column) {
 			$relationName = 'category';
 		$relationAttribute = 'column_name_relation';
 		$publicAttribute = $relationName.'_search';
-		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}',strtolower(\$this->$publicAttribute),true);\n";
+		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
 	}
 }
 foreach($columns as $name=>$column) {
@@ -455,7 +455,7 @@ foreach($columns as $name=>$column) {
 			$relationName = 'member_view';
 			$relationAttribute = 'member_name';
 		}
-		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}',strtolower(\$this->$publicAttribute),true);\n";
+		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
 	} else if($name == 'tag_id') {
 		$relationArray = explode('_',$name);
 		$relationName = $relationArray[0];
@@ -463,7 +463,7 @@ foreach($columns as $name=>$column) {
 		$relationAttribute = 'body';
 
 		echo "\t\t\$$publicAttribute = Utility::getUrlTitle(strtolower(trim(\$this->$publicAttribute)));\n";
-		echo "\t\t\$criteria->compare('$relationName.$relationAttribute',\$$publicAttribute,true);\n";
+		echo "\t\t\$criteria->compare('$relationName.$relationAttribute', \$$publicAttribute, true);\n";
 	}
 }
 	echo "\n\t\tif(!isset(\$_GET['{$modelClass}_sort']))\n";
@@ -506,7 +506,10 @@ foreach($columns as $name=>$column) {
 
 		array_unshift($this->defaultColumns, array(
 			'header' => Yii::t('app', 'No'),
-			'value' => '$this->grid->dataProvider->pagination->currentPage*$this->grid->dataProvider->pagination->pageSize + $row+1'
+			'value' => '$this->grid->dataProvider->pagination->currentPage*$this->grid->dataProvider->pagination->pageSize + $row+1',
+			'htmlOptions' => array(
+				'class' => 'center',
+			),
 		));
 
 		array_unshift($this->defaultColumns, array(
@@ -552,7 +555,10 @@ foreach($columns as $name=>$column) {
 			);
 			$this->templateColumns['_no'] = array(
 				'header' => Yii::t('app', 'No'),
-				'value' => '$this->grid->dataProvider->pagination->currentPage*$this->grid->dataProvider->pagination->pageSize + $row+1'
+				'value' => '$this->grid->dataProvider->pagination->currentPage*$this->grid->dataProvider->pagination->pageSize + $row+1',
+				'htmlOptions' => array(
+					'class' => 'center',
+				),
 			);
 <?php
 //echo '<pre>';
@@ -581,7 +587,7 @@ foreach($columns as $name=>$column)
 if($column->name == 'tag_id')
 			echo "\t\t\t\t'value' => 'str_replace(\'-\', \' \', \$data->{$cRelation}->{$cName})',\n";
 else
-			echo "\t\t\t\t'value' => '\$data->{$cRelation}->{$cName}',\n";
+			echo "\t\t\t\t'value' => '\$data->{$cRelation}->{$cName} ? \$data->{$cRelation}->{$cName} : \'-\'',\n";
 			echo "\t\t\t);\n";
 			echo "\t\t\t}\n";
 			
@@ -679,12 +685,12 @@ foreach($columns as $name=>$column):
 	 * 1 = publish
 	 */
 	public static function get<?php echo ucfirst(setRelationName($modelClass));?>(<?php echo $publishCondition ? '$publish=null, $type=null' : '';?>) 
-	{		
+	{
 		$criteria=new CDbCriteria;
 <?php if($publishCondition):?>
 		if($publish != null)
-			$criteria->compare('t.publish',$publish);
-			
+			$criteria->compare('t.publish', $publish);
+
 <?php endif;?>
 		$model = self::model()->findAll($criteria);
 

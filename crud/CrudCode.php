@@ -205,9 +205,12 @@ class CrudCode extends CCodeModel
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
-if($form == true)
-			return "echo \$form->checkBox(\$model,'{$column->name}')";
-else {
+if($form == true) {
+if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
+	return "echo \$form->textField(\$model,'{$column->name}')";
+else
+	return "echo \$form->checkBox(\$model,'{$column->name}')";
+} else {
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
 			return "echo \$form->textField(\$model,'{$column->name}')";
 else

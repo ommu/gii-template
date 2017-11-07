@@ -41,7 +41,7 @@ $inflector = new Inflector;
 //print_r($this->tableSchema->columns);
 foreach($this->tableSchema->columns as $column)
 {
-	if($column->autoIncrement || $column->comment == 'trigger' || $column->type==='boolean' || $column->dbType == 'tinyint(1)' || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
+	if($column->autoIncrement || $column->comment == 'trigger' || $column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null) || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
 		continue;
 ?>
 	<div class="clearfix">
@@ -58,7 +58,7 @@ foreach($this->tableSchema->columns as $column)
 //print_r($this->tableSchema->columns);
 foreach($this->tableSchema->columns as $column)
 {
-if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {?>
+if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
 	<div class="clearfix publish">
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
 		<div class="desc">
