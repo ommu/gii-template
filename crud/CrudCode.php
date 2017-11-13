@@ -8,6 +8,7 @@ class CrudCode extends CCodeModel
 
 	private $_modelClass;
 	private $_table;
+	private static $_output;
 
 	public function rules()
 	{
@@ -204,6 +205,7 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
+		//print_r($column);
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
 if($form == true) {
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
@@ -274,16 +276,32 @@ if($form == false) {
 				$columnName = $relationName.'_search';
 			}
 }
-
-			if($column->type!=='string' || $column->size===null)
+$enumCondition = 0;
+if(preg_match('/(enum)/', $column->dbType)) {
+	$enumCondition = 1;
+	$patterns = array();
+	$patterns[0] = '(enum)';
+	$patterns[1] = '(\')';
+	$enumvalue = preg_replace($patterns, '', $column->dbType);
+	$enumvalue = trim($enumvalue, ')|(');
+	$enumArrays = explode(',', $enumvalue);
+	$dropDownOptions = array();
+	foreach ($enumArrays as $enumArray) {
+		$dropDownOptions[$enumArray] = $enumArray;
+	}
+}
+			if ($enumCondition && is_array($enumArrays) && count($enumArrays) > 0) {
+				$dropDownOption = self::export($dropDownOptions);
+				$return = "$$columnName = $dropDownOption;\n\t\t\t";
+				$return .= "echo \$form->dropDownList(\$model,'{$columnName}', $$columnName, array('prompt'=>''))";
+				return $return;
+			} else if($column->size===null)
 				return "echo \$form->{$inputField}(\$model,'{$columnName}')";
-			else
-			{
-				if(($size=$maxLength=$column->size)>60)
-					$size=60;
-if($form == true)
-				return "echo \$form->{$inputField}(\$model,'{$columnName}',array('size'=>$size,'maxlength'=>$maxLength))";
-else
+			else {
+				$maxLength=$column->size;
+if($form == true) {
+				return "echo \$form->{$inputField}(\$model,'{$columnName}',array('maxlength'=>$maxLength))";
+} else
 				return "echo \$form->{$inputField}(\$model,'{$columnName}')";
 			}
 		}
@@ -291,22 +309,21 @@ else
 
 	public function guessNameColumn($columns)
 	{
-		foreach($columns as $column)
-		{
-			if(!strcasecmp($column->name,'name'))
-				return $column->name;
+		//echo '<pre>';
+		//print_r($columns);
+		$primaryKey = array();
+		foreach ($columns as $key => $column) {
+			if($column->isPrimaryKey || $column->autoIncrement)
+				$primaryKey[] = $key;
+			if(preg_match('/(name|title)/', $key))
+				return $key;
 		}
-		foreach($columns as $column)
-		{
-			if(!strcasecmp($column->name,'title'))
-				return $column->name;
-		}
-		foreach($columns as $column)
-		{
-			if($column->isPrimaryKey)
-				return $column->name;
-		}
-		return 'id';
+		$pk = $primaryKey;
+	
+		if(!empty($primaryKey))
+			return $pk[0];
+		else
+			return 'id';
 	}
  
 	/* 
@@ -339,5 +356,139 @@ else
 			else
 				return $return;
 		}
+	}
+
+	/**
+	 * Exports a variable as a string representation.
+	 *
+	 * The string is a valid PHP expression that can be evaluated by PHP parser
+	 * and the evaluation result will give back the variable value.
+	 *
+	 * This method is similar to `var_export()`. The main difference is that
+	 * it generates more compact string representation using short array syntax.
+	 *
+	 * It also handles objects by using the PHP functions serialize() and unserialize().
+	 *
+	 * PHP 5.4 or above is required to parse the exported value.
+	 *
+	 * @param mixed $var the variable to be exported.
+	 * @return string a string representation of the variable
+	 */
+	public static function export($var)
+	{
+		self::$_output = '';
+		self::exportInternal($var, 0);
+		return self::$_output;
+	}
+
+	/**
+	 * @param mixed $var variable to be exported
+	 * @param int $level depth level
+	 */
+	private static function exportInternal($var, $level)
+	{
+		switch (gettype($var)) {
+			case 'NULL':
+				self::$_output .= 'null';
+				break;
+			case 'array':
+				if (empty($var)) {
+					self::$_output .= '[]';
+				} else {
+					$keys = array_keys($var);
+					$outputKeys = ($keys !== range(0, count($var) - 1));
+					$spaces = str_repeat(' ', $level * 4);
+					self::$_output .= 'array(';
+					foreach ($keys as $key) {
+						self::$_output .= "\n" . $spaces . '	';
+						if ($outputKeys) {
+							self::exportInternal($key, 0);
+							self::$_output .= ' => Yii::t(\'phrase\', ';
+						}
+						self::exportInternal($var[$key], $level + 1);
+						self::$_output .= '),';
+					}
+					self::$_output .= "\n" . $spaces . ')';
+				}
+				break;
+			case 'object':
+				if ($var instanceof \Closure) {
+					self::$_output .= self::exportClosure($var);
+				} else {
+					try {
+						$output = 'unserialize(' . var_export(serialize($var), true) . ')';
+					} catch (\Exception $e) {
+						// serialize may fail, for example: if object contains a `\Closure` instance
+						// so we use a fallback
+						if ($var instanceof Arrayable) {
+							self::exportInternal($var->toArray(), $level);
+							return;
+						} elseif ($var instanceof \IteratorAggregate) {
+							$varAsArray = [];
+							foreach ($var as $key => $value) {
+								$varAsArray[$key] = $value;
+							}
+							self::exportInternal($varAsArray, $level);
+							return;
+						} elseif ('__PHP_Incomplete_Class' !== get_class($var) && method_exists($var, '__toString')) {
+							$output = var_export($var->__toString(), true);
+						} else {
+							$outputBackup = self::$_output;
+							$output = var_export(self::dumpAsString($var), true);
+							self::$_output = $outputBackup;
+						}
+					}
+					self::$_output .= $output;
+				}
+				break;
+			default:
+				self::$_output .= var_export($var, true);
+		}
+	}
+
+	/**
+	 * Exports a [[Closure]] instance.
+	 * @param \Closure $closure closure instance.
+	 * @return string
+	 */
+	private static function exportClosure(\Closure $closure)
+	{
+		$reflection = new \ReflectionFunction($closure);
+
+		$fileName = $reflection->getFileName();
+		$start = $reflection->getStartLine();
+		$end = $reflection->getEndLine();
+
+		if ($fileName === false || $start === false || $end === false) {
+			return 'function() {/* Error: unable to determine Closure source */}';
+		}
+
+		--$start;
+
+		$source = implode("\n", array_slice(file($fileName), $start, $end - $start));
+		$tokens = token_get_all('<?php ' . $source);
+		array_shift($tokens);
+
+		$closureTokens = [];
+		$pendingParenthesisCount = 0;
+		foreach ($tokens as $token) {
+			if (isset($token[0]) && $token[0] === T_FUNCTION) {
+				$closureTokens[] = $token[1];
+				continue;
+			}
+			if ($closureTokens !== []) {
+				$closureTokens[] = isset($token[1]) ? $token[1] : $token;
+				if ($token === '}') {
+					$pendingParenthesisCount--;
+					if ($pendingParenthesisCount === 0) {
+						break;
+					}
+				} elseif ($token === '{') {
+					$pendingParenthesisCount++;
+				}
+			}
+		}
+
+		return implode('', $closureTokens);
 	}
 }

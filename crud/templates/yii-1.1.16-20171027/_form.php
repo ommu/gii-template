@@ -75,7 +75,7 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 	<div class="submit clearfix">
 		<label>&nbsp;</label>
 		<div class="desc">
-			<?php echo "<?php "; ?>echo CHtml::submitButton(\$model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
+			<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
 		</div>
 	</div>
 	*/?>

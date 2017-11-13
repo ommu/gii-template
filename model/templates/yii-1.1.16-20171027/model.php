@@ -46,7 +46,7 @@ function guessNameColumn($columns)
 {
 	//echo '<pre>';
 	//print_r($columns);
-	$primaryKey = [];
+	$primaryKey = array();
 	foreach ($columns as $key => $column) {
 		if($column->isPrimaryKey || $column->autoIncrement)
 			$primaryKey[] = $key;
