@@ -48,7 +48,7 @@ foreach($this->tableSchema->columns as $column)
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
 		<div class="desc">
 			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php "; ?>echo $form->error($model,'<?php echo $column->name;?>'); ?>
+			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
 			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
 		</div>
 	</div>
@@ -64,7 +64,7 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 		<div class="desc">
 			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
 			<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php "; ?>echo $form->error($model,'<?php echo $column->name;?>'); ?>
+			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
 		</div>
 	</div>
 

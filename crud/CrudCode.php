@@ -200,7 +200,7 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveLabel($modelClass,$column)
 	{
-		return "\$form->labelEx(\$model,'{$column->name}')";
+		return "\$form->labelEx(\$model, '{$column->name}')";
 	}
 
 	public function generateActiveField($modelClass,$column,$form=true)
@@ -209,18 +209,18 @@ class CrudCode extends CCodeModel
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
 if($form == true) {
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
-	return "echo \$form->textField(\$model,'{$column->name}')";
+	return "echo \$form->textField(\$model, '{$column->name}')";
 else
-	return "echo \$form->checkBox(\$model,'{$column->name}')";
+	return "echo \$form->checkBox(\$model, '{$column->name}')";
 } else {
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
-			return "echo \$form->textField(\$model,'{$column->name}')";
+			return "echo \$form->textField(\$model, '{$column->name}')";
 else
-			return "echo \$form->dropDownList(\$model,'{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')))";
+			return "echo \$form->dropDownList(\$model, '{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')))";
 }
 		} elseif(stripos($column->dbType,'text')!==false) {
 if($form == true) {
-			$return = "//echo \$form->textArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50));
+			$return = "//echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50));
 			\$this->widget('application.vendor.yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
@@ -239,12 +239,12 @@ if($form == true) {
 				),
 			));";
 } else
-			$return = "echo \$form->textField(\$model,'{$column->name}')";
+			$return = "echo \$form->textField(\$model, '{$column->name}')";
 			return $return;
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if($form == true)
 				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
-			$return .= "//echo \$form->textField(\$model,'{$column->name}');
+			$return .= "//echo \$form->textField(\$model, '{$column->name}');
 			\$this->widget('application.components.system.CJuiDatePicker',array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
@@ -293,16 +293,16 @@ if(preg_match('/(enum)/', $column->dbType)) {
 			if ($enumCondition && is_array($enumArrays) && count($enumArrays) > 0) {
 				$dropDownOption = self::export($dropDownOptions);
 				$return = "$$columnName = $dropDownOption;\n\t\t\t";
-				$return .= "echo \$form->dropDownList(\$model,'{$columnName}', $$columnName, array('prompt'=>''))";
+				$return .= "echo \$form->dropDownList(\$model, '{$columnName}', $$columnName, array('prompt'=>''))";
 				return $return;
 			} else if($column->size===null)
-				return "echo \$form->{$inputField}(\$model,'{$columnName}')";
+				return "echo \$form->{$inputField}(\$model, '{$columnName}')";
 			else {
 				$maxLength=$column->size;
 if($form == true) {
-				return "echo \$form->{$inputField}(\$model,'{$columnName}',array('maxlength'=>$maxLength))";
+				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength))";
 } else
-				return "echo \$form->{$inputField}(\$model,'{$columnName}')";
+				return "echo \$form->{$inputField}(\$model, '{$columnName}')";
 			}
 		}
 	}
