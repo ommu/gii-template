@@ -32,7 +32,7 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php echo "<?php ";?>$form=$this->beginWidget('application.components.system.OActiveForm', array(
+<?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.core.components.system.OActiveForm', array(
 	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
 	'enableAjaxValidation'=>true,
 	//'htmlOptions' => array('enctype' => 'multipart/form-data')

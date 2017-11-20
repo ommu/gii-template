@@ -245,7 +245,7 @@ if($form == true) {
 			if($form == true)
 				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
 			$return .= "//echo \$form->textField(\$model, '{$column->name}');
-			\$this->widget('application.components.system.CJuiDatePicker',array(
+			\$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
 				//'mode'=>'datetime',

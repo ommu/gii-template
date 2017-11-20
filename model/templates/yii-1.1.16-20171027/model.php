@@ -601,7 +601,7 @@ else
 			echo "\t\t\t\t'htmlOptions' => array(\n";
 			echo "\t\t\t\t\t'class' => 'center',\n";
 			echo "\t\t\t\t),\n";
-			echo "\t\t\t\t'filter' => Yii::app()->controller->widget('application.components.system.CJuiDatePicker', array(\n";
+			echo "\t\t\t\t'filter' => Yii::app()->controller->widget('application.libraries.core.components.system.CJuiDatePicker', array(\n";
 			echo "\t\t\t\t\t'model'=>\$this,\n";
 			echo "\t\t\t\t\t'attribute'=>'$name',\n";
 			echo "\t\t\t\t\t'language' => 'en',\n";

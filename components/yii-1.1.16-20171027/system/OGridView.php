@@ -13,10 +13,10 @@
  *
  */
 
-Yii::import('application.components.system.CBaseListView');
-Yii::import('application.components.system.CDataColumn');
+Yii::import('application.libraries.core.components.system.CBaseListView');
+Yii::import('application.libraries.core.components.system.CDataColumn');
 Yii::import('zii.widgets.grid.CLinkColumn');
-Yii::import('application.components.system.CButtonColumn');
+Yii::import('application.libraries.core.components.system.CButtonColumn');
 Yii::import('zii.widgets.grid.CCheckBoxColumn');
 
 /**

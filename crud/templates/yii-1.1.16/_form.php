@@ -21,7 +21,7 @@
  */
 ?>
 
-<?php echo "<?php \$form=\$this->beginWidget('application.components.system.OActiveForm', array(
+<?php echo "<?php \$form=\$this->beginWidget('application.libraries.core.components.system.OActiveForm', array(
 	'id'=>'".$this->class2id($this->modelClass)."-form',
 	'enableAjaxValidation'=>true,
 	//'htmlOptions' => array('enctype' => 'multipart/form-data')
@@ -62,7 +62,7 @@ foreach($this->tableSchema->columns as $column)
 			<?php echo "<?php\n"; ?>
 			<?php echo "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n"; ?>
 			<?php echo "//echo \$form->textField(\$model,'{$column->name}');\n"; ?>
-			<?php echo "\$this->widget('application.components.system.CJuiDatePicker',array(\n"; ?>
+			<?php echo "\$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(\n"; ?>
 				<?php echo "'model'=>\$model,\n"; ?>
 				<?php echo "'attribute'=>'{$column->name}',\n"; ?>
 				<?php echo "//'mode'=>'datetime',\n"; ?>

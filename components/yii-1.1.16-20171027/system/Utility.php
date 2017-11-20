@@ -180,7 +180,7 @@ class Utility
 	*/
 	public static function getArrayFromYML($path)
 	{
-		Yii::import('application.components.plugin.Spyc');
+		Yii::import('application.libraries.core.components.plugin.Spyc');
 			
 		if(file_exists($path)) {
 			$arraySpyc = Spyc::YAMLLoad($path);	
@@ -207,7 +207,7 @@ class Utility
 				$YMLPath = Yii::getPathOfAlias('ommu.'.$parent).DS.$module.'.yaml';
 			}
 		} else
-			$YMLPath = Yii::getPathOfAlias('application.ommu').DS.'ommu.yaml';
+			$YMLPath = Yii::getPathOfAlias('application.libraries.core').DS.'core.yaml';
 			
 		if(file_exists($YMLPath)) {
 			$moduleInfo = self::getArrayFromYML($YMLPath);

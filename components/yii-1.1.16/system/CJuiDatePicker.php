@@ -9,7 +9,7 @@
  */
 
 Yii::import('zii.widgets.jui.CJuiInputWidget');
-Yii::import('application.components.system.OGridView');
+Yii::import('application.libraries.core.components.system.OGridView');
 
 /**
  * CJuiDatePicker displays a datepicker.
@@ -19,7 +19,7 @@ Yii::import('application.components.system.OGridView');
  *
  * To use this widget, you may insert the following code in a view:
  * <pre>
- * $this->widget('application.components.system.CJuiDatePicker',array(
+ * $this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
  *     'name'=>'publishDate',
  *     // additional javascript options for the date picker plugin
  *     'options'=>array(

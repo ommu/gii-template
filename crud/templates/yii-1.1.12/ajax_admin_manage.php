@@ -72,7 +72,7 @@ array_push($columnData, array(
 	'template' => '{view}&nbsp;{update}&nbsp;{delete}',
 ));
 
-$this->widget('application.components.system.BGridView', array(
+$this->widget('application.libraries.core.components.system.BGridView', array(
 	'id'=>'<?php echo $this->class2id($this->modelClass); ?>-grid',
 	'dataProvider'=>$model->search(),
 	'filter'=>$model,

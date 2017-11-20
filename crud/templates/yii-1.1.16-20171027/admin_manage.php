@@ -108,7 +108,7 @@ echo "\t\$this->breadcrumbs=array(
 				'template' => '{view}|{update}|{delete}',
 			));
 
-			$this->widget('application.components.system.OGridView', array(
+			$this->widget('application.libraries.core.components.system.OGridView', array(
 				'id'=>'<?php echo $this->class2id($this->modelClass); ?>-grid',
 				'dataProvider'=>$model->search(),
 				'filter'=>$model,

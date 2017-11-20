@@ -86,7 +86,7 @@ class Utility
 	public static function getContentMenu() {		
 		$module = strtolower(Yii::app()->controller->module->id);
 		
-		Yii::import('application.components.plugin.Spyc');
+		Yii::import('application.libraries.core.components.plugin.Spyc');
 		define('DS', DIRECTORY_SEPARATOR);
 		
 		if($module != null)
@@ -134,7 +134,7 @@ class Utility
 	*/
 	public static function getPluginMenu($module=null) 
 	{		
-		Yii::import('application.components.plugin.Spyc');
+		Yii::import('application.libraries.core.components.plugin.Spyc');
 		define('DS', DIRECTORY_SEPARATOR);
 		
 		if($module == null)

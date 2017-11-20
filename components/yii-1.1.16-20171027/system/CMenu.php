@@ -24,7 +24,7 @@
  *
  * The following example shows how to use CMenu:
  * <pre>
- * $this->widget('application.components.system.CMenu', array(
+ * $this->widget('application.libraries.core.components.system.CMenu', array(
  *     'items'=>array(
  *         // Important: you need to specify url as 'controller/action',
  *         // not just as 'controller' even if default action is used.

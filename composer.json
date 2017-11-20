@@ -3,6 +3,7 @@
 	"description": "Gii Generator Template for Ommu Platform",
 	"keywords": [
 		"yii",
+		"library",
 		"gii",
 		"generator",
 		"template",

@@ -29,7 +29,7 @@ echo "	if(Yii::app()->user->hasFlash('success'))
 ?>\n";
 echo "<? //end.Messages ?>";?>
 
-<?php echo "<?php"; ?> $this->widget('application.components.system.BDetailView', array(
+<?php echo "<?php"; ?> $this->widget('application.libraries.core.components.system.BDetailView', array(
 	'data'=>$model,
 	'attributes'=>array(
 <?php

@@ -13,7 +13,7 @@
  *
  */
 
-Yii::import('application.components.system.CBaseListView');
+Yii::import('application.libraries.core.components.system.CBaseListView');
 
 /**
  * CListView displays a list of data items in terms of a list.
@@ -35,7 +35,7 @@ Yii::import('application.components.system.CBaseListView');
  * <pre>
  * $dataProvider=new CActiveDataProvider('Post');
  *
- * $this->widget('application.components.system.FListView', array(
+ * $this->widget('application.libraries.core.components.system.FListView', array(
  *     'dataProvider'=>$dataProvider,
  *     'itemView'=>'_post',   // refers to the partial view named '_post'
  *     'sortableAttributes'=>array(

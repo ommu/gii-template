@@ -13,7 +13,7 @@
  *
  */
 
-Yii::import('application.components.system.CGridColumn');
+Yii::import('application.libraries.core.components.system.CGridColumn');
 
 /**
  * CDataColumn represents a grid view column that is associated with a data attribute or PHP expression.

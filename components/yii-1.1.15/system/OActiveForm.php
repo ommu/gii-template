@@ -93,7 +93,7 @@
  * The following is a piece of sample view code showing how to use CActiveForm:
  *
  * <pre>
- * <?php $form = $this->beginWidget('application.components.system.OActiveForm', array(
+ * <?php $form = $this->beginWidget('application.libraries.core.components.system.OActiveForm', array(
  *     'id'=>'user-form',
  *     'enableAjaxValidation'=>true,
  *     'enableClientValidation'=>true,

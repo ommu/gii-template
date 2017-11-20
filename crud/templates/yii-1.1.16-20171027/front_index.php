@@ -31,7 +31,7 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php echo "<?php"; ?> $this->widget('application.components.system.FListView', array(
+<?php echo "<?php"; ?> $this->widget('application.libraries.core.components.system.FListView', array(
 	'dataProvider'=>$dataProvider,
 	'itemView'=>'_view',
 	'pager' => array(
