@@ -58,7 +58,7 @@ foreach($this->tableSchema->columns as $name=>$column)
 	} else if(in_array($column->name, array('publish','status'))) {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name == '1' ? Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
+		echo "\t\t\t'value'=>\$model->$name == '1' ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
 		echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
 	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {

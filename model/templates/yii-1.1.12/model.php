@@ -268,7 +268,7 @@ foreach($columns as $name=>$column)
 			if(in_array($column->name, array('publish','published')))
 				echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\"publish\",array(\"id\"=>\$data->$isPrimaryKey)), \$data->$name, 1)',\n";
 			else
-				echo "\t\t\t\t\t'value' => '\$data->$name == 1 ? Chtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : Chtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
+				echo "\t\t\t\t\t'value' => '\$data->$name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
 			echo "\t\t\t\t\t'htmlOptions' => array(\n";
 			echo "\t\t\t\t\t\t'class' => 'center',\n";
 			echo "\t\t\t\t\t),\n";

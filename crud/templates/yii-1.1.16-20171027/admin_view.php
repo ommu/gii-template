@@ -57,7 +57,7 @@ foreach($this->tableSchema->columns as $name=>$column)
 		if($column->dbType == 'tinyint(1)' && $column->defaultValue === null) {
 			echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
 		} else {
-			echo "\t\t\t'value'=>\$model->$name == '1' ? Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : Chtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
+			echo "\t\t\t'value'=>\$model->$name == '1' ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
 			echo "\t\t\t'type'=>'raw',\n";
 		}
 		echo "\t\t),\n";

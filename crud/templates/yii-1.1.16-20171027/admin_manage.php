@@ -31,13 +31,13 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 	$this->menu=array(
 		array(
-			'label' => Yii::t('phrase', 'Filter'), 
+			'label' => Yii::t('phrase', 'Filter'),
 			'url' => array('javascript:void(0);'),
 			'itemOptions' => array('class' => 'search-button'),
 			'linkOptions' => array('title' => Yii::t('phrase', 'Filter')),
 		),
 		array(
-			'label' => Yii::t('phrase', 'Grid Options'), 
+			'label' => Yii::t('phrase', 'Grid Options'),
 			'url' => array('javascript:void(0);'),
 			'itemOptions' => array('class' => 'grid-button'),
 			'linkOptions' => array('title' => Yii::t('phrase', 'Grid Options')),
@@ -56,9 +56,9 @@ echo "\t\$this->breadcrumbs=array(
 
 <?php echo "<?php ";?>//begin.Grid Option ?>
 <div class="grid-form">
-<?php echo "<?php ";?>$this->renderPartial('_option_form',array( 
-	'model'=>$model, 
-	'gridColumns'=>Utility::getActiveDefaultColumns($columns), 
+<?php echo "<?php ";?>$this->renderPartial('_option_form',array(
+	'model'=>$model,
+	'gridColumns'=>Utility::getActiveDefaultColumns($columns),
 )); ?>
 </div>
 <?php echo "<?php ";?>//end.Grid Option ?>
@@ -67,10 +67,10 @@ echo "\t\$this->breadcrumbs=array(
 	<?php echo "<?php ";?>//begin.Messages ?>
 	<div id="ajax-message">
 	<?php echo "<?php \n";?>
-	if(Yii::app()->user->hasFlash('error')) 
-		echo Utility::flashError(Yii::app()->user->getFlash('error')); 
-	if(Yii::app()->user->hasFlash('success')) 
-		echo Utility::flashSuccess(Yii::app()->user->getFlash('success')); 
+	if(Yii::app()->user->hasFlash('error'))
+		echo Utility::flashError(Yii::app()->user->getFlash('error'));
+	if(Yii::app()->user->hasFlash('success'))
+		echo Utility::flashSuccess(Yii::app()->user->getFlash('success'));
 	?>
 	</div>
 	<?php echo "<?php ";?>//begin.Messages ?>

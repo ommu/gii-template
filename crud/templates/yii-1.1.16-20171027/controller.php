@@ -416,8 +416,9 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			// we only allow deletion via POST request
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 			$model->publish = 2;
+			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
 			
-			if($model->save()) {
+			if($model->update()) {
 <?php else: ?>
 			if($model->delete()) {
 <?php endif; ?>
@@ -462,6 +463,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			// we only allow deletion via POST request
 			//change value active or publish
 			$model->publish = $replace;
+			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
 
 			if($model->update()) {
 				echo CJSON::encode(array(
@@ -508,6 +510,7 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 				//change value active or publish
 				$model->headline = 1;
 				$model->publish = 1;
+				$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
 
 				if($model->update()) {
 					echo CJSON::encode(array(
