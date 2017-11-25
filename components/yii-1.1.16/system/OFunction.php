@@ -18,7 +18,7 @@
  * @author Putra Sudaryanto <putra@sudaryanto.id>
  * @create date April 15, 2014 10:29 WIB
  * @copyright Copyright (c) 2014 Ommu Platform (opensource.ommu.co)
- * @link https://github.com/ommu/core
+ * @link http://opensource.ommu.co
  * @contact (+62)856-299-4114
  *
  * Contains many function that most used

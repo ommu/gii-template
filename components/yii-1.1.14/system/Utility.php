@@ -32,7 +32,7 @@
  * @update date April 3, 2014 15:02 WIB
  * @version 1.0
  * @copyright Copyright (c) 2013 Ommu Platform (ommu.co)
- * @link https://github.com/oMMu/Ommu-Core
+ * @link http://opensource.ommu.co
  * @contect (+62)856-299-4114
  *
  */

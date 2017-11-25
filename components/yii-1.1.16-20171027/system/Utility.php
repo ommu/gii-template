@@ -37,7 +37,7 @@
  * @create date November 27, 2013 15:02 WIB
  * @update date April 3, 2014 15:02 WIB
  * @copyright Copyright (c) 2013 Ommu Platform (opensource.ommu.co)
- * @link https://github.com/ommu/core
+ * @link http://opensource.ommu.co
  * @contact (+62)856-299-4114
  *
  */
