@@ -221,7 +221,7 @@ else
 		} elseif(stripos($column->dbType,'text')!==false) {
 if($form == true) {
 			$return = "//echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50));
-			\$this->widget('application.vendor.yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
+			\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
 				'options'=>array(
