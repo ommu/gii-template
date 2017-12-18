@@ -44,9 +44,9 @@ foreach($this->tableSchema->columns as $column)
 	if($column->autoIncrement || $column->comment == 'trigger' || $column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null) || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
 		continue;
 ?>
-	<div class="clearfix">
+	<div class="form-group row">
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
-		<div class="desc">
+		<div class="col-lg-8 col-md-9 col-sm-12">
 			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
 			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
 			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
@@ -59,11 +59,10 @@ foreach($this->tableSchema->columns as $column)
 foreach($this->tableSchema->columns as $column)
 {
 if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
-	<div class="clearfix publish">
+	<div class="form-group row">
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
-		<div class="desc">
+		<div class="col-lg-8 col-md-9 col-sm-12">
 			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
 			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
 		</div>
 	</div>
@@ -72,9 +71,9 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 }
 ?>
 	<?php echo '<?php'?> /*
-	<div class="submit clearfix">
-		<label>&nbsp;</label>
-		<div class="desc">
+	<div class="form-group row submit">
+		<label class="col-form-label col-lg-4 col-md-3 col-sm-12">&nbsp;</label>
+		<div class="col-lg-8 col-md-9 col-sm-12">
 			<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
 		</div>
 	</div>

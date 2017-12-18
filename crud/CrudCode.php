@@ -209,18 +209,18 @@ class CrudCode extends CCodeModel
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
 if($form == true) {
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
-	return "echo \$form->textField(\$model, '{$column->name}')";
+	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 else
-	return "echo \$form->checkBox(\$model, '{$column->name}')";
+	return "echo \$form->checkBox(\$model, '{$column->name}', array('class'=>'form-control'))";
 } else {
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
-			return "echo \$form->textField(\$model, '{$column->name}')";
+			return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 else
-			return "echo \$form->dropDownList(\$model, '{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')))";
+			return "echo \$form->dropDownList(\$model, '{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')), array('class'=>'form-control'))";
 }
 		} elseif(stripos($column->dbType,'text')!==false) {
 if($form == true) {
-			$return = "//echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50));
+			$return = "//echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50, 'class'=>'form-control'));
 			\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
@@ -237,6 +237,9 @@ if($form == true) {
 					'table' => array('js' => array('table.js')),
 					'fullscreen' => array('js' => array('fullscreen.js')),
 				),
+				'htmlOptions'=>array(
+					'class' => 'form-control',
+				 ),
 			));";
 } else
 			$return = "echo \$form->textField(\$model, '{$column->name}')";
@@ -244,7 +247,7 @@ if($form == true) {
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if($form == true)
 				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
-			$return .= "//echo \$form->textField(\$model, '{$column->name}');
+			$return .= "//echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'));
 			\$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
@@ -253,7 +256,7 @@ if($form == true) {
 					'dateFormat' => 'dd-mm-yy',
 				),
 				'htmlOptions'=>array(
-					'class' => 'span-4',
+					'class' => 'form-control',
 				 ),
 			));";
 			return $return;
@@ -293,16 +296,16 @@ if(preg_match('/(enum)/', $column->dbType)) {
 			if ($enumCondition && is_array($enumArrays) && count($enumArrays) > 0) {
 				$dropDownOption = self::export($dropDownOptions);
 				$return = "$$columnName = $dropDownOption;\n\t\t\t";
-				$return .= "echo \$form->dropDownList(\$model, '{$columnName}', $$columnName, array('prompt'=>''))";
+				$return .= "echo \$form->dropDownList(\$model, '{$columnName}', $$columnName, array('prompt'=>'', 'class'=>'form-control'))";
 				return $return;
 			} else if($column->size===null)
-				return "echo \$form->{$inputField}(\$model, '{$columnName}')";
+				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";
 			else {
 				$maxLength=$column->size;
 if($form == true) {
-				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength))";
+				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
 } else
-				return "echo \$form->{$inputField}(\$model, '{$columnName}')";
+				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";
 			}
 		}
 	}
