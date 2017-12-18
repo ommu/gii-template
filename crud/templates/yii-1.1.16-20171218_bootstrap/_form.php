@@ -45,7 +45,7 @@ foreach($this->tableSchema->columns as $column)
 		continue;
 ?>
 	<div class="form-group row">
-		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
+		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column, true)."; ?>\n"; ?>
 		<div class="col-lg-8 col-md-9 col-sm-12">
 			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
 			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
@@ -60,9 +60,10 @@ foreach($this->tableSchema->columns as $column)
 {
 if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
 	<div class="form-group row">
-		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
+		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column, true)."; ?>\n"; ?>
 		<div class="col-lg-8 col-md-9 col-sm-12">
 			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
+			<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
 			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
 		</div>
 	</div>

@@ -198,9 +198,12 @@ class CrudCode extends CCodeModel
 		}
 	}
 
-	public function generateActiveLabel($modelClass,$column)
+	public function generateActiveLabel($modelClass,$column, $type=false)
 	{
-		return "\$form->labelEx(\$model, '{$column->name}')";
+		if($type == false)
+			return "\$form->labelEx(\$model, '{$column->name}')";
+		else
+			return "\$form->labelEx(\$model, '{$column->name}', array('class'=>'col-form-label col-lg-4 col-md-3 col-sm-12'))";
 	}
 
 	public function generateActiveField($modelClass,$column,$form=true)
