@@ -3,12 +3,11 @@
  * OClientScript class file.
  *
  * @author Putra Sudaryanto <putra.sudaryanto@gmail.com>
+ * @contact (+62)856-299-4114
  * @create date Maret 1, 2014 14:02 WIB
  * @updated date Maret 1, 2014 15:50 WIB
- * @version 1.0.1
  * @copyright Copyright (c) 2014 Ommu Platform (ommu.co)
  * @link http://opensource.ommu.co
- * @contect (+62)856-299-4114
  *
  */
  

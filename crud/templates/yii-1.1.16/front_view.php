@@ -9,13 +9,12 @@
  * <?php echo $this->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
- * version: 0.0.1
  *
  * @author Putra Sudaryanto <putra@sudaryanto.id>
+ * @contact (+62)856-299-4114
  * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @link http://opensource.ommu.co
- * @contact (+62)856-299-4114
  *
  */
 

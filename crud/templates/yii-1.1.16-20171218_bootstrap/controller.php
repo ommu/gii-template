@@ -16,9 +16,8 @@ $nameColumn=$this->guessNameColumn($this->tableSchema->columns)
  * @var $this <?php echo $this->controllerClass."\n"; ?>
  * @var $model <?php echo $this->modelClass."\n"; ?>
  * @var $form CActiveForm
- * version: 0.0.1
- * Reference start
  *
+ * Reference start
  * TOC :
  *	Index
  *	Manage

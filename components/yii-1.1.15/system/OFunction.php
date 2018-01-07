@@ -2,13 +2,11 @@
 /**
  * OFunction class file
  *
- * @author Putra Sudaryanto <putra@sudaryanto.me>
+ * @author Putra Sudaryanto <putra.sudaryanto@gmail.com>
+ * @contact (+62)856-299-4114
  * @create date April 15, 2014 10:29 WIB
- * @version 1.0
  * @copyright Copyright (c) 2014 Ommu Platform (ommu.co)
  * @link http://opensource.ommu.co
- * @contect (+62)856-299-4114
- *
  *
  * Contains many function that most used
  *

@@ -3,14 +3,13 @@
  * ApplicationConfigBehavior is a behavior for the application.
  * It loads additional config parameters that cannot be statically 
  * written in config/main
- * version: 1.3.0
  *
  * url: http://www.yiiframework.com/wiki/208/how-to-use-an-application-behavior-to-maintain-runtime-configuration/
  *
  * @author Putra Sudaryanto <putra@sudaryanto.id>
+ * @contact (+62)856-299-4114
  * @copyright Copyright (c) 2014 Ommu Platform (opensource.ommu.co)
  * @link http://opensource.ommu.co
- * @contact (+62)856-299-4114
  *
  */
  

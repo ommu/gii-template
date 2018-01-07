@@ -27,13 +27,12 @@ function setRelationName($names) {
 <?php echo "<?php\n"; ?>
 /**
  * <?php echo $modelClass."\n"; ?>
- * version: 0.0.1
  *
  * @author Putra Sudaryanto <putra@sudaryanto.id>
+ * @contact (+62)856-299-4114
  * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @link http://opensource.ommu.co
- * @contact (+62)856-299-4114
  *
  * This is the template for generating the model class of a specified table.
  * - $this: the ModelCode object
