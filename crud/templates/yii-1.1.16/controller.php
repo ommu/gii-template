@@ -4,7 +4,11 @@
  * The following variables are available in this template:
  * - $this: the CrudCode object
  */
-$label = $this->pluralize($this->class2name($this->modelClass));
+Yii::import('application.libraries.gii.Inflector');
+$inflector = new Inflector;
+
+$label = $this->class2name($this->modelClass);
+$nameColumn=$this->guessNameColumn($this->tableSchema->columns)
 ?>
 <?php echo "<?php\n"; ?>
 /**
@@ -16,10 +20,10 @@ $label = $this->pluralize($this->class2name($this->modelClass));
  * Reference start
  * TOC :
  *	Index
- *	View
  *	Manage
  *	Add
  *	Edit
+ *	View
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
  *	RunAction
 <?php endif; ?>
@@ -59,11 +63,12 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	{
 		if(!Yii::app()->user->isGuest) {
 			if(Yii::app()->user->level == 1) {
+			//if(in_array(Yii::app()->user->level, array(1,2))) {
 				$arrThemes = Utility::getCurrentTemplate('admin');
 				Yii::app()->theme = $arrThemes['folder'];
 				$this->layout = $arrThemes['layout'];
-			} else
-				throw new CHttpException(404, Yii::t('phrase', 'The requested page does not exist.'));
+				Utility::applyViewPath(__dir__);
+			}
 		} else
 			$this->redirect(Yii::app()->createUrl('site/login'));
 		
@@ -102,8 +107,8 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				'users'=>array('@'),
 			),
 			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('index','manage','add','edit','runaction','delete','publish','headline'),
-				//'actions'=>array('manage','add','edit','runaction','delete','publish','headline'),
+				'actions'=>array('index','manage','add','edit','view','runaction','delete','publish','headline'),
+				//'actions'=>array('manage','add','edit','view','runaction','delete','publish','headline'),
 				'users'=>array('@'),
 				'expression'=>'in_array($user->level, array(1,2))',
 				//'expression'=>'$user->level == 1',
@@ -123,6 +128,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionIndex() 
 	{
+		/*
 		$arrThemes = Utility::getCurrentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
@@ -144,44 +150,15 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			),
 		));
 
-		$this->pageTitle = Yii::t('phrase', '<?php echo $label; ?>');
+		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
 		$this->pageDescription = $setting->meta_description;
 		$this->pageMeta = $setting->meta_keyword;
 		$this->render('front_index',array(
 			'dataProvider'=>$dataProvider,
 		));
-		//$this->redirect(array('manage'));
-	}
-	
-	/**
-	 * Displays a particular model.
-	 * @param integer $id the ID of the model to be displayed
-	 */
-	public function actionView($id) 
-	{
-		$arrThemes = Utility::getCurrentTemplate('public');
-		Yii::app()->theme = $arrThemes['folder'];
-		$this->layout = $arrThemes['layout'];
-		Utility::applyCurrentTheme($this->module);
-		
-		$setting = VideoSetting::model()->findByPk(1,array(
-			'select' => 'meta_keyword',
-		));
-
-		$model=$this->loadModel($id);
-
-		$this->pageTitle = Yii::t('phrase', 'View <?php echo $label; ?>');
-		$this->pageDescription = '';
-		$this->pageMeta = $setting->meta_keyword;
-		$this->render('front_view',array(
-			'model'=>$model,
-		));
-		/*
-		$this->render('admin_view',array(
-			'model'=>$model,
-		));
 		*/
-	}	
+		$this->redirect(array('manage'));
+	}
 
 	/**
 	 * Manages all models.
@@ -194,17 +171,17 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			$model->attributes=$_GET['<?php echo $this->modelClass; ?>'];
 		}
 
+		$gridColumn = $_GET['GridColumn'];
 		$columnTemp = array();
-		if(isset($_GET['GridColumn'])) {
-			foreach($_GET['GridColumn'] as $key => $val) {
-				if($_GET['GridColumn'][$key] == 1) {
+		if(isset($gridColumn)) {
+			foreach($gridColumn as $key => $val) {
+				if($gridColumn[$key] == 1)
 					$columnTemp[] = $key;
-				}
 			}
 		}
 		$columns = $model->getGridColumn($columnTemp);
 
-		$this->pageTitle = Yii::t('phrase', '<?php echo $label; ?>');
+		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_manage',array(
@@ -227,7 +204,6 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		if(isset($_POST['<?php echo $this->modelClass; ?>'])) {
 			$model->attributes=$_POST['<?php echo $this->modelClass; ?>'];
 
-			/* 
 			$jsonError = CActiveForm::validate($model);
 			if(strlen($jsonError) > 2) {
 				//echo $jsonError;
@@ -251,30 +227,32 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 							'type' => 5,
 							'get' => Yii::app()->controller->createUrl('manage'),
 							'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success created.').'</strong></div>',
+							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success created.').'</strong></div>',
 						));
-					} else {
+						/*
+						Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success created.'));
+						$this->redirect(array('manage'));
+						*/
+					} else
 						print_r($model->getErrors());
-					}
 				}
 			}
 			Yii::app()->end();
-			*/
 
-			if(isset($_GET['enablesave']) && $_GET['enablesave'] == 1) {
-				if($model->save()) {
-					Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success created.'));
-					//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
-					$this->redirect(array('manage'));
-				}
+			/* 
+			if($model->save()) {
+				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success created.'));
+				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
+				$this->redirect(array('manage'));
 			}
+			*/
 		}
 		
 		$this->dialogDetail = true; 
 		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage'); 
 		$this->dialogWidth = 600; 
 
-		$this->pageTitle = Yii::t('phrase', 'Create <?php echo $label; ?>');
+		$this->pageTitle = Yii::t('phrase', 'Create <?php echo $inflector->singularize($label); ?>');
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_add',array(
@@ -297,7 +275,6 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		if(isset($_POST['<?php echo $this->modelClass; ?>'])) {
 			$model->attributes=$_POST['<?php echo $this->modelClass; ?>'];
 
-			/* 
 			$jsonError = CActiveForm::validate($model);
 			if(strlen($jsonError) > 2) {
 				//echo $jsonError;
@@ -321,36 +298,71 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 							'type' => 5,
 							'get' => Yii::app()->controller->createUrl('manage'),
 							'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
+							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.').'</strong></div>',
 						));
-					} else {
+						/*
+						Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.'));
+						$this->redirect(array('manage'));
+						*/
+					} else
 						print_r($model->getErrors());
-					}
 				}
 			}
 			Yii::app()->end();
-			*/
 
-			if(isset($_GET['enablesave']) && $_GET['enablesave'] == 1) {
-				if($model->save()) {
-					Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo $this->modelClass; ?> success updated.'));
-					//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
-					$this->redirect(array('manage'));
-				}
+			/* 
+			if($model->save()) {
+				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.'));
+				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
+				$this->redirect(array('manage'));
 			}
+			*/
 		}
 		
 		$this->dialogDetail = true; 
 		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage'); 
 		$this->dialogWidth = 600; 
 
-		$this->pageTitle = Yii::t('phrase', 'Update <?php echo $label; ?>');
+		$this->pageTitle = Yii::t('phrase', 'Update <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_edit',array(
 			'model'=>$model,
 		));
 	}
+	
+	/**
+	 * Displays a particular model.
+	 * @param integer $id the ID of the model to be displayed
+	 */
+	public function actionView($id) 
+	{
+		/*
+		$arrThemes = Utility::getCurrentTemplate('public');
+		Yii::app()->theme = $arrThemes['folder'];
+		$this->layout = $arrThemes['layout'];
+		Utility::applyCurrentTheme($this->module);
+		
+		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1,array(
+			'select' => 'meta_keyword',
+		));
+		*/
+
+		$model=$this->loadModel($id);
+		
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 600;
+
+		$this->pageTitle = Yii::t('phrase', 'View <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		//$this->pageMeta = $setting->meta_keyword;
+		//$this->render('front_view',array(
+		$this->render('admin_view',array(
+			'model'=>$model,
+		));
+	}	
 
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 	/**
@@ -403,8 +415,9 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			// we only allow deletion via POST request
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 			$model->publish = 2;
+			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
 			
-			if($model->save()) {
+			if($model->update()) {
 <?php else: ?>
 			if($model->delete()) {
 <?php endif; ?>
@@ -412,20 +425,24 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 					'type' => 5,
 					'get' => Yii::app()->controller->createUrl('manage'),
 					'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success deleted.').'</strong></div>',
+					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success deleted.').'</strong></div>',
 				));
+				/*
+				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success deleted.'));
+				$this->redirect(array('manage'));
+				*/
 			}
-
-		} else {
-			$this->dialogDetail = true;
-			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
-			$this->dialogWidth = 350;
-
-			$this->pageTitle = Yii::t('phrase', 'Delete <?php echo $label; ?>');
-			$this->pageDescription = '';
-			$this->pageMeta = '';
-			$this->render('admin_delete');
+			Yii::app()->end();
 		}
+
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 350;
+
+		$this->pageTitle = Yii::t('phrase', 'Delete <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		$this->render('admin_delete');
 	}
 
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
@@ -445,29 +462,34 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			// we only allow deletion via POST request
 			//change value active or publish
 			$model->publish = $replace;
+			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
 
 			if($model->update()) {
 				echo CJSON::encode(array(
 					'type' => 5,
 					'get' => Yii::app()->controller->createUrl('manage'),
 					'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
+					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.').'</strong></div>',
 				));
+				/*
+				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.'));
+				$this->redirect(array('manage'));
+				*/
 			}
-
-		} else {
-			$this->dialogDetail = true;
-			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
-			$this->dialogWidth = 350;
-
-			$this->pageTitle = Yii::t('phrase', '$title <?php echo $label; ?>', array('$title'=>$title));
-			$this->pageDescription = '';
-			$this->pageMeta = '';
-			$this->render('admin_publish',array(
-				'title'=>$title,
-				'model'=>$model,
-			));
+			Yii::app()->end();
 		}
+
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 350;
+
+		$this->pageTitle = Yii::t('phrase', '{title} <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{title}'=>$title, '{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		$this->render('admin_publish',array(
+			'title'=>$title,
+			'model'=>$model,
+		));
 	}
 
 <?php endif;
@@ -487,27 +509,32 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 				//change value active or publish
 				$model->headline = 1;
 				$model->publish = 1;
+				$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
 
 				if($model->update()) {
 					echo CJSON::encode(array(
 						'type' => 5,
 						'get' => Yii::app()->controller->createUrl('manage'),
 						'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
-						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo $label; ?> success updated.').'</strong></div>',
+						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.').'</strong></div>',
 					));
+					/*
+					Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.'));
+					$this->redirect(array('manage'));
+					*/
 				}
 			}
-
-		} else {
-			$this->dialogDetail = true;
-			$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
-			$this->dialogWidth = 350;
-
-			$this->pageTitle = Yii::t('phrase', 'Headline');
-			$this->pageDescription = '';
-			$this->pageMeta = '';
-			$this->render('admin_headline');
+			Yii::app()->end();
 		}
+
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 350;
+
+		$this->pageTitle = Yii::t('phrase', 'Headline <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
+		$this->pageDescription = '';
+		$this->pageMeta = '';
+		$this->render('admin_headline');
 	}
 
 <?php endif; ?>

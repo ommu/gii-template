@@ -3,10 +3,13 @@
  * The following variables are available in this template:
  * - $this: the CrudCode object
  */
+Yii::import('application.libraries.gii.Inflector');
+$inflector = new Inflector;
+
 ?>
 <?php echo "<?php\n"; ?>
 /**
- * <?php echo $this->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  * @var $form CActiveForm
@@ -20,7 +23,7 @@
  */
 
 <?php
-$label=$this->pluralize($this->class2name($this->modelClass));
+$label=$inflector->pluralize($this->class2name($this->modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
 	\t'Delete',
@@ -28,18 +31,18 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php echo "<?php \$form=\$this->beginWidget('application.libraries.core.components.system.OActiveForm', array(
-	'id'=>'".$this->class2id($this->modelClass)."-form',
+<?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.core.components.system.OActiveForm', array(
+	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
 	'enableAjaxValidation'=>true,
 	//'htmlOptions' => array('enctype' => 'multipart/form-data')
-)); ?>\n"; ?>
+)); ?>
 
 	<div class="dialog-content">
-		<?php echo "<?php echo Yii::t('phrase', 'Are you sure you want to delete this item?');?>\n";?>
+		<?php echo "<?php ";?>echo Yii::t('phrase', 'Are you sure you want to delete this item?');?>
 	</div>
 	<div class="dialog-submit">
-		<?php echo "<?php echo CHtml::submitButton(Yii::t('phrase', 'Delete'), array('onclick' => 'setEnableSave()')); ?>\n";?>
-		<?php echo "<?php echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>\n";?>
+		<?php echo "<?php ";?>echo CHtml::submitButton(Yii::t('phrase', 'Delete'), array('onclick' => 'setEnableSave()')); ?>
+		<?php echo "<?php ";?>echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>
 	</div>
 	
-<?php echo "<?php \$this->endWidget(); ?>\n"; ?>
+<?php echo "<?php ";?>$this->endWidget(); ?>

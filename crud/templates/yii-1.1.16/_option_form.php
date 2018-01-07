@@ -3,10 +3,12 @@
  * The following variables are available in this template:
  * - $this: the CrudCode object
  */
+Yii::import('application.libraries.gii.Inflector');
+$inflector = new Inflector;
 ?>
 <?php echo "<?php\n"; ?>
 /**
- * <?php echo $this->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  * @var $form CActiveForm
@@ -38,23 +40,22 @@ EOP;
 	$cs->registerScript('grid-option', $js, CClientScript::POS_END);
 ?>
 
-<?php echo "<?php echo CHtml::beginForm(Yii::app()->createUrl(\$this->route), 'get', array(
+<?php echo "<?php ";?>echo CHtml::beginForm(Yii::app()->createUrl($this->route), 'get', array(
 	'name' => 'gridoption',
 ));
-\$columns   = array();
-\$exception = array('id');
-foreach(\$model->metaData->columns as \$key => \$val) {
-	if(!in_array(\$key, \$exception)) {
-		\$columns[\$key] = \$key;
-	}
+$columns   = array();
+$exception = array('_option','_no','id');
+foreach($model->templateColumns as $key => $val) {
+	if(!in_array($key, $exception))
+		$columns[$key] = $key;
 }
-?>\n"; ?>
+?>
 <ul>
-	<?php echo "<?php foreach(\$columns as \$val): ?>\n";?>
+	<?php echo "<?php ";?>foreach($columns as $key => $val): ?>
 	<li>
-		<?php echo "<?php echo CHtml::checkBox('GridColumn['.\$val.']'); ?>\n"; ?>
-		<?php echo "<?php echo CHtml::label(\$val, 'GridColumn_'.\$val); ?>\n";?>
+		<?php echo "<?php ";?>echo CHtml::checkBox('GridColumn['.$val.']', in_array($key, $gridColumns) ? true : false); ?>
+		<?php echo "<?php ";?>echo CHtml::label($model->getAttributeLabel($val), 'GridColumn_'.$val); ?>
 	</li>
-	<?php echo "<?php endforeach; ?>\n";?>
+	<?php echo "<?php ";?>endforeach; ?>
 </ul>
-<?php echo "<?php echo CHtml::endForm(); ?>\n"; ?>
+<?php echo "<?php ";?>echo CHtml::endForm(); ?>
