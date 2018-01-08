@@ -54,7 +54,7 @@ foreach($this->tableSchema->columns as $name=>$column)
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name,\n";
 		echo "\t\t),\n";
-	} else if(in_array($column->name, array('publish','status'))) {
+	} else if(in_array($column->name, array('publish','status')) && $column->dbType == 'tinyint(1)') {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name == '1' ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
@@ -62,15 +62,15 @@ foreach($this->tableSchema->columns as $name=>$column)
 		echo "\t\t),\n";
 	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
 		$arrayName = explode('_', $column->name);
-		$cName = 'displayname';
+		$columnName = 'displayname';
 		if($column->isForeignKey == '1')
-			$cName = 'column_name_relation';
-		$cRelation = $arrayName[0];
-		if($cRelation == 'cat')
-			$cRelation = 'category';
+			$columnName = 'column_name_relation';
+		$relationName = $arrayName[0];
+		if($relationName == 'cat')
+			$relationName = 'category';
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";	
-		echo "\t\t\t'value'=>\$model->$name ? \$model->{$cRelation}->{$cName} : '-',\n";
+		echo "\t\t\t'value'=>\$model->$name ? \$model->{$relationName}->{$columnName} : '-',\n";
 		echo "\t\t),\n";		
 	} else if($column->dbType == 'text') {
 		echo "\t\tarray(\n";
@@ -89,13 +89,25 @@ foreach($this->tableSchema->columns as $name=>$column)
 			echo "\t\tarray(\n";
 			echo "\t\t\t'name'=>'$name',\n";
 			echo "\t\t\t'value'=>!in_array(\$model->$name, array('0000-00-00','1970-01-01')) ? Utility::dateFormat(\$model->$name) : '-',\n";
-			echo "\t\t),\n";			
+			echo "\t\t),\n";
 		}		
 	} else {
+		$translateCondition = 0;
+		$commentArray = explode(',', $column->comment);
+		$publicAttribute = $name;
+		if(in_array('trigger[delete]', $commentArray)) {
+			$publicAttribute = $name.'_i';
+			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+			$translateCondition = 1;
+		}
 		echo "\t\tarray(\n";
-		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name,\n";		
+		echo "\t\t\t'name'=>'$publicAttribute',\n";
+if($translateCondition) {
+		echo "\t\t\t'value'=>\$model->{$publicAttributeRelation}->message,\n";
+} else {
+		echo "\t\t\t'value'=>\$model->$name,\n";
 		echo "\t\t\t//'value'=>\$model->$name ? \$model->$name : '-',\n";
+}
 		echo "\t\t),\n";
 	}
 ?>

@@ -200,27 +200,31 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveLabel($modelClass,$column, $type=false)
 	{
+		$columnName = $column->name;
+		$commentArray = explode(',', $column->comment);
+		if(in_array('trigger[delete]', $commentArray))
+			$columnName = $columnName.'_i';
 		if($type == false)
-			return "\$form->labelEx(\$model, '{$column->name}')";
+			return "\$form->labelEx(\$model, '{$columnName}')";
 		else
-			return "\$form->labelEx(\$model, '{$column->name}', array('class'=>'col-form-label col-lg-4 col-md-3 col-sm-12'))";
+			return "\$form->labelEx(\$model, '{$columnName}', array('class'=>'col-form-label col-lg-4 col-md-3 col-sm-12'))";
 	}
 
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
 		//print_r($column);
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
-if($form == true) {
+if($form == true):
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
 	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 else
 	return "echo \$form->checkBox(\$model, '{$column->name}', array('class'=>'form-control'))";
-} else {
+else:
 if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
 			return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 else
 			return "echo \$form->dropDownList(\$model, '{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')), array('class'=>'form-control'))";
-}
+endif;
 		} elseif(stripos($column->dbType,'text')!==false) {
 if($form == true) {
 			$return = "//echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50, 'class'=>'form-control'));
@@ -269,7 +273,14 @@ if($form == true) {
 			else
 				$inputField='textField';
 
+				$i18n = 0;
 				$columnName = $column->name;
+				$commentArray = explode(',', $column->comment);
+				if(in_array('trigger[delete]', $commentArray)) {
+					$publicRelation = preg_match('/(name|title)/', $columnName) ? 'title' : 'description';
+					$columnName = $columnName.'_i';
+					$i18n = 1;
+				}
 if($form == false) {
 			if($column->isForeignKey == '1') {
 				$relationName = $this->setRelationName($column->name, true);
@@ -281,7 +292,7 @@ if($form == false) {
 				$relationName = $relationArray[0];
 				$columnName = $relationName.'_search';
 			}
-}
+} else
 $enumCondition = 0;
 if(preg_match('/(enum)/', $column->dbType)) {
 	$enumCondition = 1;
@@ -306,6 +317,13 @@ if(preg_match('/(enum)/', $column->dbType)) {
 			else {
 				$maxLength=$column->size;
 if($form == true) {
+if($i18n) {
+	$inputField = $publicRelation == 'title' ? 'textField' : 'textArea';
+	if($publicRelation == 'title')
+				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>32, 'class'=>'form-control'))";
+	else
+				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('rows'=>6, 'cols'=>50, 'maxlength'=>128, 'class'=>'form-control'))";
+} else
 				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
 } else
 				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";

@@ -254,7 +254,17 @@ endforeach; ?>
 //print_r($rules);
 foreach($rules as $rule): ?>
 			<?php echo $rule.",\n"; ?>
-<?php endforeach;?>
+<?php endforeach;
+if($i18n):
+	foreach($columns as $name=>$column):
+		$commentArray = explode(',', $column->comment);
+		if(in_array('trigger[delete]', $commentArray)):
+			$publicAttribute = $name.'_i';
+			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';?>
+			array('<?php echo $publicAttribute;?>', 'length', 'max'=><?php echo $publicAttributeRelation == 'title' ? '32' : '128';?>),
+<?php endif;
+	endforeach;
+endif;?>
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
 			array('<?php echo implode(', ', array_merge(array_keys($columns), $publicVariable)); ?>', 'safe', 'on'=>'search'),

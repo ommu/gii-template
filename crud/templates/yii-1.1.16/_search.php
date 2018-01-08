@@ -65,6 +65,9 @@ function setRelationName($names, $column=false) {
 		continue;
 		
 	$columnName = $column->name;
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray))
+		$columnName = $columnName.'_i';
 	if($column->isForeignKey == '1') {
 		$relationName = setRelationName($column->name, true);
 		if($relationName == 'cat')

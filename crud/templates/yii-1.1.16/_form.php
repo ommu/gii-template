@@ -42,12 +42,16 @@ foreach($this->tableSchema->columns as $column)
 {
 	if($column->autoIncrement || $column->comment == 'trigger' || $column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null) || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
 		continue;
+	$columnName = $column->name;
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray))
+		$columnName = $columnName.'_i';
 ?>
 	<div class="form-group row">
 		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column, true)."; ?>\n"; ?>
 		<div class="col-lg-8 col-md-9 col-sm-12">
 			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
+			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $columnName;?>'); ?>
 			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
 		</div>
 	</div>
