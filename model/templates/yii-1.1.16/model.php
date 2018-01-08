@@ -63,6 +63,7 @@ function guessNameColumn($columns)
 
 $publishCondition = 0;
 $slugCondition = 0;
+$i18n = 0;
 //echo '<pre>';
 //print_r($columns);
 foreach($columns as $name=>$column):
@@ -146,18 +147,32 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 	public $templateColumns = array();
 	public $gridForbiddenColumn = array();
 <?php 
+$publicVariable = array();
+//echo '<pre>';
+//print_r($columns);
+foreach($columns as $name=>$column):
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)) {
+		$publicAttribute = $name.'_i';
+		echo "\tpublic \${$publicAttribute};\n";
+		$publicVariable[] = $publicAttribute;
+		$i18n = 1;
+	}
+endforeach;
+//echo '<pre>';
+//print_r($labels);
 foreach($labels as $name=>$label):
 	if(in_array($name, array('tag_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 		$publicAttribute = $relationName.'_i';
 		echo "\tpublic \${$publicAttribute};\n";
+		$publicVariable[] = $publicAttribute;
 	}	
 endforeach; ?>
 
 	// Variable Search
 <?php 
-$publicVariable = array();
 //echo '<pre>';
 //print_r($columns);
 foreach($columns as $name=>$column):
@@ -179,6 +194,23 @@ foreach($labels as $name=>$label):
 		$publicVariable[] = $publicAttribute;
 	}	
 endforeach; ?>
+<?php if($slugCondition) {?>
+
+	/**
+	 * Behaviors for this model
+	 */
+	public function behaviors() 
+	{
+		return array(
+			'sluggable' => array(
+				'class'=>'ext.yii-behavior-sluggable.SluggableBehavior',
+				'columns' => array('title.message'),
+				'unique' => true,
+				'update' => true,
+			),
+		);
+	}
+<?php }?>
 
 	/**
 	 * Returns the static model of the specified AR class.
@@ -248,6 +280,15 @@ foreach($rules as $rule): ?>
 			$relationModel = preg_replace('(Ommu)', '', $relation);
 			echo "'$relationName' => $relationModel,\n"; ?>
 <?php endforeach;
+if($i18n):
+	foreach($columns as $name=>$column):
+		$commentArray = explode(',', $column->comment);
+		if(in_array('trigger[delete]', $commentArray)):
+			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+			echo "\t\t\t'$publicAttributeRelation' => array(self::BELONGS_TO, 'SourceMessage', '{$name}'),\n";
+		endif;
+	endforeach;
+endif;
 	foreach($columns as $name=>$column):
 		if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 			$relationArray = explode('_', $name);
@@ -276,6 +317,14 @@ foreach($labels as $name=>$label):
 	if(strtolower($label) == 'cat')
 		$label = 'Category';
 	echo "\t\t\t'$name' => Yii::t('attribute', '$label'),\n";
+endforeach;
+foreach($columns as $name=>$column):
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)) {
+		$publicAttribute = $name.'_i';
+		$publicAttributeLabel = ucwords(strtolower($name));
+		echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
+	}
 endforeach;
 foreach($columns as $name=>$column):
 	if($column->isForeignKey == '1') {
@@ -341,7 +390,19 @@ if($isVariableSearch == 1) {?>
 		echo "\t\t\t),\n";
 	}
 }
-foreach($columns as $name=>$column) {	
+if($i18n):
+foreach($columns as $name=>$column):
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)):
+		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+		echo "\t\t\t'$publicAttributeRelation' => array(\n";
+		echo "\t\t\t\t'alias'=>'$publicAttributeRelation',\n";
+		echo "\t\t\t\t'select'=>'message'\n";
+		echo "\t\t\t),\n";
+	endif;
+endforeach;
+endif;
+foreach($columns as $name=>$column) {
 	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$relationArray = explode('_',$name);
 		$relationName = $relationArray[0];
@@ -443,6 +504,16 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
 	}
 }
+if($i18n):
+foreach($columns as $name=>$column):
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)):
+		$publicAttribute = $name.'_i';
+		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+		echo "\t\t\$criteria->compare('{$publicAttributeRelation}.message', strtolower(\$this->$publicAttribute), true);\n";
+	endif;
+endforeach;
+endif;
 foreach($columns as $name=>$column) {
 	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$relationArray = explode('_',$name);
@@ -567,27 +638,28 @@ foreach($columns as $name=>$column)
 	if(!$column->isPrimaryKey && $column->dbType != 'tinyint(1)') {
 		if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 			$arrayName = explode('_', $column->name);
-			$cName = 'displayname';
+			$columnName = 'displayname';
 			if($column->isForeignKey == '1')
-				$cName = 'column_name_relation';
+				$columnName = 'column_name_relation';
 			if($column->name == 'tag_id')
-				$cName = 'body';
-			$cRelation = $arrayName[0];
-			if($cRelation == 'cat')
-				$cRelation = 'category';
-			$name = $cRelation.'_search';
+				$columnName = 'body';
+			$relationName = $arrayName[0];
+			if($relationName == 'cat')
+				$relationName = 'category';
+			$publicAttribute = $relationName.'_search';
 			if($column->name == 'member_id') {
-				$cRelation = 'member_view';
-				$cName = 'member_name';	
+				$relationName = 'member_view';
+				$columnName = 'member_name';	
 			}
-			echo "\t\t\tif(!isset(\$_GET['$cRelation'])) {\n";
-			echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
-			echo "\t\t\t\t'name' => '$name',\n";
-if($column->name == 'tag_id')
-			echo "\t\t\t\t'value' => 'str_replace(\'-\', \' \', \$data->{$cRelation}->{$cName})',\n";
-else
-			echo "\t\t\t\t'value' => '\$data->{$cRelation}->{$cName} ? \$data->{$cRelation}->{$cName} : \'-\'',\n";
-			echo "\t\t\t);\n";
+			echo "\t\t\tif(!isset(\$_GET['$relationName'])) {\n";
+			echo "\t\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
+			echo "\t\t\t\t\t'name' => '$publicAttribute',\n";
+if($column->name == 'tag_id') {
+			echo "\t\t\t\t\t'value' => 'str_replace(\'-\', \' \', \$data->{$relationName}->{$columnName})',\n";
+} else {
+			echo "\t\t\t\t\t'value' => '\$data->{$relationName}->{$columnName} ? \$data->{$relationName}->{$columnName} : \'-\'',\n";
+}
+			echo "\t\t\t\t);\n";
 			echo "\t\t\t}\n";
 			
 		} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
@@ -622,9 +694,24 @@ else
 			echo "\t\t\t);\n";
 			
 		} else {
-			echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
-			echo "\t\t\t\t'name' => '$name',\n";
+			$translateCondition = 0;
+			$commentArray = explode(',', $column->comment);
+			$publicAttribute = $name;
+			if(in_array('trigger[delete]', $commentArray)) {
+				$publicAttribute = $name.'_i';
+				$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+				$translateCondition = 1;
+			}
+			echo "\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
+			echo "\t\t\t\t'name' => '$publicAttribute',\n";
+if($translateCondition) {
+			echo "\t\t\t\t'value' => '\$data->{$publicAttributeRelation}->message',\n";
+} else {
 			echo "\t\t\t\t'value' => '\$data->$name',\n";
+}
+//if(in_array($column->dbType, array('text'))) {
+//			echo "\t\t\t\t'type' => 'raw',\n";
+//}
 			echo "\t\t\t);\n";
 		}
 	}
@@ -707,6 +794,26 @@ foreach($columns as $name=>$column):
 	}
 <?php endif;
 endforeach;?>
+<?php if($i18n) {?>
+
+	/**
+	 * This is invoked when a record is populated with data from a find() call.
+	 */
+	protected function afterFind()
+	{
+<?php
+foreach($columns as $name=>$column):
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)):
+		$publicAttribute = $name.'_i';
+		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';?>
+		$this-><?php echo $publicAttribute;?> = $this-><?php echo $publicAttributeRelation;?>->message;
+<?php endif;
+endforeach; ?>
+		
+		parent::afterFind();
+	}
+<?php }?>
 
 	/**
 	 * before validate attributes
@@ -754,6 +861,14 @@ foreach($columns as $name=>$column)
 	 */
 	protected function beforeSave() 
 	{
+<?php if($i18n) {?>
+		$module = strtolower(Yii::app()->controller->module->id);
+		$controller = strtolower(Yii::app()->controller->id);
+		$action = strtolower(Yii::app()->controller->action->id);
+
+		$location = $module.' '.$controller;
+		
+<?php }?>
 		if(parent::beforeSave()) {
 <?php
 foreach($columns as $name=>$column)
@@ -784,7 +899,30 @@ foreach($columns as $name=>$column)
 					}
 				}
 			}
-<?php }
+<?php } else {
+		$commentArray = explode(',', $column->comment);
+		if(in_array('trigger[delete]', $commentArray)) {
+			$publicAttribute = $name.'_i';
+			$publicAttributeLocation = preg_match('/(name|title)/', $name) ? '_title' : '_desc';?>
+			if($this->isNewRecord || (!$this->isNewRecord && !$this-><?php echo $name;?>)) {
+				$<?php echo $name;?>=new SourceMessage;
+				$<?php echo $name;?>->message = $this-><?php echo $publicAttribute;?>;
+				$<?php echo $name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
+				if($<?php echo $name;?>->save())
+					$this-><?php echo $name;?> = $name->id;
+<?php if($i18n && preg_match('/(name|title)/', $name)) {?>
+
+				$this->slug = Utility::getUrlTitle($this-><?php echo $publicAttribute;?>);
+<?php }?>
+				
+			} else {
+				$<?php echo $name;?> = SourceMessage::model()->findByPk($this-><?php echo $name;?>);
+				$<?php echo $name;?>->message = $this-><?php echo $publicAttribute;?>;
+				$<?php echo $name;?>->save();
+			}
+
+<?php	}
+	}
 } ?>
 			// Create action
 		}
