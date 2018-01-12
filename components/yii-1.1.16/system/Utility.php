@@ -179,7 +179,7 @@ class Utility
 	*/
 	public static function getArrayFromYML($path)
 	{
-		Yii::import('application.libraries.core.components.plugin.Spyc');
+		Yii::import('mustangostang.spyc.Spyc');
 			
 		if(file_exists($path)) {
 			$arraySpyc = Spyc::YAMLLoad($path);	
