@@ -25,7 +25,15 @@ $inflector = new Inflector;
 <?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.core.components.system.OActiveForm', array(
 	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
 	'enableAjaxValidation'=>true,
-	//'htmlOptions' => array('enctype' => 'multipart/form-data')
+	/*
+	'enableClientValidation'=>true,
+	'clientOptions'=>array(
+		'validateOnSubmit'=>true,
+	),
+	'htmlOptions' => array(
+		'enctype' => 'multipart/form-data',
+	),
+	*/
 )); ?>
 
 <?php echo "<?php ";?>//begin.Messages ?>
@@ -88,7 +96,7 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 <div class="dialog-content">
 </div>
 <div class="dialog-submit">
-	<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save') ,array('onclick' => 'setEnableSave()')); ?>
+	<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
 	<?php echo "<?php "; ?>echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>
 </div>
 <?php echo "<?php "; ?>$this->endWidget(); ?>
