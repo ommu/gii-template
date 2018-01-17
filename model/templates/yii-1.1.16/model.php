@@ -64,6 +64,7 @@ function guessNameColumn($columns)
 $publishCondition = 0;
 $slugCondition = 0;
 $i18n = 0;
+$primaryKeyColumn = key($columns);
 //echo '<pre>';
 //print_r($columns);
 foreach($columns as $name=>$column):
@@ -82,7 +83,10 @@ endforeach;
  * @contact (+62)856-299-4114
  * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
- * @link http://opensource.ommu.co
+<?php if($this->modifiedStatus):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php endif; ?>
+ * @link <?php echo $this->linkSource."\n";?>
  *
  * This is the model class for table "<?php echo $tableName; ?>".
  *
@@ -137,14 +141,12 @@ foreach($labels as $name=>$label):
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 		echo " * @property OmmuTags \${$relationName};\n";
-	}	
+	}
 endforeach;
 endif; ?>
  */
 class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 {
-	public $defaultColumns = array();
-	public $templateColumns = array();
 	public $gridForbiddenColumn = array();
 <?php 
 $publicVariable = array();
@@ -168,7 +170,7 @@ foreach($labels as $name=>$label):
 		$publicAttribute = $relationName.'_i';
 		echo "\tpublic \${$publicAttribute};\n";
 		$publicVariable[] = $publicAttribute;
-	}	
+	}
 endforeach; ?>
 
 	// Variable Search
@@ -192,7 +194,7 @@ foreach($labels as $name=>$label):
 		$publicAttribute = $relationName.'_search';
 		echo "\tpublic \${$publicAttribute};\n";
 		$publicVariable[] = $publicAttribute;
-	}	
+	}
 endforeach; ?>
 <?php if($slugCondition) {?>
 
@@ -241,6 +243,16 @@ endforeach; ?>
 		preg_match("/dbname=([^;]+)/i", $this->dbConnection->connectionString, $matches);
 		return $matches[1].'.<?php echo $tableName; ?>';
 	}
+<?php if($tableName[0] == '_'):?>
+
+	/**
+	 * @return string the primarykey column
+	 */
+	public function primaryKey()
+	{
+		return Yii::app()-><?php echo $primaryKeyColumn; ?>;
+	}
+<?php endif?>
 
 	/**
 	 * @return array validation rules for model attributes.
@@ -546,6 +558,10 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\$criteria->compare('$relationName.$relationAttribute', \$$publicAttribute, true);\n";
 	}
 }
+
+	if($tableName[0] == '_' && !$isPrimaryKey)
+		$isPrimaryKey = $primaryKeyColumn;
+
 	echo "\n\t\tif(!isset(\$_GET['{$modelClass}_sort']))\n";
 	echo "\t\t\t\$criteria->order = 't.$isPrimaryKey DESC';\n";
 ?>
@@ -553,73 +569,9 @@ foreach($columns as $name=>$column) {
 		return new CActiveDataProvider($this, array(
 			'criteria'=>$criteria,
 			'pagination'=>array(
-				'pageSize'=>30,
+				'pageSize'=>Yii::app()->params['grid-view'] ? Yii::app()->params['grid-view']['pageSize'] : 20,
 			),
 		));
-	}
-
-	/**
-	 * Get kolom untuk Grid View
-	 *
-	 * @param array $columns kolom dari view
-	 * @return array dari grid yang aktif
-	 */
-	public function getGridColumn($columns=null) 
-	{
-		// Jika $columns kosong maka isi defaultColumns dg templateColumns
-		if(empty($columns) || $columns == null) {
-			array_splice($this->defaultColumns, 0);
-			foreach($this->templateColumns as $key => $val) {
-				if(!in_array($key, $this->gridForbiddenColumn) && !in_array($key, $this->defaultColumns))
-					$this->defaultColumns[] = $val;
-			}
-			return $this->defaultColumns;
-		}
-
-		foreach($columns as $val) {
-			if(!in_array($val, $this->gridForbiddenColumn) && !in_array($val, $this->defaultColumns)) {
-				$col = $this->getTemplateColumn($val);
-				if($col != null)
-					$this->defaultColumns[] = $col;
-			}
-		}
-
-		array_unshift($this->defaultColumns, array(
-			'header' => Yii::t('app', 'No'),
-			'value' => '$this->grid->dataProvider->pagination->currentPage*$this->grid->dataProvider->pagination->pageSize + $row+1',
-			'htmlOptions' => array(
-				'class' => 'center',
-			),
-		));
-
-		array_unshift($this->defaultColumns, array(
-			'class' => 'CCheckBoxColumn',
-			'name' => 'id',
-			'selectableRows' => 2,
-			'checkBoxHtmlOptions' => array('name' => 'trash_id[]')
-		));
-
-		return $this->defaultColumns;
-	}
-
-	/**
-	 * Get kolom template berdasarkan id pengenal
-	 *
-	 * @param string $name nama pengenal
-	 * @return mixed
-	 */
-	public function getTemplateColumn($name) 
-	{
-		$data = null;
-		if(trim($name) == '') return $data;
-
-		foreach($this->templateColumns as $key => $item) {
-			if($name == $key) {
-				$data = $item;
-				break;
-			}
-		}
-		return $data;
 	}
 
 	/**

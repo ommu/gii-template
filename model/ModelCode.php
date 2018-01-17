@@ -7,9 +7,11 @@ class ModelCode extends CCodeModel
 	public $tableName;
 	public $modelClass;
 	public $modelPath='application.models';
-	public $baseClass='CActiveRecord';
+	public $baseClass='OActiveRecord';
 	public $buildRelations=true;
 	public $commentsAsLabels=false;
+	public $modified;
+	public $link='http://opensource.ommu.co';
 
 	/**
 	 * @var array list of candidate relation code. The array are indexed by AR class names and relation names.
@@ -21,7 +23,7 @@ class ModelCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId', 'filter', 'filter'=>'trim'),
-			array('connectionId, tableName, modelPath, baseClass', 'required'),
+			array('connectionId, tableName, modelPath, baseClass, modified, link', 'required'),
 			array('tablePrefix, tableName, modelPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('connectionId', 'validateConnectionId', 'skipOnError'=>true),
 			array('tableName', 'validateTableName', 'skipOnError'=>true),
@@ -30,7 +32,7 @@ class ModelCode extends CCodeModel
 			array('modelPath', 'validateModelPath', 'skipOnError'=>true),
 			array('baseClass, modelClass', 'validateReservedWord', 'skipOnError'=>true),
 			array('baseClass', 'validateBaseClass', 'skipOnError'=>true),
-			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels', 'sticky'),
+			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels, link', 'sticky'),
 		));
 	}
 
@@ -45,6 +47,8 @@ class ModelCode extends CCodeModel
 			'buildRelations'=>'Build Relations',
 			'commentsAsLabels'=>'Use Column Comments as Attribute Labels',
 			'connectionId'=>'Database Connection',
+			'modified'=>'Modified',
+			'link'=>'Link Repository',
 		));
 	}
 
@@ -187,6 +191,16 @@ class ModelCode extends CCodeModel
 			$this->addError('baseClass', "Class '{$this->baseClass}' does not exist or has syntax error.");
 		elseif($class!=='CActiveRecord' && !is_subclass_of($class,'CActiveRecord'))
 			$this->addError('baseClass', "'{$this->baseClass}' must extend from CActiveRecord.");
+	}
+
+	public function getModifiedStatus()
+	{
+		return $this->modified;
+	}
+
+	public function getLinkSource()
+	{
+		return $this->link;
 	}
 
 	public function getTableSchema($tableName)

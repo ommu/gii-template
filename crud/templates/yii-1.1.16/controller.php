@@ -45,7 +45,7 @@ $nameColumn=$this->guessNameColumn($this->tableSchema->columns)
 <?php if($this->modifiedStatus):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
 <?php endif; ?>
- * @link <?php echo $this->linkSource."\n";;?>
+ * @link <?php echo $this->linkSource."\n";?>
  *
  *----------------------------------------------------------------------------------------------------------
  */

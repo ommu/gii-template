@@ -2,7 +2,7 @@
 
 class ModelGenerator extends CCodeGenerator
 {
-	public $codeModel='gii.generators.model.ModelCode';
+	public $codeModel='application.libraries.gii.model.ModelCode';
 
 	/**
 	 * Provides autocomplete table names
