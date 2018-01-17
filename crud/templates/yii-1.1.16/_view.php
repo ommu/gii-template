@@ -17,13 +17,16 @@ $inflector = new Inflector;
  * @contact (+62)856-299-4114
  * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
- * @link http://opensource.ommu.co
+<?php if($this->modifiedStatus):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php endif; ?>
+ * @link <?php echo $this->linkSource."\n";;?>
  *
  */
 ?>
 
 <div class="view">
-	<?php
+<?php
 	echo "\t<b><?php echo CHtml::encode(\$data->getAttributeLabel('{$this->tableSchema->primaryKey}')); ?>:</b>\n";
 	echo "\t<?php echo CHtml::link(CHtml::encode(\$data->{$this->tableSchema->primaryKey}), array('view', 'id'=>\$data->{$this->tableSchema->primaryKey})); ?>\n\t<br />\n\n";
 	$count=0;
@@ -31,6 +34,7 @@ $inflector = new Inflector;
 	{
 		if($column->isPrimaryKey)
 			continue;
+			
 		echo "\t<b><?php echo CHtml::encode(\$data->getAttributeLabel('{$column->name}')); ?>:</b>\n";
 		if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
 			$arrayName = explode('_', $column->name);
@@ -49,5 +53,5 @@ $inflector = new Inflector;
 		} else 
 			echo "\t<?php echo CHtml::encode(\$data->{$column->name}); ?>\n\t<br />\n\n";
 	}
-	?>
+?>
 </div>

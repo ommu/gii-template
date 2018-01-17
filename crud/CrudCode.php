@@ -5,6 +5,8 @@ class CrudCode extends CCodeModel
 	public $model;
 	public $controller;
 	public $baseControllerClass='Controller';
+	public $modified;
+	public $link='http://opensource.ommu.co';
 
 	private $_modelClass;
 	private $_table;
@@ -14,13 +16,13 @@ class CrudCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('model, controller', 'filter', 'filter'=>'trim'),
-			array('model, controller, baseControllerClass', 'required'),
+			array('model, controller, baseControllerClass, modified, link', 'required'),
 			array('model', 'match', 'pattern'=>'/^\w+[\w+\\.]*$/', 'message'=>'{attribute} should only contain word characters and dots.'),
 			array('controller', 'match', 'pattern'=>'/^\w+[\w+\\/]*$/', 'message'=>'{attribute} should only contain word characters and slashes.'),
 			array('baseControllerClass', 'match', 'pattern'=>'/^[a-zA-Z_\\\\][\w\\\\]*$/', 'message'=>'{attribute} should only contain word characters and backslashes.'),
 			array('baseControllerClass', 'validateReservedWord', 'skipOnError'=>true),
 			array('model', 'validateModel'),
-			array('baseControllerClass', 'sticky'),
+			array('baseControllerClass, link', 'sticky'),
 		));
 	}
 
@@ -30,6 +32,8 @@ class CrudCode extends CCodeModel
 			'model'=>'Model Class',
 			'controller'=>'Controller ID',
 			'baseControllerClass'=>'Base Controller Class',
+			'modified'=>'Modified',
+			'link'=>'Link Repository',
 		));
 	}
 
@@ -112,6 +116,16 @@ class CrudCode extends CCodeModel
 			return ucfirst(substr($this->controller,$pos+1)).'Controller';
 		else
 			return ucfirst($this->controller).'Controller';
+	}
+
+	public function getModifiedStatus()
+	{
+		return $this->modified;
+	}
+
+	public function getLinkSource()
+	{
+		return $this->link;
 	}
 
 	public function getModule()

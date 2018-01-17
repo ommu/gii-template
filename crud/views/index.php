@@ -51,6 +51,24 @@ $('#{$class}_model').bind('keyup change', function(){
 		<?php echo $form->error($model,'controller'); ?>
 	</div>
 
+	<div class="row">
+		<?php echo $form->labelEx($model,'modified'); ?>
+		<?php echo $form->checkBox($model,'modified'); ?>
+		<div class="tooltip">
+			Default value is <code>false</code>. Used to display modification date in source code
+		</div>
+		<?php echo $form->error($model,'modified'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'link'); ?>
+		<?php echo $form->textField($model,'link',array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a hyperlink (e.g. <code>http://opensource.ommu.co</code>)
+		</div>
+		<?php echo $form->error($model,'link'); ?>
+	</div>
+
 	<div class="row sticky">
 		<?php echo $form->labelEx($model,'baseControllerClass'); ?>
 		<?php echo $form->textField($model,'baseControllerClass',array('size'=>65)); ?>

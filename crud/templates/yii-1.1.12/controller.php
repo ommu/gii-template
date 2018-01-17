@@ -49,7 +49,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 		/* $arrThemes = Utility::getCurrentTemplate('public');
 		Yii::app()->theme = $arrThemes['template'];
 		$this->layout = $arrThemes['layout']; */
-	}	
+	}
 
 	/**
 	 * @return array action filters
@@ -166,7 +166,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 			));
 		}
 
-	}	
+	}
 	
 	/**
 	 * Creates a new model.
@@ -234,7 +234,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 		$this->render('admin_view',array(
 			'model'=>$this->loadModel($id),
 		));
-	}	
+	}
 
 	/**
 	 * Deletes a particular model.

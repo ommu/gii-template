@@ -14,7 +14,10 @@
  * @contact (+62)856-299-4114
  * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
- * @link http://opensource.ommu.co
+<?php if($this->modifiedStatus):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php endif; ?>
+ * @link <?php echo $this->linkSource."\n";;?>
  *
  */
 
@@ -90,7 +93,7 @@ foreach($this->tableSchema->columns as $name=>$column)
 			echo "\t\t\t'name'=>'$name',\n";
 			echo "\t\t\t'value'=>!in_array(\$model->$name, array('0000-00-00','1970-01-01')) ? Utility::dateFormat(\$model->$name) : '-',\n";
 			echo "\t\t),\n";
-		}		
+		}
 	} else {
 		$translateCondition = 0;
 		$commentArray = explode(',', $column->comment);

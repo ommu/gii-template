@@ -480,7 +480,7 @@ class OGridView extends CBaseListView
 				$cs->registerCoreScript('history');
 			$cs->registerScriptFile($this->baseScriptUrl.'/jquery.yiigridview.js',CClientScript::POS_END);
 			$cs->registerScript(__CLASS__.'#'.$id,"jQuery('#$id').yiiGridView($options);");
-		//}	
+		//}
 	}
 
 	/**
@@ -650,7 +650,7 @@ EOP;
 			//print_r($column);
 			//echo '</pre>';
 			$this->renderDataCell($column, $row);
-		}	
+		}
 		echo "</tr>\n";
 	}
 
