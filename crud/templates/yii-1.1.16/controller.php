@@ -253,9 +253,9 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			*/
 		}
 		
-		$this->dialogDetail = true; 
-		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage'); 
-		$this->dialogWidth = 600; 
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 600;
 
 		$this->pageTitle = Yii::t('phrase', 'Create <?php echo $inflector->singularize($label); ?>');
 		$this->pageDescription = '';
@@ -324,9 +324,9 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			*/
 		}
 		
-		$this->dialogDetail = true; 
-		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage'); 
-		$this->dialogWidth = 600; 
+		$this->dialogDetail = true;
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+		$this->dialogWidth = 600;
 
 		$this->pageTitle = Yii::t('phrase', 'Update <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
 		$this->pageDescription = '';

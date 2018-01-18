@@ -261,9 +261,9 @@ if($form == true) {
 				'htmlOptions'=>array(
 					'class' => 'form-control',
 				 ),
-			));";
+			))";
 } else
-			$return = "echo \$form->textField(\$model, '{$column->name}')";
+			$return = "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 			return $return;
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if($form == true)
@@ -279,7 +279,7 @@ if($form == true) {
 				'htmlOptions'=>array(
 					'class' => 'form-control',
 				 ),
-			));";
+			))";
 			return $return;
 		} else {
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))

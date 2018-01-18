@@ -250,7 +250,7 @@ endforeach; ?>
 	 */
 	public function primaryKey()
 	{
-		return Yii::app()-><?php echo $primaryKeyColumn; ?>;
+		return '<?php echo $primaryKeyColumn; ?>';
 	}
 <?php endif?>
 
@@ -408,7 +408,7 @@ if($isVariableSearch == 1) {?>
 		$relationAttribute = 'column_name_relation';
 		echo "\t\t\t'$relationName' => array(\n";
 		echo "\t\t\t\t'alias'=>'$relationName',\n";
-		echo "\t\t\t\t'select'=>'$relationAttribute'\n";
+		echo "\t\t\t\t'select'=>'$relationAttribute',\n";
 		echo "\t\t\t),\n";
 	}
 }
@@ -419,7 +419,7 @@ foreach($columns as $name=>$column):
 		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
 		echo "\t\t\t'$publicAttributeRelation' => array(\n";
 		echo "\t\t\t\t'alias'=>'$publicAttributeRelation',\n";
-		echo "\t\t\t\t'select'=>'message'\n";
+		echo "\t\t\t\t'select'=>'message',\n";
 		echo "\t\t\t),\n";
 	endif;
 endforeach;
@@ -432,12 +432,12 @@ foreach($columns as $name=>$column) {
 			$relationName = 'member_view';
 			echo "\t\t\t'{$relationName}.view' => array(\n";
 			echo "\t\t\t\t'alias'=>'{$relationName}_view',\n";
-			echo "\t\t\t\t'select'=>'member_name'\n";
+			echo "\t\t\t\t'select'=>'member_name',\n";
 			echo "\t\t\t),\n";
 		} else {
 			echo "\t\t\t'$relationName' => array(\n";
 			echo "\t\t\t\t'alias'=>'$relationName',\n";
-			echo "\t\t\t\t'select'=>'displayname'\n";
+			echo "\t\t\t\t'select'=>'displayname',\n";
 			echo "\t\t\t),\n";
 		}
 	} else if($name == 'tag_id') {
@@ -445,7 +445,7 @@ foreach($columns as $name=>$column) {
 		$relationName = $relationArray[0];
 		echo "\t\t\t'$relationName' => array(\n";
 		echo "\t\t\t\t'alias'=>'$relationName',\n";
-		echo "\t\t\t\t'select'=>'body'\n";
+		echo "\t\t\t\t'select'=>'body',\n";
 		echo "\t\t\t),\n";
 	}
 }?>
@@ -475,11 +475,11 @@ foreach($columns as $name=>$column) {
 //print_r($columns);
 foreach($columns as $name=>$column) {
 	if($column->name == 'publish') {
-		echo "\t\tif(isset(\$_GET['type']) && \$_GET['type'] == 'publish')\n";
+		echo "\t\tif(Yii::app()->getRequest()->getParam('type') == 'publish')\n";
 		echo "\t\t\t\$criteria->compare('t.$name', 1);\n";
-		echo "\t\telseif(isset(\$_GET['type']) && \$_GET['type'] == 'unpublish')\n";
+		echo "\t\telseif(Yii::app()->getRequest()->getParam('type') == 'unpublish')\n";
 		echo "\t\t\t\$criteria->compare('t.$name', 0);\n";
-		echo "\t\telseif(isset(\$_GET['type']) && \$_GET['type'] == 'trash')\n";
+		echo "\t\telseif(Yii::app()->getRequest()->getParam('type') == 'trash')\n";
 		echo "\t\t\t\$criteria->compare('t.$name', 2);\n";
 		echo "\t\telse {\n";
 		echo "\t\t\t\$criteria->addInCondition('t.$name', array(0,1));\n";
@@ -491,7 +491,7 @@ foreach($columns as $name=>$column) {
 		$relationName = $relationArray[0];
 		if($relationName == 'cat')
 			$relationName = 'category';
-		echo "\t\t\$criteria->compare('t.$name', isset(\$_GET['$relationName']) ? \$_GET['$relationName'] : \$this->$name);\n";
+		echo "\t\t\$criteria->compare('t.$name', Yii::app()->getRequest()->getParam('$relationName') ? Yii::app()->getRequest()->getParam('$relationName') : \$this->$name);\n";
 
 	} else if(in_array($column->dbType, array('timestamp','datetime'))) {
 		echo "\t\tif(\$this->$name != null && !in_array(\$this->$name, array('0000-00-00 00:00:00', '1970-01-01 00:00:00')))\n";
@@ -562,7 +562,7 @@ foreach($columns as $name=>$column) {
 	if($tableName[0] == '_' && !$isPrimaryKey)
 		$isPrimaryKey = $primaryKeyColumn;
 
-	echo "\n\t\tif(!isset(\$_GET['{$modelClass}_sort']))\n";
+	echo "\n\t\tif(!Yii::app()->getRequest()->getParam('{$modelClass}_sort'))\n";
 	echo "\t\t\t\$criteria->order = 't.$isPrimaryKey DESC';\n";
 ?>
 
@@ -613,7 +613,7 @@ foreach($columns as $name=>$column)
 				$relationName = 'member_view';
 				$columnName = 'member_name';	
 			}
-			echo "\t\t\tif(!isset(\$_GET['$relationName'])) {\n";
+			echo "\t\t\tif(!Yii::app()->getRequest()->getParam('$relationName')) {\n";
 			echo "\t\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
 			echo "\t\t\t\t\t'name' => '$publicAttribute',\n";
 if($column->name == 'tag_id') {
@@ -682,7 +682,7 @@ foreach($columns as $name=>$column)
 {
 	if(!$column->isPrimaryKey && $column->dbType == 'tinyint(1)') {
 		if(in_array($name, array('publish')))
-			echo "\t\t\tif(!isset(\$_GET['type'])) {\n";
+			echo "\t\t\tif(!Yii::app()->getRequest()->getParam('type')) {\n";
 		echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
 		echo "\t\t\t\t'name' => '$name',\n";
 		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\',array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
@@ -871,7 +871,7 @@ foreach($columns as $name=>$column)
 				$<?php echo $name;?>->message = $this-><?php echo $publicAttribute;?>;
 				$<?php echo $name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
 				if($<?php echo $name;?>->save())
-					$this-><?php echo $name;?> = $name->id;
+					$this-><?php echo $name;?> = $<?php echo $name;?>->id;
 <?php if($i18n && preg_match('/(name|title)/', $name)) {?>
 
 				$this->slug = Utility::getUrlTitle($this-><?php echo $publicAttribute;?>);
