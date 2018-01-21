@@ -282,7 +282,8 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 
 			$jsonError = CActiveForm::validate($model);
 			if(strlen($jsonError) > 2) {
-				//echo $jsonError;
+				echo $jsonError;
+				/*
 				$errors = $model->getErrors();
 				$summary['msg'] = "<div class='errorSummary'><strong>".Yii::t('phrase', 'Please fix the following input errors:')."</strong>";
 				$summary['msg'] .= "<ul>";
@@ -295,6 +296,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				$merge = array_merge_recursive($summary, $message);
 				$encode = json_encode($merge);
 				echo $encode;
+				*/
 
 			} else {
 				if(isset($_GET['enablesave']) && $_GET['enablesave'] == 1) {

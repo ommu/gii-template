@@ -145,6 +145,7 @@ foreach($labels as $name=>$label):
 endforeach;
 endif; ?>
  */
+
 class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 {
 	public $gridForbiddenColumn = array();
@@ -450,7 +451,7 @@ foreach($columns as $name=>$column) {
 	}
 }?>
 		);
-		
+
 <?php }
 /*
 foreach($columns as $name=>$column) {	
@@ -506,7 +507,7 @@ foreach($columns as $name=>$column) {
 
 	else if($column->type==='string')
 		echo "\t\t\$criteria->compare('t.$name', strtolower(\$this->$name), true);\n";
-		
+
 	else
 		echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
 
