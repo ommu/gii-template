@@ -51,6 +51,36 @@ $('#{$class}_model').bind('keyup change', function(){
 		<?php echo $form->error($model,'controller'); ?>
 	</div>
 
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'baseControllerClass'); ?>
+		<?php echo $form->textField($model,'baseControllerClass',array('size'=>65)); ?>
+		<div class="tooltip">
+			This is the class that the new CRUD controller class will extend from.
+			Please make sure the class exists and can be autoloaded.
+		</div>
+		<?php echo $form->error($model,'baseControllerClass'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'controllerPath'); ?>
+		<?php echo $form->textField($model,'controllerPath',array('size'=>65)); ?>
+		<div class="tooltip">
+			This refers to the directory that the new controller class file should be generated under.
+			It should be specified in the form of a path alias, for example, <code>application.controllers</code>.
+		</div>
+		<?php echo $form->error($model,'controllerPath'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'viewPath'); ?>
+		<?php echo $form->textField($model,'viewPath',array('size'=>65)); ?>
+		<div class="tooltip">
+			This refers to the directory that the new view render file should be generated under.
+			It should be specified in the form of a path alias, for example, <code>application.views</code>.
+		</div>
+		<?php echo $form->error($model,'viewPath'); ?>
+	</div>
+
 	<div class="row">
 		<?php echo $form->labelEx($model,'modified'); ?>
 		<?php echo $form->checkBox($model,'modified'); ?>
@@ -67,16 +97,6 @@ $('#{$class}_model').bind('keyup change', function(){
 		It can be either a hyperlink (e.g. <code>http://opensource.ommu.co</code>)
 		</div>
 		<?php echo $form->error($model,'link'); ?>
-	</div>
-
-	<div class="row sticky">
-		<?php echo $form->labelEx($model,'baseControllerClass'); ?>
-		<?php echo $form->textField($model,'baseControllerClass',array('size'=>65)); ?>
-		<div class="tooltip">
-			This is the class that the new CRUD controller class will extend from.
-			Please make sure the class exists and can be autoloaded.
-		</div>
-		<?php echo $form->error($model,'baseControllerClass'); ?>
 	</div>
 
 <?php $this->endWidget(); ?>

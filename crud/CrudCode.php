@@ -5,6 +5,8 @@ class CrudCode extends CCodeModel
 	public $model;
 	public $controller;
 	public $baseControllerClass='Controller';
+	public $controllerPath='application.controllers';
+	public $viewPath='application.views';
 	public $modified;
 	public $link='http://opensource.ommu.co';
 
@@ -15,14 +17,17 @@ class CrudCode extends CCodeModel
 	public function rules()
 	{
 		return array_merge(parent::rules(), array(
-			array('model, controller', 'filter', 'filter'=>'trim'),
-			array('model, controller, baseControllerClass, modified, link', 'required'),
+			array('model, controller, controllerPath, viewPath', 'filter', 'filter'=>'trim'),
+			array('model, controller, baseControllerClass, modified, link, controllerPath, viewPath', 'required'),
 			array('model', 'match', 'pattern'=>'/^\w+[\w+\\.]*$/', 'message'=>'{attribute} should only contain word characters and dots.'),
 			array('controller', 'match', 'pattern'=>'/^\w+[\w+\\/]*$/', 'message'=>'{attribute} should only contain word characters and slashes.'),
 			array('baseControllerClass', 'match', 'pattern'=>'/^[a-zA-Z_\\\\][\w\\\\]*$/', 'message'=>'{attribute} should only contain word characters and backslashes.'),
+			array('controllerPath, viewPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('baseControllerClass', 'validateReservedWord', 'skipOnError'=>true),
+			array('controllerPath', 'validateControllerPath', 'skipOnError'=>true),
+			array('viewPath', 'validateViewPath', 'skipOnError'=>true),
 			array('model', 'validateModel'),
-			array('baseControllerClass, link', 'sticky'),
+			array('baseControllerClass, controllerPath, viewPath, link', 'sticky'),
 		));
 	}
 
@@ -32,6 +37,8 @@ class CrudCode extends CCodeModel
 			'model'=>'Model Class',
 			'controller'=>'Controller ID',
 			'baseControllerClass'=>'Base Controller Class',
+			'controllerPath'=>'Controller Path',
+			'viewPath'=>'View Path',
 			'modified'=>'Modified',
 			'link'=>'Link Repository',
 		));
@@ -98,7 +105,8 @@ class CrudCode extends CCodeModel
 			if(is_file($templatePath.'/'.$file) && CFileHelper::getExtension($file)==='php' && $file!=='controller.php')
 			{
 				$this->files[]=new CCodeFile(
-					$this->viewPath.DIRECTORY_SEPARATOR.$file,
+					//$this->viewPath.DIRECTORY_SEPARATOR.$file,
+					Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
 					$this->render($templatePath.'/'.$file)
 				);
 			}
@@ -170,7 +178,8 @@ class CrudCode extends CCodeModel
 			$id[$pos+1]=strtoupper($id[$pos+1]);
 		else
 			$id[0]=strtoupper($id[0]);
-		return $module->getControllerPath().'/'.$id.'Controller.php';
+		//return $module->getControllerPath().'/'.$id.'Controller.php';
+		return Yii::getPathOfAlias($this->controllerPath).'/'.$id.'Controller.php';
 	}
 
 	public function getViewPath()
@@ -528,5 +537,17 @@ if($i18n) {
 		}
 
 		return implode('', $closureTokens);
+	}
+
+	public function validateControllerPath($attribute,$params)
+	{
+		if(Yii::getPathOfAlias($this->controllerPath)===false)
+			$this->addError('controllerPath','Model Path must be a valid path alias.');
+	}
+
+	public function validateViewPath($attribute,$params)
+	{
+		if(Yii::getPathOfAlias($this->viewPath)===false)
+			$this->addError('viewPath','Model Path must be a valid path alias.');
 	}
 }
