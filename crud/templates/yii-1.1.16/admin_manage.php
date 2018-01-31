@@ -96,16 +96,16 @@ echo "\t\$this->breadcrumbs=array(
 						'label' => Yii::t('phrase', 'Update <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
-							'class' => 'update'
+							'class' => 'update',
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'edit\',array(\'id\'=>$data->primaryKey))'),
 					'delete' => array(
 						'label' => Yii::t('phrase', 'Delete <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
-							'class' => 'delete'
+							'class' => 'delete',
 						),
-						'url' => 'Yii::app()->controller->createUrl(\'delete\',array(\'id\'=>$data->primaryKey))')
+						'url' => 'Yii::app()->controller->createUrl(\'delete\',array(\'id\'=>$data->primaryKey))'),
 				),
 				'template' => '{view}|{update}|{delete}',
 			));
