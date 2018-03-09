@@ -643,6 +643,8 @@ if($column->name == 'tag_id') {
 			echo "\t\t\t\t\t//'mode'=>'datetime',\n";
 			echo "\t\t\t\t\t'htmlOptions' => array(\n";
 			echo "\t\t\t\t\t\t'id' => '$name";echo "_filter',\n";
+			echo "\t\t\t\t\t\t'on_datepicker' => 'on',\n";
+			echo "\t\t\t\t\t\t'placeholder' => Yii::t('phrase', 'filter'),\n";
 			echo "\t\t\t\t\t),\n";
 			echo "\t\t\t\t\t'options'=>array(\n";
 			echo "\t\t\t\t\t\t'showOn' => 'focus',\n";
