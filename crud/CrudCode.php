@@ -277,8 +277,7 @@ if($form == true) {
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if($form == true)
 				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
-			$return .= "//echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'));
-			\$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
+			$return .= "/* \$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
 				//'mode'=>'datetime',
@@ -288,7 +287,8 @@ if($form == true) {
 				'htmlOptions'=>array(
 					'class' => 'form-control',
 				 ),
-			))";
+			)); */
+			echo \$form->dateField(\$model, '{$column->name}', array('class'=>'form-control'))";
 			return $return;
 		} else {
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
