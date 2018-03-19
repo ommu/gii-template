@@ -797,13 +797,13 @@ foreach($columns as $name=>$column)
 		if($name == 'creation_id') {
 			$creationCondition = 1;
 			echo "\t\t\tif(\$this->isNewRecord)\n";
-			echo "\t\t\t\t\$this->{$name} = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;\n";
+			echo "\t\t\t\t\$this->{$name} = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;\n";
 		} else {
 			if($creationCondition)
 				echo "\t\t\telse\n";
 			else
 				echo "\t\t\tif(!\$this->isNewRecord)\n";
-			echo "\t\t\t\t\$this->{$name} = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;\n";
+			echo "\t\t\t\t\$this->{$name} = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;\n";
 		}
 	}
 }

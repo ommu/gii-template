@@ -423,7 +423,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 			$model->publish = 2;
 <?php if(array_key_exists('modified_id', $this->tableSchema->columns)): ?>
-			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
+			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;
 <?php endif; ?>
 			
 			if($model->update()) {
@@ -472,7 +472,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			//change value active or publish
 			$model->publish = $replace;
 <?php if(array_key_exists('modified_id', $this->tableSchema->columns)): ?>
-			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
+			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;
 <?php endif; ?>
 
 			if($model->update()) {
@@ -521,7 +521,7 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 				$model->headline = 1;
 				$model->publish = 1;
 <?php if(array_key_exists('modified_id', $this->tableSchema->columns)): ?>
-				$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : 0;
+				$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;
 <?php endif; ?>
 
 				if($model->update()) {
