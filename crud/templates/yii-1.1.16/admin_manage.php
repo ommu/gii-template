@@ -50,7 +50,7 @@ echo "\t\$this->breadcrumbs=array(
 
 <?php echo "<?php ";?>//begin.Search ?>
 <div class="search-form">
-<?php echo "<?php ";?>$this->renderPartial('_search',array(
+<?php echo "<?php ";?>$this->renderPartial('_search', array(
 	'model'=>$model,
 )); ?>
 </div>
@@ -58,7 +58,7 @@ echo "\t\$this->breadcrumbs=array(
 
 <?php echo "<?php ";?>//begin.Grid Option ?>
 <div class="grid-form">
-<?php echo "<?php ";?>$this->renderPartial('_option_form',array(
+<?php echo "<?php ";?>$this->renderPartial('_option_form', array(
 	'model'=>$model,
 	'gridColumns'=>Utility::getActiveDefaultColumns($columns),
 )); ?>
@@ -91,21 +91,21 @@ echo "\t\$this->breadcrumbs=array(
 						'options' => array(
 							'class' => 'view',
 						),
-						'url' => 'Yii::app()->controller->createUrl(\'view\',array(\'id\'=>$data->primaryKey))'),
+						'url' => 'Yii::app()->controller->createUrl(\'view\', array(\'id\'=>$data->primaryKey))'),
 					'update' => array(
 						'label' => Yii::t('phrase', 'Update <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'update',
 						),
-						'url' => 'Yii::app()->controller->createUrl(\'edit\',array(\'id\'=>$data->primaryKey))'),
+						'url' => 'Yii::app()->controller->createUrl(\'edit\', array(\'id\'=>$data->primaryKey))'),
 					'delete' => array(
 						'label' => Yii::t('phrase', 'Delete <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'delete',
 						),
-						'url' => 'Yii::app()->controller->createUrl(\'delete\',array(\'id\'=>$data->primaryKey))'),
+						'url' => 'Yii::app()->controller->createUrl(\'delete\', array(\'id\'=>$data->primaryKey))'),
 				),
 				'template' => '{view}|{update}|{delete}',
 			));

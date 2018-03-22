@@ -29,5 +29,5 @@ public function action<?php echo ucfirst(trim($viewName,'_')); ?>()
             return;
         }
     }
-    $this->render('<?php echo $viewName; ?>',array('model'=>$model));
+    $this->render('<?php echo $viewName; ?>', array('model'=>$model));
 }

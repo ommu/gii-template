@@ -173,7 +173,7 @@ foreach($columns as $name=>$column)
 		echo "\t\telseif(isset(\$_GET['type']) && \$_GET['type'] == 'trash')\n";
 		echo "\t\t\t\$criteria->compare('t.$name',2);\n";
 		echo "\t\telse {\n";
-		echo "\t\t\t\$criteria->addInCondition('t.$name',array(0,1));\n";
+		echo "\t\t\t\$criteria->addInCondition('t.$name', array(0,1));\n";
 		echo "\t\t\t\$criteria->compare('t.$name',\$this->$name);\n";
 		echo "\t\t}\n";
 
@@ -265,7 +265,7 @@ foreach($columns as $name=>$column)
 			echo "\t\t\t\t\$this->defaultColumns[] = array(\n";
 			echo "\t\t\t\t\t'name' => '$name',\n";
 			if(in_array($column->name, array('publish','published')))
-				echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\"publish\",array(\"id\"=>\$data->$isPrimaryKey)), \$data->$name, 1)',\n";
+				echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\"publish\", array(\"id\"=>\$data->$isPrimaryKey)), \$data->$name, 1)',\n";
 			else
 				echo "\t\t\t\t\t'value' => '\$data->$name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
 			echo "\t\t\t\t\t'htmlOptions' => array(\n";
@@ -322,7 +322,7 @@ foreach($columns as $name=>$column)
 	public static function getInfo($id, $column=null)
 	{
 		if($column != null) {
-			$model = self::model()->findByPk($id,array(
+			$model = self::model()->findByPk($id, array(
 				'select' => $column
 			));
 			return $model->$column;

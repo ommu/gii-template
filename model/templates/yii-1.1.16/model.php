@@ -782,7 +782,7 @@ foreach($columns as $name=>$column)
 			echo "\t\t\tif(!Yii::app()->getRequest()->getParam('type')) {\n";
 		echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
 		echo "\t\t\t\t'name' => '$name',\n";
-		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\',array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
+		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
@@ -807,7 +807,7 @@ foreach($columns as $name=>$column)
 	public static function getInfo($id, $column=null)
 	{
 		if($column != null) {
-			$model = self::model()->findByPk($id,array(
+			$model = self::model()->findByPk($id, array(
 				'select' => $column
 			));
 			return $model->$column;

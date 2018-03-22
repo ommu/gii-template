@@ -47,7 +47,7 @@ EOP;
 <div id="partial-<?php echo $this->class2id($this->modelClass); ?>">
 	<?php echo "<? //begin.Search ?>\n";?>
 	<div class="search-form">
-	<?php echo "<?php \$this->renderPartial('_search',array(
+	<?php echo "<?php \$this->renderPartial('_search', array(
 		'model'=>\$model,
 	)); ?>\n"; ?>
 	</div>
@@ -55,7 +55,7 @@ EOP;
 
 	<?php echo "<? //begin.Grid Option ?>\n";?>
 	<div class="grid-option">
-	<?php echo "<?php \$this->renderPartial('_option_form',array(
+	<?php echo "<?php \$this->renderPartial('_option_form', array(
 		'model'=>\$model,
 	)); ?>\n"; ?>
 	</div>
@@ -87,7 +87,7 @@ EOP;
 					'class' => 'view'
 				),
 				//'click' => 'dialogUpdate',
-				'url' => 'Yii::app()->controller->createUrl("adminview",array("id"=>$data->primaryKey))'),
+				'url' => 'Yii::app()->controller->createUrl("adminview", array("id"=>$data->primaryKey))'),
 			'update' => array(
 				'label' => 'update',
 				'options' => array(
@@ -95,7 +95,7 @@ EOP;
 					'class' => 'update'
 				),
 				//'click' => 'dialogUpdate',
-				'url' => 'Yii::app()->controller->createUrl("adminedit",array("id"=>$data->primaryKey))'),
+				'url' => 'Yii::app()->controller->createUrl("adminedit", array("id"=>$data->primaryKey))'),
 			'delete' => array(
 				'label' => 'delete',
 				'options' => array(
@@ -103,7 +103,7 @@ EOP;
 					'rel' => 350, 
 				),
 				'click' => 'dialogUpdate',
-				'url' => 'Yii::app()->controller->createUrl("admindelete",array("id"=>$data->primaryKey))')
+				'url' => 'Yii::app()->controller->createUrl("admindelete", array("id"=>$data->primaryKey))')
 		),
 		'template' => '{view}&nbsp;{update}&nbsp;{delete}',
 	));

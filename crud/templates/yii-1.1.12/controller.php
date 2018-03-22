@@ -104,7 +104,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 			//	'size' => 10
 			//)
 		));
-		$this->render('front_index',array(
+		$this->render('front_index', array(
 			'dataProvider'=>$dataProvider,
 		));
 		//$this->redirect(array('adminmanage'));
@@ -123,7 +123,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 		$this->pageTitle = '<?php echo $label; ?> List';
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('front_view',array(
+		$this->render('front_view', array(
 			'model'=>$this->loadModel($id),
 		));
 	}
@@ -150,7 +150,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 		$columns = $model->getGridColumn($columnTemp);
 
 		if(isset($_GET['type'])) {
-			$message['data'] = $this->renderPartial('ajax_admin_manage',array(
+			$message['data'] = $this->renderPartial('ajax_admin_manage', array(
 				'model'=>$model,
 				'columns' => $columns,
 			), true, false);
@@ -160,7 +160,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 			$this->pageTitle = '<?php echo $label; ?> Manage';
 			$this->pageDescription = '';
 			$this->pageMeta = '';
-			$this->render('admin_manage',array(
+			$this->render('admin_manage', array(
 				'model'=>$model,
 				'columns' => $columns,
 			));
@@ -190,7 +190,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 		$this->pageTitle = '<?php echo $label; ?> Create';
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('admin_add',array(
+		$this->render('admin_add', array(
 			'model'=>$model,
 		));
 	}
@@ -218,7 +218,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 		$this->pageTitle = '<?php echo $label; ?> Update';
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('admin_edit',array(
+		$this->render('admin_edit', array(
 			'model'=>$model,
 		));
 	}
@@ -231,7 +231,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 		$this->pageTitle = '<?php echo $label; ?> view';
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('admin_view',array(
+		$this->render('admin_view', array(
 			'model'=>$this->loadModel($id),
 		));
 	}
@@ -252,12 +252,12 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 					'type' => 3,
 					'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
 					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('', '<?php echo $this->modelClass; ?> success deleted.').'</strong></div>',
-					'get' => Yii::app()->controller->createUrl('adminmanage',array('type'=>'ajax')),
+					'get' => Yii::app()->controller->createUrl('adminmanage', array('type'=>'ajax')),
 				));
 			}
 
 		}else {
-			$data = '<form action="'.Yii::app()->controller->createUrl('admindelete',array('id'=>$id)).'" method="post">';
+			$data = '<form action="'.Yii::app()->controller->createUrl('admindelete', array('id'=>$id)).'" method="post">';
 			$data .= '<div class="dialog-header">'.Yii::t('', 'Hapus <?php echo $this->modelClass; ?>').'</div>';
 			$data .= '<div class="dialog-content">';
 			$data .= 'Apakah anda yakin ingin menghapus item ini?';
@@ -306,7 +306,7 @@ class <?php echo $this->controllerClass; ?> extends /*SBaseController*/ <?php ec
 			}
 
 		} else {
-			$data = '<form action="'.Yii::app()->controller->createUrl('publish',array('id'=>$id)).'" method="post">';
+			$data = '<form action="'.Yii::app()->controller->createUrl('publish', array('id'=>$id)).'" method="post">';
 			$data .= '<div class="dialog-header">'.$title.'</div>';
 			$data .= '<div class="dialog-content">';
 			$data .= 'Apakah anda yakin ingin mempublish item ini?';
