@@ -194,15 +194,15 @@ class CrudCode extends CCodeModel
 
 	public function generateInputLabel($modelClass,$column)
 	{
-		return "CHtml::activeLabelEx(\$model,'{$column->name}')";
+		return "CHtml::activeLabelEx(\$model, '{$column->name}')";
 	}
 
 	public function generateInputField($modelClass,$column)
 	{
 		if($column->type==='boolean')
-			return "CHtml::activeCheckBox(\$model,'{$column->name}')";
+			return "CHtml::activeCheckBox(\$model, '{$column->name}')";
 		elseif(stripos($column->dbType,'text')!==false)
-			return "CHtml::activeTextArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50))";
+			return "CHtml::activeTextArea(\$model, '{$column->name}',array('rows'=>6, 'cols'=>50))";
 		else
 		{
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
@@ -211,12 +211,12 @@ class CrudCode extends CCodeModel
 				$inputField='activeTextField';
 
 			if($column->type!=='string' || $column->size===null)
-				return "CHtml::{$inputField}(\$model,'{$column->name}')";
+				return "CHtml::{$inputField}(\$model, '{$column->name}')";
 			else
 			{
 				if(($size=$maxLength=$column->size)>60)
 					$size=60;
-				return "CHtml::{$inputField}(\$model,'{$column->name}',array('size'=>$size,'maxlength'=>$maxLength))";
+				return "CHtml::{$inputField}(\$model, '{$column->name}',array('size'=>$size,'maxlength'=>$maxLength))";
 			}
 		}
 	}

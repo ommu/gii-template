@@ -100,7 +100,7 @@ endforeach;
 <?php 
 //echo '<pre>';
 //print_r($relations);
-	
+$availableRelations = array();
 foreach($relations as $name=>$relation): ?>
  * @property <?php
 	if (preg_match("~^array\(self::([^,]+), '([^']+)', '([^']+)'\)$~", $relation, $matches))
@@ -110,6 +110,8 @@ foreach($relations as $name=>$relation): ?>
 		$relationName = setRelationName($name);
 		if($relationName == 'cat')
 			$relationName = 'category';
+			
+		$availableRelations[] = $relationName;
 
 		switch($relationType){
 			case 'HAS_ONE':
@@ -129,18 +131,27 @@ foreach($relations as $name=>$relation): ?>
 		}
 	}
 endforeach;
+//print_r($availableRelations);
 foreach($labels as $name=>$label):
 	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
-		if($name == 'member')
-			echo " * @property Members \${$relationName};\n";
-		else
-			echo " * @property Users \${$relationName};\n";
+		if(!in_array($relationName, $availableRelations)) {
+			if($name == 'member_id')
+				echo " * @property Members \${$relationName}\n";
+			else
+				echo " * @property Users \${$relationName}\n";
+			
+			$availableRelations[] = $relationName;
+		}
 	} else if($name == 'tag_id') {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
-		echo " * @property OmmuTags \${$relationName};\n";
+		if(!in_array($relationName, $availableRelations)) {
+			echo " * @property OmmuTags \${$relationName}\n";
+			
+			$availableRelations[] = $relationName;
+		}
 	}
 endforeach;
 endif; ?>
@@ -157,8 +168,10 @@ foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
 		$publicAttribute = $name.'_i';
-		echo "\tpublic \${$publicAttribute};\n";
-		$publicVariable[] = $publicAttribute;
+		if(!in_array($publicAttribute, $publicVariable)) {
+			echo "\tpublic \${$publicAttribute};\n";
+			$publicVariable[] = $publicAttribute;
+		}
 		$i18n = 1;
 	}
 endforeach;
@@ -168,9 +181,12 @@ foreach($labels as $name=>$label):
 	if(in_array($name, array('tag_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
+
 		$publicAttribute = $relationName.'_i';
-		echo "\tpublic \${$publicAttribute};\n";
-		$publicVariable[] = $publicAttribute;
+		if(!in_array($publicAttribute, $publicVariable)) {
+			echo "\tpublic \${$publicAttribute};\n";
+			$publicVariable[] = $publicAttribute;
+		}
 	}
 endforeach; ?>
 
@@ -183,18 +199,24 @@ foreach($columns as $name=>$column):
 		$relationName = setRelationName($name, true);
 		if($relationName == 'cat')
 			$relationName = 'category';
+
 		$publicAttribute = $relationName.'_search';
-		echo "\tpublic \${$publicAttribute};\n";
-		$publicVariable[] = $publicAttribute;
+		if(!in_array($publicAttribute, $publicVariable)) {
+			echo "\tpublic \${$publicAttribute};\n";
+			$publicVariable[] = $publicAttribute;
+		}
 	}
 endforeach;
 foreach($labels as $name=>$label):
 	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
+
 		$publicAttribute = $relationName.'_search';
-		echo "\tpublic \${$publicAttribute};\n";
-		$publicVariable[] = $publicAttribute;
+		if(!in_array($publicAttribute, $publicVariable)) {
+			echo "\tpublic \${$publicAttribute};\n";
+			$publicVariable[] = $publicAttribute;
+		}
 	}
 endforeach; ?>
 <?php if($slugCondition) {?>
@@ -293,22 +315,29 @@ endif;?>
 		// class name for the relations automatically generated below.
 		return array(
 <?php 
-	//echo '<pre>';
-	//print_r($relations);
-	foreach($relations as $name=>$relation): ?>
+//echo '<pre>';
+//print_r($relations);
+$availableRelations = array();
+foreach($relations as $name=>$relation): ?>
 			<?php
 			$relationName = setRelationName($name);
 			if($relationName == 'cat')
 				$relationName = 'category';
 			$relationModel = preg_replace('(Ommu)', '', $relation);
-			echo "'$relationName' => $relationModel,\n"; ?>
+			if(!in_array($relationName, $availableRelations)) {
+				echo "'$relationName' => $relationModel,\n";
+				$availableRelations[] = $relationName;
+	 		} ?>
 <?php endforeach;
 if($i18n):
 	foreach($columns as $name=>$column):
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)):
 			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
-			echo "\t\t\t'$publicAttributeRelation' => array(self::BELONGS_TO, 'SourceMessage', '{$name}'),\n";
+			if(!in_array($publicAttributeRelation, $availableRelations)) {
+				echo "\t\t\t'$publicAttributeRelation' => array(self::BELONGS_TO, 'SourceMessage', '{$name}'),\n";
+				$availableRelations[] = $publicAttributeRelation;
+			}
 		endif;
 	endforeach;
 endif;
@@ -316,14 +345,20 @@ endif;
 		if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 			$relationArray = explode('_', $name);
 			$relationName = $relationArray[0];
-			if($name == 'member_id')
-				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Members', '{$name}'),\n";
-			else
-				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Users', '{$name}'),\n";
+			if(!in_array($relationName, $availableRelations)) {
+				if($name == 'member_id')
+					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Members', '{$name}'),\n";
+				else
+					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Users', '{$name}'),\n";
+				$availableRelations[] = $relationName;
+			}
 		} else if($name == 'tag_id') {
 			$relationArray = explode('_', $name);
 			$relationName = $relationArray[0];
-			echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'OmmuTags', '{$name}'),\n";
+			if(!in_array($relationName, $availableRelations)) {
+				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'OmmuTags', '{$name}'),\n";
+				$availableRelations[] = $relationName;
+			}
 		}
 	endforeach;?>
 		);
@@ -336,17 +371,26 @@ endif;
 	{
 		return array(
 <?php 
+$publicAttributes = array();
 foreach($labels as $name=>$label):
 	if(strtolower($label) == 'cat')
 		$label = 'Category';
-	echo "\t\t\t'$name' => Yii::t('attribute', '$label'),\n";
+		
+	if(!in_array($name, $publicAttributes)) {
+		echo "\t\t\t'$name' => Yii::t('attribute', '$label'),\n";
+		$publicAttributes[] = $name;
+	}
 endforeach;
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
 		$publicAttribute = $name.'_i';
-		$publicAttributeLabel = ucwords(strtolower($name));
-		echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
+		
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributeLabel = ucwords(strtolower($name));
+			echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
+			$publicAttributes[] = $publicAttribute;
+		}
 	}
 endforeach;
 foreach($columns as $name=>$column):
@@ -354,9 +398,13 @@ foreach($columns as $name=>$column):
 		$relationName = setRelationName($name, true);
 		if($relationName == 'cat')
 			$relationName = 'category';
+		
 		$publicAttribute = $relationName.'_search';
-		$publicAttributeLabel = ucwords(strtolower($relationName));
-		echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributeLabel = ucwords(strtolower($relationName));
+			echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
+			$publicAttributes[] = $publicAttribute;
+		}
 	}
 endforeach;
 foreach($labels as $name=>$label):
@@ -364,7 +412,11 @@ foreach($labels as $name=>$label):
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 		$publicAttribute = $relationName.'_search';
-		echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$label'),\n";
+		
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$label'),\n";
+			$publicAttributes[] = $publicAttribute;
+		}
 	}
 endforeach; ?>
 		);
@@ -393,6 +445,7 @@ endforeach; ?>
 //print_r($columns);
 $isPrimaryKey = '';
 $isVariableSearch = 0;
+$publicAttributes = array();
 
 foreach($columns as $name=>$column) {	
 	if($column->isForeignKey == '1' || (in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))))
@@ -406,11 +459,18 @@ if($isVariableSearch == 1) {?>
 		$relationName = setRelationName($name, true);
 		if($relationName == 'cat')
 			$relationName = 'category';
+			
 		$relationAttribute = 'column_name_relation';
-		echo "\t\t\t'$relationName' => array(\n";
-		echo "\t\t\t\t'alias'=>'$relationName',\n";
-		echo "\t\t\t\t'select'=>'$relationAttribute',\n";
-		echo "\t\t\t),\n";
+		if($relationName == 'user')
+			$relationAttribute = 'displayname';
+		
+		if(!in_array($relationName, $publicAttributes)) {
+			echo "\t\t\t'$relationName' => array(\n";
+			echo "\t\t\t\t'alias'=>'$relationName',\n";
+			echo "\t\t\t\t'select'=>'$relationAttribute',\n";
+			echo "\t\t\t),\n";
+			$publicAttributes[] = $relationName;
+		}
 	}
 }
 if($i18n):
@@ -418,10 +478,14 @@ foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
 		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
-		echo "\t\t\t'$publicAttributeRelation' => array(\n";
-		echo "\t\t\t\t'alias'=>'$publicAttributeRelation',\n";
-		echo "\t\t\t\t'select'=>'message',\n";
-		echo "\t\t\t),\n";
+		
+		if(!in_array($publicAttributeRelation, $publicAttributes)) {
+			echo "\t\t\t'$publicAttributeRelation' => array(\n";
+			echo "\t\t\t\t'alias'=>'$publicAttributeRelation',\n";
+			echo "\t\t\t\t'select'=>'message',\n";
+			echo "\t\t\t),\n";
+			$publicAttributes[] = $publicAttributeRelation;
+		}
 	endif;
 endforeach;
 endif;
@@ -429,25 +493,33 @@ foreach($columns as $name=>$column) {
 	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$relationArray = explode('_',$name);
 		$relationName = $relationArray[0];
-		if($name == 'member_id') {
-			$relationName = 'member_view';
-			echo "\t\t\t'{$relationName}.view' => array(\n";
-			echo "\t\t\t\t'alias'=>'{$relationName}_view',\n";
-			echo "\t\t\t\t'select'=>'member_name',\n";
-			echo "\t\t\t),\n";
-		} else {
-			echo "\t\t\t'$relationName' => array(\n";
-			echo "\t\t\t\t'alias'=>'$relationName',\n";
-			echo "\t\t\t\t'select'=>'displayname',\n";
-			echo "\t\t\t),\n";
+
+		if(!in_array($relationName, $publicAttributes)) {
+			if($name == 'member_id') {
+				$relationName = 'member_view';
+				echo "\t\t\t'{$relationName}.view' => array(\n";
+				echo "\t\t\t\t'alias'=>'{$relationName}_view',\n";
+				echo "\t\t\t\t'select'=>'member_name',\n";
+				echo "\t\t\t),\n";
+			} else {
+				echo "\t\t\t'$relationName' => array(\n";
+				echo "\t\t\t\t'alias'=>'$relationName',\n";
+				echo "\t\t\t\t'select'=>'displayname',\n";
+				echo "\t\t\t),\n";
+			}
+			$publicAttributes[] = $relationName;
 		}
 	} else if($name == 'tag_id') {
 		$relationArray = explode('_',$name);
 		$relationName = $relationArray[0];
-		echo "\t\t\t'$relationName' => array(\n";
-		echo "\t\t\t\t'alias'=>'$relationName',\n";
-		echo "\t\t\t\t'select'=>'body',\n";
-		echo "\t\t\t),\n";
+		
+		if(!in_array($relationName, $publicAttributes)) {
+			echo "\t\t\t'$relationName' => array(\n";
+			echo "\t\t\t\t'alias'=>'$relationName',\n";
+			echo "\t\t\t\t'select'=>'body',\n";
+			echo "\t\t\t),\n";
+			$publicAttributes[] = $relationName;
+		}
 	}
 }?>
 		);
@@ -515,16 +587,25 @@ foreach($columns as $name=>$column) {
 		$isPrimaryKey = $name;
 	}
 }
+$publicAttributes = array();
 if($isVariableSearch == 1)
 	echo "\n";
+$publicAttributes = array();
 foreach($columns as $name=>$column) {	
 	if($column->isForeignKey == '1') {
 		$relationName = setRelationName($name, true);
 		if($relationName == 'cat')
 			$relationName = 'category';
+
 		$relationAttribute = 'column_name_relation';
+		if($relationName == 'user')
+			$relationAttribute = 'displayname';
+			
 		$publicAttribute = $relationName.'_search';
-		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
+			$publicAttributes[] = $publicAttribute;
+		}
 	}
 }
 if($i18n):
@@ -533,7 +614,11 @@ foreach($columns as $name=>$column):
 	if(in_array('trigger[delete]', $commentArray)):
 		$publicAttribute = $name.'_i';
 		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
-		echo "\t\t\$criteria->compare('{$publicAttributeRelation}.message', strtolower(\$this->$publicAttribute), true);\n";
+
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			echo "\t\t\$criteria->compare('{$publicAttributeRelation}.message', strtolower(\$this->$publicAttribute), true);\n";
+			$publicAttributes[] = $publicAttribute;
+		}
 	endif;
 endforeach;
 endif;
@@ -548,15 +633,21 @@ foreach($columns as $name=>$column) {
 			$relationName = 'member_view';
 			$relationAttribute = 'member_name';
 		}
-		echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
+			$publicAttributes[] = $publicAttribute;
+		}
 	} else if($name == 'tag_id') {
 		$relationArray = explode('_',$name);
 		$relationName = $relationArray[0];
 		$publicAttribute = $relationName.'_search';
 		$relationAttribute = 'body';
 
-		echo "\t\t\$$publicAttribute = Utility::getUrlTitle(strtolower(trim(\$this->$publicAttribute)));\n";
-		echo "\t\t\$criteria->compare('$relationName.$relationAttribute', \$$publicAttribute, true);\n";
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			echo "\t\t\$$publicAttribute = Utility::getUrlTitle(strtolower(trim(\$this->$publicAttribute)));\n";
+			echo "\t\t\$criteria->compare('$relationName.$relationAttribute', \$$publicAttribute, true);\n";
+			$publicAttributes[] = $publicAttribute;
+		}
 	}
 }
 

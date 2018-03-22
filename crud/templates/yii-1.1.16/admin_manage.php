@@ -68,7 +68,7 @@ echo "\t\$this->breadcrumbs=array(
 <div id="partial-<?php echo $this->class2id($this->modelClass); ?>">
 	<?php echo "<?php ";?>//begin.Messages ?>
 	<div id="ajax-message">
-	<?php echo "<?php \n";?>
+	<?php echo "<?php\n";?>
 	if(Yii::app()->user->hasFlash('error'))
 		echo Utility::flashError(Yii::app()->user->getFlash('error'));
 	if(Yii::app()->user->hasFlash('success'))
@@ -86,7 +86,7 @@ echo "\t\$this->breadcrumbs=array(
 				'class'=>'CButtonColumn',
 				'buttons' => array(
 					'view' => array(
-						'label' => Yii::t('phrase', 'View <?php echo $inflector->singularize($label);?>'),
+						'label' => Yii::t('phrase', 'Detail <?php echo $inflector->singularize($label);?>'),
 						'imageUrl' => false,
 						'options' => array(
 							'class' => 'view',

@@ -137,7 +137,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->layout = $arrThemes['layout'];
 		Utility::applyCurrentTheme($this->module);
 		
-		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1,array(
+		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
 			'select' => 'meta_description, meta_keyword',
 		));
 
@@ -156,7 +156,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
 		$this->pageDescription = $setting->meta_description;
 		$this->pageMeta = $setting->meta_keyword;
-		$this->render('front_index',array(
+		$this->render('front_index', array(
 			'dataProvider'=>$dataProvider,
 		));
 		*/
@@ -187,7 +187,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('admin_manage',array(
+		$this->render('admin_manage', array(
 			'model'=>$model,
 			'columns' => $columns,
 		));
@@ -260,7 +260,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->pageTitle = Yii::t('phrase', 'Create <?php echo $inflector->singularize($label); ?>');
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('admin_add',array(
+		$this->render('admin_add', array(
 			'model'=>$model,
 		));
 	}
@@ -333,7 +333,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->pageTitle = Yii::t('phrase', 'Update <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('admin_edit',array(
+		$this->render('admin_edit', array(
 			'model'=>$model,
 		));
 	}
@@ -350,7 +350,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->layout = $arrThemes['layout'];
 		Utility::applyCurrentTheme($this->module);
 		
-		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1,array(
+		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
 			'select' => 'meta_keyword',
 		));
 		*/
@@ -361,12 +361,12 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
 		$this->dialogWidth = 600;
 
-		$this->pageTitle = Yii::t('phrase', 'View <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
+		$this->pageTitle = Yii::t('phrase', 'Detail <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		//$this->pageMeta = $setting->meta_keyword;
-		//$this->render('front_view',array(
-		$this->render('admin_view',array(
+		//$this->render('front_view', array(
+		$this->render('admin_view', array(
 			'model'=>$model,
 		));
 	}
@@ -497,7 +497,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->pageTitle = Yii::t('phrase', '{title} <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{title}'=>$title, '{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		$this->render('admin_publish',array(
+		$this->render('admin_publish', array(
 			'title'=>$title,
 			'model'=>$model,
 		));
