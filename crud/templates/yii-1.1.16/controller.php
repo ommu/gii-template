@@ -170,7 +170,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	{
 		$model=new <?php echo $this->modelClass; ?>('search');
 		$model->unsetAttributes();  // clear any default values
-		if(isset(Yii::app()->getRequest()->getParam('<?php echo $this->modelClass; ?>'))) {
+		if(Yii::app()->getRequest()->getParam('<?php echo $this->modelClass; ?>')) {
 			$model->attributes=Yii::app()->getRequest()->getParam('<?php echo $this->modelClass; ?>');
 		}
 
@@ -226,7 +226,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				*/
 
 			} else {
-				if(isset(Yii::app()->getRequest()->getParam('enablesave')) && Yii::app()->getRequest()->getParam('enablesave') == 1) {
+				if(Yii::app()->getRequest()->getParam('enablesave') == 1) {
 					if($model->save()) {
 						echo CJSON::encode(array(
 							'type' => 5,
@@ -299,7 +299,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				*/
 
 			} else {
-				if(isset(Yii::app()->getRequest()->getParam('enablesave')) && Yii::app()->getRequest()->getParam('enablesave') == 1) {
+				if(Yii::app()->getRequest()->getParam('enablesave') == 1) {
 					if($model->save()) {
 						echo CJSON::encode(array(
 							'type' => 5,
@@ -403,7 +403,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		}
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!isset(Yii::app()->getRequest()->getParam('ajax'))) {
+		if(!Yii::app()->getRequest()->getParam('ajax')) {
 			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('manage'));
 		}
 	}
