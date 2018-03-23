@@ -170,11 +170,11 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	{
 		$model=new <?php echo $this->modelClass; ?>('search');
 		$model->unsetAttributes();  // clear any default values
-		if(isset($_GET['<?php echo $this->modelClass; ?>'])) {
-			$model->attributes=$_GET['<?php echo $this->modelClass; ?>'];
+		if(isset(Yii::app()->getRequest()->getParam('<?php echo $this->modelClass; ?>'))) {
+			$model->attributes=Yii::app()->getRequest()->getParam('<?php echo $this->modelClass; ?>');
 		}
 
-		$gridColumn = $_GET['GridColumn'];
+		$gridColumn = Yii::app()->getRequest()->getParam('GridColumn');
 		$columnTemp = array();
 		if(isset($gridColumn)) {
 			foreach($gridColumn as $key => $val) {
@@ -226,7 +226,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				*/
 
 			} else {
-				if(isset($_GET['enablesave']) && $_GET['enablesave'] == 1) {
+				if(isset(Yii::app()->getRequest()->getParam('enablesave')) && Yii::app()->getRequest()->getParam('enablesave') == 1) {
 					if($model->save()) {
 						echo CJSON::encode(array(
 							'type' => 5,
@@ -299,7 +299,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				*/
 
 			} else {
-				if(isset($_GET['enablesave']) && $_GET['enablesave'] == 1) {
+				if(isset(Yii::app()->getRequest()->getParam('enablesave')) && Yii::app()->getRequest()->getParam('enablesave') == 1) {
 					if($model->save()) {
 						echo CJSON::encode(array(
 							'type' => 5,
@@ -379,7 +379,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	public function actionRunAction() {
 		$id       = $_POST['trash_id'];
 		$criteria = null;
-		$actions  = $_GET['action'];
+		$actions  = Yii::app()->getRequest()->getParam('action');
 
 		if(count($id) > 0) {
 			$criteria = new CDbCriteria;
@@ -403,7 +403,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		}
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!isset($_GET['ajax'])) {
+		if(!isset(Yii::app()->getRequest()->getParam('ajax'))) {
 			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('manage'));
 		}
 	}
