@@ -97,7 +97,7 @@ foreach($this->tableSchema->columns as $name=>$column)
 			echo "\t\tarray(\n";
 			echo "\t\t\t'name'=>'$name',\n";
 			echo "\t\t\t'value'=>!in_array(\$model->$name, array('0000-00-00','1970-01-01')) ? Utility::dateFormat(\$model->$name) : '-',\n";
-			echo "\t\t),\n";			
+			echo "\t\t),\n";
 		}
 	} else {
 		echo "\t\tarray(\n";

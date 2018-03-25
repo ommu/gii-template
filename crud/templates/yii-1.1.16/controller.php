@@ -176,7 +176,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 
 		$gridColumn = Yii::app()->getRequest()->getParam('GridColumn');
 		$columnTemp = array();
-		if(isset($gridColumn)) {
+		if($gridColumn) {
 			foreach($gridColumn as $key => $val) {
 				if($gridColumn[$key] == 1)
 					$columnTemp[] = $key;
@@ -403,7 +403,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		}
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!Yii::app()->getRequest()->getParam('ajax')) {
+		if(!(Yii::app()->getRequest()->getParam('ajax'))) {
 			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('manage'));
 		}
 	}

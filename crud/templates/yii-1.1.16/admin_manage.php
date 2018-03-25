@@ -114,7 +114,6 @@ echo "\t\$this->breadcrumbs=array(
 				'id'=>'<?php echo $this->class2id($this->modelClass); ?>-grid',
 				'dataProvider'=>$model->search(),
 				'filter'=>$model,
-				'afterAjaxUpdate' => 'reinstallDatePicker',
 				'columns' => $columnData,
 				'pager' => array('header' => ''),
 			));

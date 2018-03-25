@@ -654,7 +654,7 @@ foreach($columns as $name=>$column) {
 	if($tableName[0] == '_' && !$isPrimaryKey)
 		$isPrimaryKey = $primaryKeyColumn;
 
-	echo "\n\t\tif(!Yii::app()->getRequest()->getParam('{$modelClass}_sort'))\n";
+	echo "\n\t\tif(!(Yii::app()->getRequest()->getParam('{$modelClass}_sort')))\n";
 	echo "\t\t\t\$criteria->order = 't.$isPrimaryKey DESC';\n";
 ?>
 
