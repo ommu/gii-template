@@ -276,7 +276,7 @@ if($form == true) {
 			return $return;
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if($form == true)
-				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('d-m-Y', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
+				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
 			$return .= "/* \$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
