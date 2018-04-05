@@ -7,21 +7,21 @@
 		"gii",
 		"generator",
 		"template",
+		"crud",
 		"ommu",
-		"platform",
 		"ommu platform"
 	],
-	"homepage": "https://github.com/ommu/ommu-gii-template",
+	"homepage": "https://github.com/ommu/gii-template",
 	"type": "ommu-library",
 	"license": "Apache-2.0",
 	"support": {
-		"issues": "https://github.com/ommu/ommu-gii-template/issues",
-		"wiki": "https://github.com/ommu/ommu-gii-template/wiki",
-		"source": "https://github.com/ommu/ommu-gii-template"
+		"issues": "https://github.com/ommu/gii-template/issues",
+		"wiki": "https://github.com/ommu/gii-template/wiki",
+		"source": "https://github.com/ommu/gii-template"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ommu/ommu-gii-template.git"
+		"url": "https://github.com/ommu/gii-template.git"
 	},
 	"authors": [
 		{
