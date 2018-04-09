@@ -236,22 +236,29 @@ class CrudCode extends CCodeModel
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
 		//print_r($column);
-		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
-if($form == true):
-if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
-	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
-else
-	return "echo \$form->checkBox(\$model, '{$column->name}', array('class'=>'form-control'))";
-else:
-if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
-			return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
-else
-			return "echo \$form->dropDownList(\$model, '{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')), array('class'=>'form-control'))";
-endif;
-		} elseif(stripos($column->dbType,'text')!==false) {
+		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {		// 01
 if($form == true) {
-			$return = "//echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50, 'class'=>'form-control'));
-			\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
+	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
+		return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
+	else
+		return "echo \$form->checkBox(\$model, '{$column->name}', array('class'=>'form-control'))";
+} else {
+	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
+		return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
+	else
+		return "echo \$form->dropDownList(\$model, '{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')), array('class'=>'form-control'))";
+}
+		} elseif(stripos($column->dbType,'text')!==false) {		// 02
+if($form == true) {
+	$textCondition = 0;
+	if(trim($column->comment) != '') {
+		$textCondition = 1;
+		$commentArray = explode(',', $column->comment);
+	}
+	if($textCondition == 0 || in_array('text', $commentArray))
+		return "echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50, 'class'=>'form-control'))";
+	else if(in_array('redactor', $commentArray)) {
+		return "\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
 				'options'=>array(
@@ -269,20 +276,21 @@ if($form == true) {
 				),
 				'htmlOptions'=>array(
 					'class' => 'form-control',
-				 ),
+				),
 			))";
+	} else if(in_array('file', $commentArray))
+		return "echo \$form->fileField(\$model, '{$column->name}', array('class'=>'form-control'))";
 } else
-			$return = "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
-			return $return;
-		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {
+	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
+		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {		// 03
 			if($form == true)
-				$return = "\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(\$model->{$column->name}, array('0000-00-00','1970-01-01')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
+				$return = "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
 			$return .= "/* \$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
 				//'mode'=>'datetime',
 				'options'=>array(
-					'dateFormat' => 'dd-mm-yy',
+					'dateFormat' => 'yy-mm-dd',
 				),
 				'htmlOptions'=>array(
 					'class' => 'form-control',
@@ -290,20 +298,19 @@ if($form == true) {
 			)); */
 			echo \$form->dateField(\$model, '{$column->name}', array('class'=>'form-control'))";
 			return $return;
-		} else {
+		} else {		// 03
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
 				$inputField='passwordField';
 			else
 				$inputField='textField';
 
-				$i18n = 0;
-				$columnName = $column->name;
-				$commentArray = explode(',', $column->comment);
-				if(in_array('trigger[delete]', $commentArray)) {
-					$publicRelation = preg_match('/(name|title)/', $columnName) ? 'title' : 'description';
-					$columnName = $columnName.'_i';
-					$i18n = 1;
-				}
+			$i18n = 0;
+			$columnName = $column->name;
+			$commentArray = explode(',', $column->comment);
+			if(in_array('trigger[delete]', $commentArray)) {
+				$columnName = $columnName.'_i';
+				$i18n = 1;
+			}
 if($form == false) {
 			if($column->isForeignKey == '1') {
 				$relationName = $this->setRelationName($column->name, true);
@@ -315,21 +322,21 @@ if($form == false) {
 				$relationName = $relationArray[0];
 				$columnName = $relationName.'_search';
 			}
-} else
-$enumCondition = 0;
-if(preg_match('/(enum)/', $column->dbType)) {
-	$enumCondition = 1;
-	$patterns = array();
-	$patterns[0] = '(enum)';
-	$patterns[1] = '(\')';
-	$enumvalue = preg_replace($patterns, '', $column->dbType);
-	$enumvalue = trim($enumvalue, ')|(');
-	$enumArrays = explode(',', $enumvalue);
-	$dropDownOptions = array();
-	foreach ($enumArrays as $enumArray) {
-		$dropDownOptions[$enumArray] = $enumArray;
-	}
 }
+			$enumCondition = 0;
+			if(preg_match('/(enum)/', $column->dbType)) {
+				$enumCondition = 1;
+				$patterns = array();
+				$patterns[0] = '(enum)';
+				$patterns[1] = '(\')';
+				$enumvalue = preg_replace($patterns, '', $column->dbType);
+				$enumvalue = trim($enumvalue, ')|(');
+				$enumArrays = explode(',', $enumvalue);
+				$dropDownOptions = array();
+				foreach ($enumArrays as $enumArray) {
+					$dropDownOptions[$enumArray] = $enumArray;
+				}
+			}
 			if ($enumCondition && is_array($enumArrays) && count($enumArrays) > 0) {
 				$dropDownOption = self::export($dropDownOptions);
 				$return = "$$columnName = $dropDownOption;\n\t\t\t";
@@ -340,18 +347,40 @@ if(preg_match('/(enum)/', $column->dbType)) {
 			else {
 				$maxLength=$column->size;
 if($form == true) {
-if($i18n) {
-	$inputField = $publicRelation == 'title' ? 'textField' : 'textArea';
-	if($publicRelation == 'title')
-				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>32, 'class'=>'form-control'))";
-	else
-				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('rows'=>6, 'cols'=>50, 'maxlength'=>128, 'class'=>'form-control'))";
+if($i18n):
+	if(in_array('redactor', $commentArray)):
+			return "\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
+				'model'=>\$model,
+				'attribute'=>'{$column->name}',
+				'options'=>array(
+					'buttons'=>array(
+						'html', 'formatting', '|', 
+						'bold', 'italic', 'deleted', '|',
+						'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
+						'link', '|',
+					),
+				),
+				'plugins' => array(
+					'fontcolor' => array('js' => array('fontcolor.js')),
+					'table' => array('js' => array('table.js')),
+					'fullscreen' => array('js' => array('fullscreen.js')),
+				),
+				'htmlOptions'=>array(
+					'class' => 'form-control',
+				),
+			))";
+	elseif(in_array('text', $commentArray)):
+		return "echo \$form->textArea(\$model, '{$columnName}', array('rows'=>6, 'cols'=>50, 'maxlength'=>128, 'class'=>'form-control'))";
+	else:
+		return "echo \$form->textField(\$model, '{$columnName}', array('maxlength'=>32, 'class'=>'form-control'))";
+	endif;
+else:
+	return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
+endif;
 } else
-				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
-} else
-				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";
+	return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";
 			}
-		}
+		}		// end
 	}
 
 	public function guessNameColumn($columns)

@@ -741,7 +741,7 @@ if($column->name == 'tag_id') {
 			echo "\t\t\t\t\t),\n";
 			echo "\t\t\t\t\t'options'=>array(\n";
 			echo "\t\t\t\t\t\t'showOn' => 'focus',\n";
-			echo "\t\t\t\t\t\t'dateFormat' => 'dd-mm-yy',\n";
+			echo "\t\t\t\t\t\t'dateFormat' => 'yy-mm-dd',\n";
 			echo "\t\t\t\t\t\t'showOtherMonths' => true,\n";
 			echo "\t\t\t\t\t\t'selectOtherMonths' => true,\n";
 			echo "\t\t\t\t\t\t'changeMonth' => true,\n";
