@@ -825,7 +825,10 @@ foreach($columns as $name=>$column)
 			echo "\t\t\tif(!Yii::app()->getRequest()->getParam('type')) {\n";
 		echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
 		echo "\t\t\t\t'name' => '$name',\n";
-		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
+		if($column->comment != '')
+			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name, \'$column->comment\')',\n";
+		else
+			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$name)',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
