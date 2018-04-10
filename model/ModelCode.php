@@ -11,6 +11,10 @@ class ModelCode extends CCodeModel
 	public $buildRelations=true;
 	public $commentsAsLabels=false;
 	public $modified;
+	public $uploadPath=array(
+		'name' => 'article_path',
+		'directory' => 'public/module-name',
+	);
 	public $link='http://opensource.ommu.co';
 
 	/**
@@ -23,7 +27,7 @@ class ModelCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId', 'filter', 'filter'=>'trim'),
-			array('connectionId, tableName, modelPath, baseClass, modified, link', 'required'),
+			array('connectionId, tableName, modelPath, baseClass, modified, link, uploadPath', 'required'),
 			array('tablePrefix, tableName, modelPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('connectionId', 'validateConnectionId', 'skipOnError'=>true),
 			array('tableName', 'validateTableName', 'skipOnError'=>true),
@@ -32,7 +36,7 @@ class ModelCode extends CCodeModel
 			array('modelPath', 'validateModelPath', 'skipOnError'=>true),
 			array('baseClass, modelClass', 'validateReservedWord', 'skipOnError'=>true),
 			array('baseClass', 'validateBaseClass', 'skipOnError'=>true),
-			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels, link', 'sticky'),
+			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels, link, uploadPath', 'sticky'),
 		));
 	}
 
@@ -48,6 +52,9 @@ class ModelCode extends CCodeModel
 			'commentsAsLabels'=>'Use Column Comments as Attribute Labels',
 			'connectionId'=>'Database Connection',
 			'modified'=>'Modified',
+			'uploadPath[name]'=>'Upload Path (variable name)',
+			'uploadPath[directory]'=>'Upload Path (path location)',
+			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
 			'link'=>'Link Repository',
 		));
 	}
@@ -198,6 +205,21 @@ class ModelCode extends CCodeModel
 		return $this->modified;
 	}
 
+	public function getUploadPathNameSource()
+	{
+		return $this->uploadPath['name'];
+	}
+
+	public function getUploadPathDirectorySource()
+	{
+		return $this->uploadPath['directory'];
+	}
+
+	public function getUploadPathSubfolderStatus()
+	{
+		return $this->uploadPath['subfolder'];
+	}
+
 	public function getLinkSource()
 	{
 		return $this->link;
@@ -244,7 +266,7 @@ class ModelCode extends CCodeModel
 			if($column->autoIncrement)
 				continue;
 			$r=!$column->allowNull && $column->defaultValue===null;
-			if($r)
+			if($r && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug')))
 				$required[]=$column->name;
 			if($column->type==='integer')
 				$integers[]=$column->name;
@@ -254,6 +276,26 @@ class ModelCode extends CCodeModel
 				$length[$column->size][]=$column->name;
 			elseif(!$column->isPrimaryKey && !$r)
 				$safe[]=$column->name;
+
+			$commentArray = explode(',', $column->comment);
+			if(in_array('trigger[delete]', $commentArray)) {
+				$required = array_diff($required, array($column->name));
+				$required[]=$column->name.'_i';
+			}
+			if($column->dbType == 'text' && $column->comment == 'file') {
+				$required = array_diff($required, array($column->name));
+				$safe[]=$column->name;
+			}
+			if($column->comment == 'trigger') {
+				$safe = array_diff($safe, array($column->name));
+			}
+		}
+		foreach($table->columns as $column)
+		{
+			if($column->autoIncrement)
+				continue;
+			if($column->dbType == 'text' && $column->comment == 'file')
+				$safe[]='old_'.$column->name.'_i';
 		}
 		if($required!==array())
 			$rules[]="array('".implode(', ',$required)."', 'required')";

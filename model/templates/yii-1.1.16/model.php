@@ -63,6 +63,7 @@ function guessNameColumn($columns)
 
 $publishCondition = 0;
 $slugCondition = 0;
+$uploadCondition = 0;
 $i18n = 0;
 $primaryKeyColumn = key($columns);
 //echo '<pre>';
@@ -72,6 +73,8 @@ foreach($columns as $name=>$column):
 		$publishCondition = 1;
 	if($column->name == 'slug')
 		$slugCondition = 1;
+	if($column->comment == 'file')
+		$uploadCondition = 1;
 endforeach;
 
 ?>
@@ -106,7 +109,10 @@ foreach($relations as $name=>$relation): ?>
 	if (preg_match("~^array\(self::([^,]+), '([^']+)', '([^']+)'\)$~", $relation, $matches))
 	{
 		$relationType = $matches[1];
-		$relationModel = preg_replace('(Ommu)', '', $matches[2]);
+		if(preg_match('/Core/', $matches[2]))
+			$relationModel = preg_replace('(Core)', '', $matches[2]);
+		else
+			$relationModel = preg_replace('(Ommu)', '', $matches[2]);
 		$relationName = setRelationName($name);
 		if($relationName == 'cat')
 			$relationName = 'category';
@@ -188,6 +194,14 @@ foreach($labels as $name=>$label):
 			$publicVariable[] = $publicAttribute;
 		}
 	}
+endforeach;
+foreach($columns as $name=>$column):
+	if(!(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) && $column->dbType == 'text' && $column->comment == 'file') {
+		$publicAttribute = 'old_'.$name.'_i';
+		if(!in_array($publicAttribute, $publicVariable)) {
+			echo "\tpublic \${$publicAttribute};\n";
+		}
+	}
 endforeach; ?>
 
 	// Variable Search
@@ -201,7 +215,7 @@ foreach($columns as $name=>$column):
 			$relationName = 'category';
 
 		$publicAttribute = $relationName.'_search';
-		if(!in_array($publicAttribute, $publicVariable)) {
+		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicVariable)) {
 			echo "\tpublic \${$publicAttribute};\n";
 			$publicVariable[] = $publicAttribute;
 		}
@@ -266,7 +280,7 @@ endforeach; ?>
 		preg_match("/dbname=([^;]+)/i", $this->dbConnection->connectionString, $matches);
 		return $matches[1].'.<?php echo $tableName; ?>';
 	}
-<?php if($tableName[0] == '_'):?>
+<?php if($tableName[0] == '_') {?>
 
 	/**
 	 * @return string the primarykey column
@@ -275,7 +289,7 @@ endforeach; ?>
 	{
 		return '<?php echo $primaryKeyColumn; ?>';
 	}
-<?php endif?>
+<?php }?>
 
 	/**
 	 * @return array validation rules for model attributes.
@@ -295,9 +309,11 @@ if($i18n):
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)):
 			$publicAttribute = $name.'_i';
-			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';?>
-			array('<?php echo $publicAttribute;?>', 'length', 'max'=><?php echo $publicAttributeRelation == 'title' ? '32' : '128';?>),
-<?php endif;
+			$maxlength = in_array('redactor', $commentArray) ? '~' : (in_array('text', $commentArray) ? '128' : '32');
+			if($maxlength != '~'):?>
+			array('<?php echo $publicAttribute;?>', 'length', 'max'=><?php echo $maxlength;?>),
+<?php 		endif;
+		endif;
 	endforeach;
 endif;?>
 			// The following rule is used by search().
@@ -323,7 +339,10 @@ foreach($relations as $name=>$relation): ?>
 			$relationName = setRelationName($name);
 			if($relationName == 'cat')
 				$relationName = 'category';
-			$relationModel = preg_replace('(Ommu)', '', $relation);
+			if(preg_match('/Core/', $relation))
+				$relationModel = preg_replace('(Core)', '', $relation);
+			else
+				$relationModel = preg_replace('(Ommu)', '', $relation);
 			if(!in_array($relationName, $availableRelations)) {
 				echo "'$relationName' => $relationModel,\n";
 				$availableRelations[] = $relationName;
@@ -333,7 +352,7 @@ if($i18n):
 	foreach($columns as $name=>$column):
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)):
-			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
 			if(!in_array($publicAttributeRelation, $availableRelations)) {
 				echo "\t\t\t'$publicAttributeRelation' => array(self::BELONGS_TO, 'SourceMessage', '{$name}'),\n";
 				$availableRelations[] = $publicAttributeRelation;
@@ -400,10 +419,19 @@ foreach($columns as $name=>$column):
 			$relationName = 'category';
 		
 		$publicAttribute = $relationName.'_search';
-		if(!in_array($publicAttribute, $publicAttributes)) {
+		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicAttributes)) {
 			$publicAttributeLabel = ucwords(strtolower($relationName));
 			echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
 			$publicAttributes[] = $publicAttribute;
+		}
+	}
+endforeach;
+foreach($columns as $name=>$column):
+	if($column->dbType == 'text' && $column->comment == 'file') {
+		$publicAttribute = 'old_'.$name.'_i';
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributeLabel = ucwords(strtolower('old '.$name));
+			echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
 		}
 	}
 endforeach;
@@ -464,7 +492,7 @@ if($isVariableSearch == 1) {?>
 		if($relationName == 'user')
 			$relationAttribute = 'displayname';
 		
-		if(!in_array($relationName, $publicAttributes)) {
+		if($relationName != 'category' && !in_array($relationName, $publicAttributes)) {
 			echo "\t\t\t'$relationName' => array(\n";
 			echo "\t\t\t\t'alias'=>'$relationName',\n";
 			echo "\t\t\t\t'select'=>'$relationAttribute',\n";
@@ -477,7 +505,7 @@ if($i18n):
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
-		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
 		
 		if(!in_array($publicAttributeRelation, $publicAttributes)) {
 			echo "\t\t\t'$publicAttributeRelation' => array(\n";
@@ -543,9 +571,10 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\$criteria->compare('{$cRelation}.{$cName}',strtolower(\$this->$name),true);\n";
 	}
 }
+echo '<pre>';
+print_r($columns);
+echo $tableName[0];
 */
-//echo '<pre>';
-//print_r($columns);
 foreach($columns as $name=>$column) {
 	if($column->name == 'publish') {
 		echo "\t\tif(Yii::app()->getRequest()->getParam('type') == 'publish')\n";
@@ -577,10 +606,13 @@ foreach($columns as $name=>$column) {
 	} else if(in_array($column->dbType, array('int','smallint')) || ($column->type==='string' && $column->isPrimaryKey == '1'))
 		echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
 
-	else if($column->type==='string')
-		echo "\t\t\$criteria->compare('t.$name', strtolower(\$this->$name), true);\n";
+	else if($column->type==='string') {
+		if(preg_match('/(int)/', $column->dbType) || ($tableName[0] == '_' && preg_match('/(decimal)/', $column->dbType)))
+			echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
+		else
+			echo "\t\t\$criteria->compare('t.$name', strtolower(\$this->$name), true);\n";
 
-	else
+	} else
 		echo "\t\t\$criteria->compare('t.$name', \$this->$name);\n";
 
 	if($column->isPrimaryKey) {
@@ -602,7 +634,7 @@ foreach($columns as $name=>$column) {
 			$relationAttribute = 'displayname';
 			
 		$publicAttribute = $relationName.'_search';
-		if(!in_array($publicAttribute, $publicAttributes)) {
+		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicAttributes)) {
 			echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
 			$publicAttributes[] = $publicAttribute;
 		}
@@ -613,7 +645,7 @@ foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
 		$publicAttribute = $name.'_i';
-		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
 
 		if(!in_array($publicAttribute, $publicAttributes)) {
 			echo "\t\t\$criteria->compare('{$publicAttributeRelation}.message', strtolower(\$this->$publicAttribute), true);\n";
@@ -661,7 +693,7 @@ foreach($columns as $name=>$column) {
 		return new CActiveDataProvider($this, array(
 			'criteria'=>$criteria,
 			'pagination'=>array(
-				'pageSize'=>Yii::app()->params['grid-view'] ? Yii::app()->params['grid-view']['pageSize'] : 20,
+				'pageSize'=>Yii::app()->params['grid-view'] ? Yii::app()->params['grid-view']['pageSize'] : 50,
 			),
 		));
 	}
@@ -692,19 +724,22 @@ foreach($columns as $name=>$column)
 	if(!$column->isPrimaryKey && $column->dbType != 'tinyint(1)') {
 		if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 			$arrayName = explode('_', $column->name);
+			$relationName = $arrayName[0];
 			$columnName = 'displayname';
 			if($column->isForeignKey == '1')
 				$columnName = 'column_name_relation';
 			if($column->name == 'tag_id')
 				$columnName = 'body';
-			$relationName = $arrayName[0];
 			if($relationName == 'cat')
 				$relationName = 'category';
-			$publicAttribute = $relationName.'_search';
 			if($column->name == 'member_id') {
 				$relationName = 'member_view';
-				$columnName = 'member_name';	
+				$columnName = 'member_name';
 			}
+			$publicAttribute = $relationName.'_search';
+			if($relationName == 'category')
+				$publicAttribute = $column->name;
+				
 			echo "\t\t\tif(!Yii::app()->getRequest()->getParam('$relationName')) {\n";
 			echo "\t\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
 			echo "\t\t\t\t\t'name' => '$publicAttribute',\n";
@@ -758,14 +793,22 @@ if($column->name == 'tag_id') {
 			$publicAttribute = $name;
 			if(in_array('trigger[delete]', $commentArray)) {
 				$publicAttribute = $name.'_i';
-				$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
+				$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
 				$translateCondition = 1;
 			}
 			echo "\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
 			echo "\t\t\t\t'name' => '$publicAttribute',\n";
-if($translateCondition) {
+if($translateCondition)
 			echo "\t\t\t\t'value' => '\$data->{$publicAttributeRelation}->message',\n";
-} else {
+else {
+	if($column->dbType == 'text' && $column->comment == 'file') {
+		if($this->uploadPathSubfolderStatus):
+			$CHtml = "CHtml::link(\$data->$name, Yii::app()->request->baseUrl.\'/public/banner/\'.\$data->$primaryKeyColumn.\'/\'.\$data->$name, array(\'target\' => \'_blank\'))";
+		else:
+			$CHtml = "CHtml::link(\$data->$name, Yii::app()->request->baseUrl.\'/public/banner/\'.\$data->$name, array(\'target\' => \'_blank\'))";
+		endif;
+			echo "\t\t\t\t'value' => '\$data->$name ? $CHtml : \'-\'',\n";
+	} else
 			echo "\t\t\t\t'value' => '\$data->$name',\n";
 }
 //if(in_array($column->dbType, array('text'))) {
@@ -865,14 +908,15 @@ foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
 		$publicAttribute = $name.'_i';
-		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';?>
+		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');?>
 		$this-><?php echo $publicAttribute;?> = $this-><?php echo $publicAttributeRelation;?>->message;
 <?php endif;
 endforeach; ?>
 		
 		parent::afterFind();
 	}
-<?php }?>
+<?php }
+if(!($tableName[0] == '_')) {?>
 
 	/**
 	 * before validate attributes
@@ -898,7 +942,27 @@ foreach($columns as $name=>$column)
 		}
 	}
 }
-?>
+if($uploadCondition) {
+	foreach($columns as $name=>$column)
+	{
+		if($column->dbType == 'text' && $column->comment == 'file') {?>
+
+			$<?php echo $name;?>FileType = array('bmp','gif','jpg','png');
+			$<?php echo $name;?> = CUploadedFile::getInstance($this, '<?php echo $name;?>');
+			if($<?php echo $name;?>->name != null) {
+				$extension = pathinfo($<?php echo $name;?>->name, PATHINFO_EXTENSION);
+				if(!in_array(strtolower($extension), $<?php echo $name;?>FileType))
+					$this->addError('<?php echo $name;?>', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
+						'{name}'=>$<?php echo $name;?>->name,
+						'{extensions}'=>Utility::formatFileType($<?php echo $name;?>FileType, false),
+					));
+			} /* else {
+				//if($this->isNewRecord && $controller == 'o/media')
+					$this->addError('<?php echo $name;?>', Yii::t('phrase', '{attribute} cannot be blank.', array('{attribute}'=>$this->getAttributeLabel('<?php echo $name;?>'))));
+			} */
+<?php 	}
+	}
+}?>
 			// Create action
 		}
 		return true;
@@ -914,7 +978,9 @@ foreach($columns as $name=>$column)
 		
 		return true;
 	}
-	
+
+<?php }
+if(!($tableName[0] == '_')) {?>
 	/**
 	 * before save attributes
 	 */
@@ -929,11 +995,58 @@ foreach($columns as $name=>$column)
 		
 <?php }?>
 		if(parent::beforeSave()) {
-<?php
+<?php 
+if($uploadCondition) {?>
+			if(!$this->isNewRecord) {
+<?php if($this->uploadPathSubfolderStatus) {?>
+				$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>/'.$this-><?php echo $primaryKeyColumn; ?>;
+<?php } else {?>
+				$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
+<?php }?>
+				$verwijderen_path = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
+				// Add directory
+				if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderen_path)) {
+					@mkdir($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+					@mkdir($verwijderen_path, 0755, true);
+
+					// Add file in directory (index.php)
+					$newFile = $<?php echo $this->uploadPathNameSource;?>.'/index.php';
+					$FileHandle = fopen($newFile, 'w');
+
+					$newVerwijderenFile = $verwijderen_path.'/index.php';
+					$FileHandle = fopen($newVerwijderenFile, 'w');
+				} else {
+					@chmod($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+					@chmod($verwijderen_path, 0755, true);
+				}
+<?php foreach($columns as $name=>$column) {
+	if($column->dbType == 'text' && $column->comment == 'file') {?>
+
+				$this-><?php echo $name;?> = CUploadedFile::getInstance($this, '<?php echo $name;?>');
+				if($this-><?php echo $name;?> != null) {
+					if($this-><?php echo $name;?> instanceOf CUploadedFile) {
+						$fileName = time().'_'.$this-><?php echo $primaryKeyColumn;?>.'.'.strtolower($this-><?php echo $name;?>->extensionName);
+						if($this-><?php echo $name;?>->saveAs($<?php echo $this->uploadPathNameSource;?>.'/'.$fileName)) {
+							if($this->old_<?php echo $name;?>_i != '' && file_exists($<?php echo $this->uploadPathNameSource;?>.'/'.$this->old_<?php echo $name;?>_i))
+								rename($<?php echo $this->uploadPathNameSource;?>.'/'.$this->old_<?php echo $name;?>_i, 'public/banner/verwijderen/'.$this-><?php echo $primaryKeyColumn;?>.'_'.$this->old_<?php echo $name;?>_i);
+							$this-><?php echo $name;?> = $fileName;
+						}
+					}
+				} else {
+					if($this-><?php echo $name;?> == '')
+						$this-><?php echo $name;?> = $this->old_<?php echo $name;?>_i;
+				}
+<?php }
+}?>
+			}
+
+<?php }
+
 foreach($columns as $name=>$column)
 {
-	if(in_array($column->dbType, array('date')) && $column->comment != 'trigger') {
-		echo "\t\t\t//\$this->$name = date('Y-m-d', strtotime(\$this->$name));\n";
+	if(in_array($column->dbType, array('date','datetime')) && $column->comment != 'trigger') {
+		$datetimeType = $column->dbType == 'date' ? 'Y-m-d' : 'Y-m-d';	//Y-m-d H:i:s
+		echo "\t\t\t\$this->$name = date('$datetimeType', strtotime(\$this->$name));\n";
 	} else if($column->name == 'tag_id') {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
@@ -962,7 +1075,7 @@ foreach($columns as $name=>$column)
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $name.'_i';
-			$publicAttributeLocation = preg_match('/(name|title)/', $name) ? '_title' : '_desc';?>
+			$publicAttributeLocation = preg_match('/(name|title)/', $name) ? '_title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? '_description' : '_'.$name) : '_'.$name);?>
 			if($this->isNewRecord || (!$this->isNewRecord && !$this-><?php echo $name;?>)) {
 				$<?php echo $name;?>=new SourceMessage;
 				$<?php echo $name;?>->message = $this-><?php echo $publicAttribute;?>;
@@ -987,13 +1100,58 @@ foreach($columns as $name=>$column)
 		}
 		return true;
 	}
-	
+
+<?php }
+if(!($tableName[0] == '_')) {?>
 	/**
 	 * After save attributes
 	 */
 	protected function afterSave() 
 	{
 		parent::afterSave();
+<?php 
+if($uploadCondition) {
+	if($this->uploadPathSubfolderStatus) {?>
+
+		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>/'.$this-><?php echo $primaryKeyColumn; ?>;
+<?php } else {?>
+
+		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
+<?php }?>
+		$verwijderen_path = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
+		// Add directory
+		if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderen_path)) {
+			@mkdir($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+			@mkdir($verwijderen_path, 0755,true);
+
+			// Add file in directory (index.php)
+			$newFile = $<?php echo $this->uploadPathNameSource;?>.'/index.php';
+			$FileHandle = fopen($newFile, 'w');
+			
+			$newVerwijderenFile = $verwijderen_path.'/index.php';
+			$FileHandle = fopen($newVerwijderenFile, 'w');
+		} else {
+			@chmod($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+			@chmod($verwijderen_path, 0755,true);
+		}
+
+		if($this->isNewRecord) {
+<?php foreach($columns as $name=>$column)
+{
+	if($column->dbType == 'text' && $column->comment == 'file') {?>
+			$this-><?php echo $name;?> = CUploadedFile::getInstance($this, '<?php echo $name;?>');
+			if($this-><?php echo $name;?> != null) {
+				if($this-><?php echo $name;?> instanceOf CUploadedFile) {
+					$fileName = time().'_'.$this-><?php echo $primaryKeyColumn;?>.'.'.strtolower($this-><?php echo $name;?>->extensionName);
+					if($this-><?php echo $name;?>->saveAs($<?php echo $this->uploadPathNameSource;?>.'/'.$fileName))
+						self::model()->updateByPk($this-><?php echo $primaryKeyColumn;?>, array('<?php echo $name;?>'=>$fileName));
+				}
+			}
+			
+<?php }
+}?>
+		}
+<?php }?>
 		// Create action
 	}
 
@@ -1014,7 +1172,23 @@ foreach($columns as $name=>$column)
 	protected function afterDelete() 
 	{
 		parent::afterDelete();
+		
+		//delete article image
+<?php if($uploadCondition) {
+	if($this->uploadPathSubfolderStatus) {?>
+		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>/'.$this-><?php echo $primaryKeyColumn; ?>;
+<?php } else {?>
+		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
+<?php }
+	foreach($columns as $name=>$column) {
+		if($column->dbType == 'text' && $column->comment == 'file') {?>
+
+		if($this-><?php echo $name;?> != '' && file_exists($<?php echo $this->uploadPathNameSource;?>.'/'.$this-><?php echo $name;?>))
+			rename($<?php echo $this->uploadPathNameSource;?>.'/'.$this-><?php echo $name;?>, '<?php echo $this->uploadPathDirectorySource;?>/verwijderen/'.$this-><?php echo $primaryKeyColumn; ?>.'_'.$this-><?php echo $name;?>);
+<?php 	}
+	}
+}?>
 		// Create action
 	}
-
+<?php }?>
 }

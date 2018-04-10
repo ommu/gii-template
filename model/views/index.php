@@ -136,13 +136,31 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		<?php echo $form->error($model,'buildRelations'); ?>
 	</div>
 
-	<div class="row">
-		<?php echo $form->labelEx($model,'modified'); ?>
-		<?php echo $form->checkBox($model,'modified'); ?>
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'uploadPath[name]'); ?>
+		<?php echo $form->textField($model,'uploadPath[name]',array('size'=>64)); ?>
 		<div class="tooltip">
-			Default value is <code>false</code>. Used to display modification date in source code
+		It can be either a upload path variable name in source (e.g. <code>article_path, banner_path</code>)
 		</div>
-		<?php echo $form->error($model,'modified'); ?>
+		<?php echo $form->error($model,'uploadPath[name]'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'uploadPath[directory]'); ?>
+		<?php echo $form->textField($model,'uploadPath[directory]',array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a upload path directory (e.g. <code>public/module-name</code>)
+		</div>
+		<?php echo $form->error($model,'uploadPath[directory]'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'uploadPath[subfolder]'); ?>
+		<?php echo $form->checkBox($model,'uploadPath[subfolder]'); ?>
+		<div class="tooltip">
+		It can be either a upload path directory (e.g. <code>public/module-name</code>)
+		</div>
+		<?php echo $form->error($model,'uploadPath[subfolder]'); ?>
 	</div>
 
 	<div class="row sticky">
@@ -152,6 +170,15 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		It can be either a hyperlink (e.g. <code>http://opensource.ommu.co</code>)
 		</div>
 		<?php echo $form->error($model,'link'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'modified'); ?>
+		<?php echo $form->checkBox($model,'modified'); ?>
+		<div class="tooltip">
+			Default value is <code>false</code>. Used to display modification date in source code
+		</div>
+		<?php echo $form->error($model,'modified'); ?>
 	</div>
 
 	<div class="row">
