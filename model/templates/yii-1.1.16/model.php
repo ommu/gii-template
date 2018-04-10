@@ -1050,6 +1050,9 @@ foreach($columns as $name=>$column)
 	if(in_array($column->dbType, array('date','datetime')) && $column->comment != 'trigger') {
 		$datetimeType = $column->dbType == 'date' ? 'Y-m-d' : 'Y-m-d';	//Y-m-d H:i:s
 		echo "\t\t\t\$this->$name = date('$datetimeType', strtotime(\$this->$name));\n";
+	} else if($column->dbType == 'text' && $column->comment == 'serialize') {
+		echo "\t\t\t\$this->$name = serialize(\$this->$name);\n";
+
 	} else if($column->name == 'tag_id') {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
