@@ -10,12 +10,13 @@ class ModelCode extends CCodeModel
 	public $baseClass='OActiveRecord';
 	public $buildRelations=true;
 	public $commentsAsLabels=false;
-	public $modified;
 	public $uploadPath=array(
 		'name' => 'article_path',
 		'directory' => 'public/module-name',
 	);
+	public $datepicker;
 	public $link='http://opensource.ommu.co';
+	public $modified;
 
 	/**
 	 * @var array list of candidate relation code. The array are indexed by AR class names and relation names.
@@ -26,8 +27,8 @@ class ModelCode extends CCodeModel
 	public function rules()
 	{
 		return array_merge(parent::rules(), array(
-			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId', 'filter', 'filter'=>'trim'),
-			array('connectionId, tableName, modelPath, baseClass, modified, link, uploadPath', 'required'),
+			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId, link', 'filter', 'filter'=>'trim'),
+			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, datepicker, link, modified', 'required'),
 			array('tablePrefix, tableName, modelPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('connectionId', 'validateConnectionId', 'skipOnError'=>true),
 			array('tableName', 'validateTableName', 'skipOnError'=>true),
@@ -36,7 +37,7 @@ class ModelCode extends CCodeModel
 			array('modelPath', 'validateModelPath', 'skipOnError'=>true),
 			array('baseClass, modelClass', 'validateReservedWord', 'skipOnError'=>true),
 			array('baseClass', 'validateBaseClass', 'skipOnError'=>true),
-			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels, link, uploadPath', 'sticky'),
+			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels, uploadPath, link', 'sticky'),
 		));
 	}
 
@@ -51,11 +52,12 @@ class ModelCode extends CCodeModel
 			'buildRelations'=>'Build Relations',
 			'commentsAsLabels'=>'Use Column Comments as Attribute Labels',
 			'connectionId'=>'Database Connection',
-			'modified'=>'Modified',
 			'uploadPath[name]'=>'Upload Path (variable name)',
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
+			'datepicker'=>'Datepicker',
 			'link'=>'Link Repository',
+			'modified'=>'Modified',
 		));
 	}
 
@@ -200,11 +202,6 @@ class ModelCode extends CCodeModel
 			$this->addError('baseClass', "'{$this->baseClass}' must extend from CActiveRecord.");
 	}
 
-	public function getModifiedStatus()
-	{
-		return $this->modified;
-	}
-
 	public function getUploadPathNameSource()
 	{
 		return $this->uploadPath['name'];
@@ -220,9 +217,19 @@ class ModelCode extends CCodeModel
 		return $this->uploadPath['subfolder'];
 	}
 
+	public function getDatepickerStatus()
+	{
+		return $this->datepicker;
+	}
+
 	public function getLinkSource()
 	{
 		return $this->link;
+	}
+
+	public function getModifiedStatus()
+	{
+		return $this->modified;
 	}
 
 	public function getTableSchema($tableName)

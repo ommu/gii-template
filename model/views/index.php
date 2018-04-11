@@ -173,6 +173,18 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 	</div>
 
 	<div class="row">
+		<?php echo $form->labelEx($model,'datepicker'); ?>
+		<?php echo $form->dropDownList($model,'datepicker', array(
+			'0' => 'Native',
+			'1' => 'jQuery UI',
+		), array('prompt'=>'')); ?>
+		<div class="tooltip">
+			Default value is <code>native</code>. Used to display datepicker in application
+		</div>
+		<?php echo $form->error($model,'datepicker'); ?>
+	</div>
+
+	<div class="row">
 		<?php echo $form->labelEx($model,'modified'); ?>
 		<?php echo $form->checkBox($model,'modified'); ?>
 		<div class="tooltip">

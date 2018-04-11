@@ -761,8 +761,12 @@ if($column->name == 'tag_id') {
 			echo "\t\t\t\t'htmlOptions' => array(\n";
 			echo "\t\t\t\t\t'class' => 'center',\n";
 			echo "\t\t\t\t),\n";
-			echo "\t\t\t\t'filter' => 'native-datepicker',\n";
-			echo "\t\t\t\t/*\n";
+if($this->datepickerStatus == '0') {
+	echo "\t\t\t\t'filter' => 'native-datepicker',\n";
+	echo "\t\t\t\t/*\n";
+} else {
+	echo "\t\t\t\t//'filter' => 'native-datepicker',\n";
+}
 			echo "\t\t\t\t'filter' => Yii::app()->controller->widget('application.libraries.core.components.system.CJuiDatePicker', array(\n";
 			echo "\t\t\t\t\t'model'=>\$this,\n";
 			echo "\t\t\t\t\t'attribute'=>'$name',\n";
@@ -784,7 +788,9 @@ if($column->name == 'tag_id') {
 			echo "\t\t\t\t\t\t'showButtonPanel' => true,\n";
 			echo "\t\t\t\t\t),\n";
 			echo "\t\t\t\t), true),\n";
+if($this->datepickerStatus == '0') {
 			echo "\t\t\t\t*/\n";
+}
 			echo "\t\t\t);\n";
 			
 		} else {
