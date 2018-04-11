@@ -870,18 +870,12 @@ foreach($columns as $name=>$column)
 		}
 	}
 <?php 
-//echo '<pre>';
-//print_r($columns);
-foreach($columns as $name=>$column):
-	if($column->isPrimaryKey && ((preg_match('/tinyint/', $column->dbType) && $column->size == '3') || (preg_match('/smallint/', $column->dbType) && in_array($column->size, array('3','5'))))):
-?>
+if($this->createFunctionStatus) {?>
 
 	/**
 	 * get<?php echo ucfirst(setRelationName($modelClass))."\n";?>
-	 * 0 = unpublish
-	 * 1 = publish
 	 */
-	public static function get<?php echo ucfirst(setRelationName($modelClass));?>(<?php echo $publishCondition ? '$publish=null, $type=null' : '';?>) 
+	public static function get<?php echo ucfirst(setRelationName($modelClass));?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
 	{
 		$criteria=new CDbCriteria;
 <?php if($publishCondition):?>
@@ -891,11 +885,18 @@ foreach($columns as $name=>$column):
 <?php endif;?>
 		$model = self::model()->findAll($criteria);
 
-		if($type == null) {
+		if($array == true) {
 			$items = array();
 			if($model != null) {
 				foreach($model as $key => $val) {
-					$items[$val-><?php echo $column->name;?>] = $val-><?php echo guessNameColumn($columns);?>;
+<?php 
+$attribute = guessNameColumn($columns);
+if($i18n):
+	$i18nRelation = preg_match('/(name|title)/', $attribute) ? 'title' : '';?>
+					$items[$val-><?php echo $isPrimaryKey;?>] = $val-><?php echo $i18nRelation ? $i18nRelation.'->message' : $attribute;?>;
+<?php else:?>
+					$items[$val-><?php echo $isPrimaryKey;?>] = $val-><?php echo $attribute;?>;
+<?php endif;?>
 				}
 				return $items;
 			} else
@@ -903,9 +904,8 @@ foreach($columns as $name=>$column):
 		} else
 			return $model;
 	}
-<?php endif;
-endforeach;?>
-<?php if($i18n) {?>
+<?php }
+if($i18n) {?>
 
 	/**
 	 * This is invoked when a record is populated with data from a find() call.

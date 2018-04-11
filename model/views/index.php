@@ -185,6 +185,15 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 	</div>
 
 	<div class="row">
+		<?php echo $form->labelEx($model,'getFunction'); ?>
+		<?php echo $form->checkBox($model,'getFunction'); ?>
+		<div class="tooltip">
+			Default value is <code>false</code>. Used to display modification date in source code
+		</div>
+		<?php echo $form->error($model,'getFunction'); ?>
+	</div>
+
+	<div class="row">
 		<?php echo $form->labelEx($model,'modified'); ?>
 		<?php echo $form->checkBox($model,'modified'); ?>
 		<div class="tooltip">

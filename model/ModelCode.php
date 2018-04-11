@@ -14,6 +14,7 @@ class ModelCode extends CCodeModel
 		'name' => 'article_path',
 		'directory' => 'public/module-name',
 	);
+	public $getFunction;
 	public $datepicker;
 	public $link='http://opensource.ommu.co';
 	public $modified;
@@ -28,7 +29,7 @@ class ModelCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId, link', 'filter', 'filter'=>'trim'),
-			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, datepicker, link, modified', 'required'),
+			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, datepicker, getFunction, link, modified', 'required'),
 			array('tablePrefix, tableName, modelPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('connectionId', 'validateConnectionId', 'skipOnError'=>true),
 			array('tableName', 'validateTableName', 'skipOnError'=>true),
@@ -55,6 +56,7 @@ class ModelCode extends CCodeModel
 			'uploadPath[name]'=>'Upload Path (variable name)',
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
+			'getFunction'=>'Create GetFunction',
 			'datepicker'=>'Datepicker',
 			'link'=>'Link Repository',
 			'modified'=>'Modified',
@@ -220,6 +222,11 @@ class ModelCode extends CCodeModel
 	public function getDatepickerStatus()
 	{
 		return $this->datepicker;
+	}
+
+	public function getCreateFunctionStatus()
+	{
+		return $this->getFunction;
 	}
 
 	public function getLinkSource()
