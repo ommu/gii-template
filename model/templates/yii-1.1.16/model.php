@@ -354,7 +354,7 @@ if($i18n):
 		if(in_array('trigger[delete]', $commentArray)):
 			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
 			if(!in_array($publicAttributeRelation, $availableRelations)) {
-				echo "\t\t\t'$publicAttributeRelation' => array(self::BELONGS_TO, 'SourceMessage', '{$name}'),\n";
+				echo "\t\t\t'$publicAttributeRelation' => array(self::BELONGS_TO, 'SourceMessage', '$name'),\n";
 				$availableRelations[] = $publicAttributeRelation;
 			}
 		endif;
@@ -366,16 +366,16 @@ endif;
 			$relationName = $relationArray[0];
 			if(!in_array($relationName, $availableRelations)) {
 				if($name == 'member_id')
-					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Members', '{$name}'),\n";
+					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Members', '$name'),\n";
 				else
-					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Users', '{$name}'),\n";
+					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Users', '$name'),\n";
 				$availableRelations[] = $relationName;
 			}
 		} else if($name == 'tag_id') {
 			$relationArray = explode('_', $name);
 			$relationName = $relationArray[0];
 			if(!in_array($relationName, $availableRelations)) {
-				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'OmmuTags', '{$name}'),\n";
+				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'OmmuTags', '$name'),\n";
 				$availableRelations[] = $relationName;
 			}
 		}
@@ -475,7 +475,7 @@ $isPrimaryKey = '';
 $isVariableSearch = 0;
 $publicAttributes = array();
 
-foreach($columns as $name=>$column) {	
+foreach($columns as $name=>$column) {
 	if($column->isForeignKey == '1' || (in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))))
 		$isVariableSearch = 1;
 }
@@ -525,8 +525,8 @@ foreach($columns as $name=>$column) {
 		if(!in_array($relationName, $publicAttributes)) {
 			if($name == 'member_id') {
 				$relationName = 'member_view';
-				echo "\t\t\t'{$relationName}.view' => array(\n";
-				echo "\t\t\t\t'alias'=>'{$relationName}_view',\n";
+				echo "\t\t\t'$relationName.view' => array(\n";
+				echo "\t\t\t\t'alias'=>'$relationName_view',\n";
 				echo "\t\t\t\t'select'=>'member_name',\n";
 				echo "\t\t\t),\n";
 			} else {
@@ -635,7 +635,7 @@ foreach($columns as $name=>$column) {
 			
 		$publicAttribute = $relationName.'_search';
 		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicAttributes)) {
-			echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
+			echo "\t\t\$criteria->compare('$relationName.$relationAttribute', strtolower(\$this->$publicAttribute), true);\n";
 			$publicAttributes[] = $publicAttribute;
 		}
 	}
@@ -648,7 +648,7 @@ foreach($columns as $name=>$column):
 		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
 
 		if(!in_array($publicAttribute, $publicAttributes)) {
-			echo "\t\t\$criteria->compare('{$publicAttributeRelation}.message', strtolower(\$this->$publicAttribute), true);\n";
+			echo "\t\t\$criteria->compare('$publicAttributeRelation.message', strtolower(\$this->$publicAttribute), true);\n";
 			$publicAttributes[] = $publicAttribute;
 		}
 	endif;
@@ -666,7 +666,7 @@ foreach($columns as $name=>$column) {
 			$relationAttribute = 'member_name';
 		}
 		if(!in_array($publicAttribute, $publicAttributes)) {
-			echo "\t\t\$criteria->compare('{$relationName}.{$relationAttribute}', strtolower(\$this->$publicAttribute), true);\n";
+			echo "\t\t\$criteria->compare('$relationName.$relationAttribute', strtolower(\$this->$publicAttribute), true);\n";
 			$publicAttributes[] = $publicAttribute;
 		}
 	} else if($name == 'tag_id') {
@@ -676,8 +676,8 @@ foreach($columns as $name=>$column) {
 		$relationAttribute = 'body';
 
 		if(!in_array($publicAttribute, $publicAttributes)) {
-			echo "\t\t\$$publicAttribute = Utility::getUrlTitle(strtolower(trim(\$this->$publicAttribute)));\n";
-			echo "\t\t\$criteria->compare('$relationName.$relationAttribute', \$$publicAttribute, true);\n";
+			echo "\t\t\${$publicAttribute} = Utility::getUrlTitle(strtolower(trim(\$this->$publicAttribute)));\n";
+			echo "\t\t\$criteria->compare('$relationName.$relationAttribute', \${$publicAttribute}, true);\n";
 			$publicAttributes[] = $publicAttribute;
 		}
 	}
@@ -744,9 +744,9 @@ foreach($columns as $name=>$column)
 			echo "\t\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
 			echo "\t\t\t\t\t'name' => '$publicAttribute',\n";
 if($column->name == 'tag_id') {
-			echo "\t\t\t\t\t'value' => 'str_replace(\'-\', \' \', \$data->{$relationName}->{$columnName})',\n";
+			echo "\t\t\t\t\t'value' => 'str_replace(\'-\', \' \', \$data->$relationName->$columnName)',\n";
 } else {
-			echo "\t\t\t\t\t'value' => '\$data->{$relationName}->{$columnName} ? \$data->{$relationName}->{$columnName} : \'-\'',\n";
+			echo "\t\t\t\t\t'value' => '\$data->$relationName->$columnName ? \$data->$relationName->$columnName : \'-\'',\n";
 }
 			echo "\t\t\t\t);\n";
 			echo "\t\t\t}\n";
@@ -809,9 +809,9 @@ if($translateCondition)
 else {
 	if($column->dbType == 'text' && $column->comment == 'file') {
 		if($this->uploadPathSubfolderStatus):
-			$CHtml = "CHtml::link(\$data->$name, Yii::app()->request->baseUrl.\'/public/banner/\'.\$data->$primaryKeyColumn.\'/\'.\$data->$name, array(\'target\' => \'_blank\'))";
+			$CHtml = "CHtml::link(\$data->$name, Yii::app()->request->baseUrl.\'/{$this->uploadPathDirectorySource}/\'.\$data->$primaryKeyColumn.\'/\'.\$data->$name, array(\'target\' => \'_blank\'))";
 		else:
-			$CHtml = "CHtml::link(\$data->$name, Yii::app()->request->baseUrl.\'/public/banner/\'.\$data->$name, array(\'target\' => \'_blank\'))";
+			$CHtml = "CHtml::link(\$data->$name, Yii::app()->request->baseUrl.\'/{$this->uploadPathDirectorySource}/\'.\$data->$name, array(\'target\' => \'_blank\'))";
 		endif;
 			echo "\t\t\t\t'value' => '\$data->$name ? $CHtml : \'-\'',\n";
 	} else
@@ -941,13 +941,13 @@ foreach($columns as $name=>$column)
 		if($name == 'creation_id') {
 			$creationCondition = 1;
 			echo "\t\t\tif(\$this->isNewRecord)\n";
-			echo "\t\t\t\t\$this->{$name} = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;\n";
+			echo "\t\t\t\t\$this->$name = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;\n";
 		} else {
 			if($creationCondition)
 				echo "\t\t\telse\n";
 			else
 				echo "\t\t\tif(!\$this->isNewRecord)\n";
-			echo "\t\t\t\t\$this->{$name} = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;\n";
+			echo "\t\t\t\t\$this->$name = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;\n";
 		}
 	}
 }

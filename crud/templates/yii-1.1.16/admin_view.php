@@ -25,11 +25,16 @@ $inflector = new Inflector;
  */
 
 <?php
+$modelClass = $this->modelClass;
+if(preg_match('/Core/', $modelClass))
+	$modelClass = preg_replace('(Core)', '', $modelClass);
+else
+	$modelClass = preg_replace('(Ommu)', '', $modelClass);
+$label=$inflector->pluralize($this->class2name($modelClass));
 $nameColumn=$this->guessNameColumn($this->tableSchema->columns);
-$label=$inflector->pluralize($this->class2name($this->modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
-	\t\$model->{$nameColumn},
+	\t\$model->$nameColumn,
 \t);\n";
 ?>
 ?>
@@ -47,8 +52,10 @@ if(Yii::app()->user->hasFlash('success'))
 <?php
 
 //print_r($this->tableSchema->columns);
+$tableSchema = $this->getTableSchema();
+$primaryKey = $tableSchema->primaryKey;
 foreach($this->tableSchema->columns as $name=>$column)
-	if($column->name == $this->tableSchema->primaryKey) {
+	if($name == $this->tableSchema->primaryKey) {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name,\n";
@@ -64,27 +71,43 @@ foreach($this->tableSchema->columns as $name=>$column)
 			echo "\t\t\t'type'=>'raw',\n";
 		}
 		echo "\t\t),\n";
-	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
-		$relationArray = explode('_',$column->name);
-		$relationName = $relationArray[0];
-		$publicAttribute = $relationName.'_search';
-		$relationAttribute = 'displayname';
-		if($column->isForeignKey == '1') {
-			$relationName = setRelationName($name, true);
-			if($relationName == 'cat')
-				$relationName = 'category';
-			$publicAttribute = $relationName.'_search';
-			$relationAttribute = 'column_name_relation';
+	} else if($column->isForeignKey == '1' || (in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
+		$arrayName = explode('_',$name);
+		$relationName = $arrayName[0];
+		$columnName = 'displayname';
+		if($column->isForeignKey == '1')
+			$columnName = 'column_name_relation';
+		if($name == 'tag_id')
+			$columnName = 'body';
+		if($relationName == 'cat')
+			$relationName = 'category';
+		if($name == 'member_id') {
+			$relationName = 'member_view';
+			$columnName = 'member_name';
 		}
+		$publicAttribute = $relationName.'_search';
+		if($relationName == 'category')
+			$publicAttribute = $name;
+
 		echo "\t\tarray(\n";
-		echo "\t\t\t'name'=>'$name',\n";	
-		echo "\t\t\t'value'=>\$model->$name ? \$model->{$relationName}->{$relationAttribute} : '-',\n";
-		echo "\t\t),\n";		
+		echo "\t\t\t'name'=>'$publicAttribute',\n";
+if($name == 'tag_id')
+	echo "\t\t\t'value'=>\$model->$publicAttribute ? str_replace('-', ' ', \$model->$relationName->$columnName) : '-',\n";
+else
+	echo "\t\t\t'value'=>\$model->$publicAttribute ? \$model->$relationName->$columnName : '-',\n";
+		echo "\t\t),\n";
 	} else if($column->dbType == 'text') {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
-		echo "\t\t\t//'value'=>\$model->$name ? CHtml::link(\$model->$name, Yii::app()->request->baseUrl.'/public/visit/'.\$model->$name, array('target' => '_blank')) : '-',\n";
+if($column->comment == 'file') {
+	if($this->uploadPathSubfolderStatus):
+		$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->$primaryKey.'/'.\$model->$name";
+	else:
+		$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->$name";
+	endif;
+	echo "\t\t\t'value'=>\$model->$name ? CHtml::link(\$model->$name, $CHtml, array('target' => '_blank')) : '-',\n";
+} else
+	echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
 		echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
 	} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
@@ -100,9 +123,20 @@ foreach($this->tableSchema->columns as $name=>$column)
 			echo "\t\t),\n";
 		}
 	} else {
+		$i18n = 0;
+		$columnName = $name;
+		$commentArray = explode(',', $column->comment);
+		if(in_array('trigger[delete]', $commentArray)) {
+			$columnName = $columnName.'_i';
+			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
+			$i18n = 1;
+		}
 		echo "\t\tarray(\n";
-		echo "\t\t\t'name'=>'$name',\n";	
-		echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
+		echo "\t\t\t'name'=>'$columnName',\n";
+if($i18n)
+	echo "\t\t\t'value'=>\$model->$name ? \$model->{$publicAttributeRelation}->message : '-',\n";
+else
+	echo "\t\t\t'value'=>\$model->$columnName ? \$model->$name : '-',\n";
 		echo "\t\t),\n";
 	}
 ?>

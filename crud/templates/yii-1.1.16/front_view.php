@@ -3,10 +3,13 @@
  * The following variables are available in this template:
  * - $this: the CrudCode object
  */
+Yii::import('application.libraries.gii.Inflector');
+$inflector = new Inflector;
+
 ?>
 <?php echo "<?php\n"; ?>
 /**
- * <?php echo $this->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  *
@@ -22,8 +25,13 @@
  */
 
 <?php
+$modelClass = $this->modelClass;
+if(preg_match('/Core/', $modelClass))
+	$modelClass = preg_replace('(Core)', '', $modelClass);
+else
+	$modelClass = preg_replace('(Ommu)', '', $modelClass);
+$label=$inflector->pluralize($this->class2name($modelClass));
 $nameColumn=$this->guessNameColumn($this->tableSchema->columns);
-$label=$this->pluralize($this->class2name($this->modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
 	\t\$model->{$nameColumn},
@@ -31,55 +39,69 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php 
-echo "<?php //begin.Messages ?>\n";
-echo "<?php\n";
-echo "if(Yii::app()->user->hasFlash('success'))
-	echo Utility::flashSuccess(Yii::app()->user->getFlash('success'));
-?>\n";
-echo "<?php //end.Messages ?>\n";?>
-
+<div class="box">
 <?php echo "<?php"; ?> $this->widget('application.libraries.core.components.system.FDetailView', array(
 	'data'=>$model,
 	'attributes'=>array(
 <?php
-/*
-echo '<pre>';
-print_r($this->tableSchema);
-print_r($this->tableSchema->columns);
-echo '</pre>';
-//echo exit();
-*/
 
+//print_r($this->tableSchema->columns);
+$tableSchema = $this->getTableSchema();
+$primaryKey = $tableSchema->primaryKey;
 foreach($this->tableSchema->columns as $name=>$column)
-	if($column->name == $this->tableSchema->primaryKey) {
+	if($name == $this->tableSchema->primaryKey) {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
 		echo "\t\t\t'value'=>\$model->$name,\n";
 		echo "\t\t),\n";
-	} else if(in_array($column->name, array('publish','status')) && $column->dbType == 'tinyint(1)') {
+	} else if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name == '1' ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
-		echo "\t\t\t'type'=>'raw',\n";
+		if($column->dbType == 'tinyint(1)' && $column->defaultValue === null) {
+			echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
+		} else {
+			echo "\t\t\t//'value'=>\$model->$name == '1' ? Yii::t('phrase', 'Yes') : Yii::t('phrase', 'No'),\n";
+			echo "\t\t\t'value'=>\$model->$name == '1' ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
+			echo "\t\t\t'type'=>'raw',\n";
+		}
 		echo "\t\t),\n";
-	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))) {
-		$arrayName = explode('_', $column->name);
+	} else if($column->isForeignKey == '1' || (in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
+		$arrayName = explode('_',$name);
+		$relationName = $arrayName[0];
 		$columnName = 'displayname';
 		if($column->isForeignKey == '1')
 			$columnName = 'column_name_relation';
-		$relationName = $arrayName[0];
+		if($name == 'tag_id')
+			$columnName = 'body';
 		if($relationName == 'cat')
 			$relationName = 'category';
+		if($name == 'member_id') {
+			$relationName = 'member_view';
+			$columnName = 'member_name';
+		}
+		$publicAttribute = $relationName.'_search';
+		if($relationName == 'category')
+			$publicAttribute = $name;
+
 		echo "\t\tarray(\n";
-		echo "\t\t\t'name'=>'$name',\n";	
-		echo "\t\t\t'value'=>\$model->$name ? \$model->{$relationName}->{$columnName} : '-',\n";
-		echo "\t\t),\n";		
+		echo "\t\t\t'name'=>'$publicAttribute',\n";
+if($name == 'tag_id')
+	echo "\t\t\t'value'=>\$model->$publicAttribute ? str_replace('-', ' ', \$model->$relationName->$columnName) : '-',\n";
+else
+	echo "\t\t\t'value'=>\$model->$publicAttribute ? \$model->$relationName->$columnName : '-',\n";
+		echo "\t\t),\n";
 	} else if($column->dbType == 'text') {
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$name',\n";
-		echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
-		echo "\t\t\t//'value'=>\$model->$name ? CHtml::link(\$model->$name, Yii::app()->request->baseUrl.'/public/visit/'.\$model->$name, array('target' => '_blank')) : '-',\n";
+if($column->comment == 'file') {
+	if($this->uploadPathSubfolderStatus):
+		$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->$primaryKey.'/'.\$model->$name";
+	else:
+		$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->$name";
+	endif;
+	echo "\t\t\t'value'=>\$model->$name ? CHtml::link(\$model->$name, $CHtml, array('target' => '_blank')) : '-',\n";
+} else
+	echo "\t\t\t'value'=>\$model->$name ? \$model->$name : '-',\n";
 		echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
 	} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
@@ -95,32 +117,23 @@ foreach($this->tableSchema->columns as $name=>$column)
 			echo "\t\t),\n";
 		}
 	} else {
-		$translateCondition = 0;
+		$i18n = 0;
+		$columnName = $name;
 		$commentArray = explode(',', $column->comment);
-		$publicAttribute = $name;
 		if(in_array('trigger[delete]', $commentArray)) {
-			$publicAttribute = $name.'_i';
-			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : 'description';
-			$translateCondition = 1;
+			$columnName = $columnName.'_i';
+			$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');
+			$i18n = 1;
 		}
 		echo "\t\tarray(\n";
-		echo "\t\t\t'name'=>'$publicAttribute',\n";
-if($translateCondition) {
-		echo "\t\t\t'value'=>\$model->{$publicAttributeRelation}->message,\n";
-} else {
-		echo "\t\t\t'value'=>\$model->$name,\n";
-		echo "\t\t\t//'value'=>\$model->$name ? \$model->$name : '-',\n";
-}
+		echo "\t\t\t'name'=>'$columnName',\n";
+if($i18n)
+	echo "\t\t\t'value'=>\$model->$name ? \$model->{$publicAttributeRelation}->message : '-',\n";
+else
+	echo "\t\t\t'value'=>\$model->$columnName ? \$model->$name : '-',\n";
 		echo "\t\t),\n";
 	}
 ?>
 	),
 )); ?>
-
-<div class="box">
-</div>
-<div class="dialog-content">
-</div>
-<div class="dialog-submit">
-<?php echo "\t<?php echo CHtml::button(Yii::t('phrase', 'Close'), array('id'=>'closed')); ?>\n";?>
 </div>

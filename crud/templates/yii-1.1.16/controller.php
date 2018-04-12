@@ -7,7 +7,12 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
-$label = $this->class2name($this->modelClass);
+$modelClass = $this->modelClass;
+if(preg_match('/Core/', $modelClass))
+	$modelClass = preg_replace('(Core)', '', $modelClass);
+else
+	$modelClass = preg_replace('(Ommu)', '', $modelClass);
+$label = $this->class2name($modelClass);
 $nameColumn=$this->guessNameColumn($this->tableSchema->columns)
 ?>
 <?php echo "<?php\n"; ?>
@@ -20,10 +25,15 @@ $nameColumn=$this->guessNameColumn($this->tableSchema->columns)
  * Reference start
  * TOC :
  *	Index
+<?php if($this->controllerStatus == 'frontend'):?>
+ *	View
+<?php endif; ?>
  *	Manage
  *	Add
  *	Edit
+<?php if($this->controllerStatus == 'backend'):?>
  *	View
+<?php endif; ?>
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
  *	RunAction
 <?php endif; ?>
@@ -64,6 +74,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function init() 
 	{
+<?php if($this->controllerStatus == 'backend'):?>
 		if(!Yii::app()->user->isGuest) {
 			if(Yii::app()->user->level == 1) {
 			//if(in_array(Yii::app()->user->level, array(1,2))) {
@@ -74,12 +85,11 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			}
 		} else
 			$this->redirect(Yii::app()->createUrl('site/login'));
-		
-		/*
+<?php else:?>
 		$arrThemes = Utility::getCurrentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
-		*/
+<?php endif; ?>
 	}
 
 	/**
@@ -131,7 +141,9 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionIndex() 
 	{
-		/*
+<?php if($this->controllerStatus == 'backend'):?>
+		$this->redirect(array('manage'));
+<?php else:?>
 		$arrThemes = Utility::getCurrentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
@@ -159,10 +171,36 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->render('front_index', array(
 			'dataProvider'=>$dataProvider,
 		));
-		*/
-		$this->redirect(array('manage'));
+<?php endif; ?>
+	}
+	
+<?php if($this->controllerStatus == 'frontend'):?>
+	/**
+	 * Displays a particular model.
+	 * @param integer $id the ID of the model to be displayed
+	 */
+	public function actionView($id) 
+	{
+		$arrThemes = Utility::getCurrentTemplate('public');
+		Yii::app()->theme = $arrThemes['folder'];
+		$this->layout = $arrThemes['layout'];
+		Utility::applyCurrentTheme($this->module);
+		
+		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
+			'select' => 'meta_keyword',
+		));
+
+		$model=$this->loadModel($id);
+
+		$this->pageTitle = Yii::t('phrase', 'Detail <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
+		$this->pageDescription = '';
+		$this->pageMeta = $setting->meta_keyword;
+		$this->render('front_view', array(
+			'model'=>$model,
+		));
 	}
 
+<?php endif; ?>
 	/**
 	 * Manages all models.
 	 */
@@ -337,24 +375,14 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			'model'=>$model,
 		));
 	}
-	
+
+<?php if($this->controllerStatus == 'backend'):?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
 	 */
 	public function actionView($id) 
 	{
-		/*
-		$arrThemes = Utility::getCurrentTemplate('public');
-		Yii::app()->theme = $arrThemes['folder'];
-		$this->layout = $arrThemes['layout'];
-		Utility::applyCurrentTheme($this->module);
-		
-		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
-			'select' => 'meta_keyword',
-		));
-		*/
-
 		$model=$this->loadModel($id);
 		
 		$this->dialogDetail = true;
@@ -364,19 +392,19 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->pageTitle = Yii::t('phrase', 'Detail <?php echo $inflector->singularize($label); ?>: {<?php echo $nameColumn;?>}', array('{<?php echo $nameColumn;?>}'=>$model-><?php echo $nameColumn;?>));
 		$this->pageDescription = '';
 		$this->pageMeta = '';
-		//$this->pageMeta = $setting->meta_keyword;
-		//$this->render('front_view', array(
 		$this->render('admin_view', array(
 			'model'=>$model,
 		));
 	}
 
-<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
+<?php endif;
+if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
 	 */
-	public function actionRunAction() {
+	public function actionRunAction() 
+	{
 		$id       = $_POST['trash_id'];
 		$criteria = null;
 		$actions  = Yii::app()->getRequest()->getParam('action');
@@ -454,7 +482,11 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->render('admin_delete');
 	}
 
-<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
+<?php 
+//echo '<pre>';
+//print_r($this->tableSchema->columns);
+if(array_key_exists('publish', $this->tableSchema->columns)):
+$publishComment = $this->tableSchema->columns['publish']->comment;?>
 	/**
 	 * Deletes a particular model.
 	 * If deletion is successful, the browser will be redirected to the 'admin' page.
@@ -463,8 +495,12 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	public function actionPublish($id) 
 	{
 		$model=$this->loadModel($id);
-		
+<?php if($publishComment != ''):
+$commentArray = explode(',', $publishComment); ?>
+		$title = $model->publish == 1 ? Yii::t('phrase', '<?php echo $commentArray['1'];?>') : Yii::t('phrase', '<?php echo $commentArray['0'];?>');
+<?php else: ?>
 		$title = $model->publish == 1 ? Yii::t('phrase', 'Unpublish') : Yii::t('phrase', 'Publish');
+<?php endif; ?>
 		$replace = $model->publish == 1 ? 0 : 1;
 
 		if(Yii::app()->request->isPostRequest) {

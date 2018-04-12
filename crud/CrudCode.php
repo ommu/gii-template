@@ -7,8 +7,14 @@ class CrudCode extends CCodeModel
 	public $baseControllerClass='Controller';
 	public $controllerPath='application.controllers';
 	public $viewPath='application.views';
-	public $modified;
+	public $uploadPath=array(
+		'name' => 'article_path',
+		'directory' => 'public/module-name',
+	);
+	public $datepicker;
+	public $controllerFor;
 	public $link='http://opensource.ommu.co';
+	public $modified;
 
 	private $_modelClass;
 	private $_table;
@@ -18,7 +24,7 @@ class CrudCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('model, controller, controllerPath, viewPath', 'filter', 'filter'=>'trim'),
-			array('model, controller, baseControllerClass, modified, link, controllerPath, viewPath', 'required'),
+			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, datepicker, controllerFor, link, modified', 'required'),
 			array('model', 'match', 'pattern'=>'/^\w+[\w+\\.]*$/', 'message'=>'{attribute} should only contain word characters and dots.'),
 			array('controller', 'match', 'pattern'=>'/^\w+[\w+\\/]*$/', 'message'=>'{attribute} should only contain word characters and slashes.'),
 			array('baseControllerClass', 'match', 'pattern'=>'/^[a-zA-Z_\\\\][\w\\\\]*$/', 'message'=>'{attribute} should only contain word characters and backslashes.'),
@@ -27,7 +33,7 @@ class CrudCode extends CCodeModel
 			array('controllerPath', 'validateControllerPath', 'skipOnError'=>true),
 			array('viewPath', 'validateViewPath', 'skipOnError'=>true),
 			array('model', 'validateModel'),
-			array('baseControllerClass, controllerPath, viewPath, link', 'sticky'),
+			array('baseControllerClass, controllerPath, viewPath, uploadPath, link', 'sticky'),
 		));
 	}
 
@@ -39,8 +45,13 @@ class CrudCode extends CCodeModel
 			'baseControllerClass'=>'Base Controller Class',
 			'controllerPath'=>'Controller Path',
 			'viewPath'=>'View Path',
-			'modified'=>'Modified',
+			'uploadPath[name]'=>'Upload Path (variable name)',
+			'uploadPath[directory]'=>'Upload Path (path location)',
+			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
+			'datepicker'=>'Datepicker',
+			'controllerFor'=>'Controller For',
 			'link'=>'Link Repository',
+			'modified'=>'Modified',
 		));
 	}
 
@@ -126,14 +137,39 @@ class CrudCode extends CCodeModel
 			return ucfirst($this->controller).'Controller';
 	}
 
-	public function getModifiedStatus()
+	public function getUploadPathNameSource()
 	{
-		return $this->modified;
+		return $this->uploadPath['name'];
+	}
+
+	public function getUploadPathDirectorySource()
+	{
+		return $this->uploadPath['directory'];
+	}
+
+	public function getUploadPathSubfolderStatus()
+	{
+		return $this->uploadPath['subfolder'];
+	}
+
+	public function getDatepickerStatus()
+	{
+		return $this->datepicker;
+	}
+
+	public function getControllerStatus()
+	{
+		return $this->controllerFor;
 	}
 
 	public function getLinkSource()
 	{
 		return $this->link;
+	}
+
+	public function getModifiedStatus()
+	{
+		return $this->modified;
 	}
 
 	public function getModule()
@@ -235,7 +271,9 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
-		//print_r($column);
+		//print_r($this->getTableSchema());
+		$tableSchema = $this->getTableSchema();
+		$primaryKey = $tableSchema->primaryKey;
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {		// 01
 if($form == true) {
 	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
@@ -278,15 +316,32 @@ if($form == true) {
 					'class' => 'form-control',
 				),
 			))";
-	} else if(in_array('file', $commentArray))
-		return "echo \$form->fileField(\$model, '{$column->name}', array('class'=>'form-control'))";
+	} else if(in_array('file', $commentArray)) {
+		if($this->uploadPathSubfolderStatus):
+			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->{$primaryKey}.'/'.\$model->old_{$column->name}_i;";
+		else:
+			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->old_{$column->name}_i;";
+		endif;
+		return "if(!\$model->isNewRecord && \$model->{$column->name} != '') {
+				if(!\$model->getErrors())
+					\$model->old_{$column->name}_i = \$model->{$column->name};
+				echo \$form->hiddenField(\$model, 'old_{$column->name}_i');
+				\${$column->name} = {$CHtml}?>
+				<div class=\"mb-15\"><img src=\"<?php echo Utility::getTimThumb(\${$column->name}, 320, 150, 1);?>\" alt=\"<?php echo \$model->old_{$column->name}_i;?>\"></div>
+			<?php }
+			echo \$form->fileField(\$model, '{$column->name}', array('class'=>'form-control'))";
+	}
 } else
 	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {		// 03
 			if($form == true)
 				$return = "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
-			$return .= "/* \$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(
-				'model'=>\$model,
+if($this->datepickerStatus) {
+			$return .= "\$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(";
+} else {
+			$return .= "/* \$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(";
+}
+			$return .= "'model'=>\$model,
 				'attribute'=>'{$column->name}',
 				//'mode'=>'datetime',
 				'options'=>array(
@@ -294,9 +349,14 @@ if($form == true) {
 				),
 				'htmlOptions'=>array(
 					'class' => 'form-control',
-				 ),
-			)); */
+				 ),\n\t\t\t";
+if($this->datepickerStatus) {
+			$return .= "));
+			//echo \$form->dateField(\$model, '{$column->name}', array('class'=>'form-control'))";
+} else {
+			$return .= ")); */
 			echo \$form->dateField(\$model, '{$column->name}', array('class'=>'form-control'))";
+}
 			return $return;
 		} else {		// 03
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
@@ -322,6 +382,8 @@ if($form == false) {
 				$relationName = $relationArray[0];
 				$columnName = $relationName.'_search';
 			}
+			if($columnName == 'category_search')
+				$columnName = $column->name;
 }
 			$enumCondition = 0;
 			if(preg_match('/(enum)/', $column->dbType)) {
@@ -347,8 +409,8 @@ if($form == false) {
 			else {
 				$maxLength=$column->size;
 if($form == true) {
-if($i18n):
-	if(in_array('redactor', $commentArray)):
+if($i18n) {
+	if(in_array('redactor', $commentArray)) {
 			return "\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
 				'model'=>\$model,
 				'attribute'=>'{$column->name}',
@@ -369,14 +431,12 @@ if($i18n):
 					'class' => 'form-control',
 				),
 			))";
-	elseif(in_array('text', $commentArray)):
+	} elseif(in_array('text', $commentArray))
 		return "echo \$form->textArea(\$model, '{$columnName}', array('rows'=>6, 'cols'=>50, 'maxlength'=>128, 'class'=>'form-control'))";
-	else:
+	else
 		return "echo \$form->textField(\$model, '{$columnName}', array('maxlength'=>32, 'class'=>'form-control'))";
-	endif;
-else:
+} else
 	return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
-endif;
 } else
 	return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";
 			}
@@ -401,7 +461,7 @@ endif;
 		else
 			return 'id';
 	}
- 
+
 	/* 
 	* set name relation with underscore
 	*/

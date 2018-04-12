@@ -81,6 +81,8 @@ function setRelationName($names, $column=false) {
 		$relationName = $relationArray[0];
 		$columnName = $relationName.'_search';
 	}
+	if($columnName == 'category_search')
+		$columnName = $column->name;
 ?>
 		<li>
 			<?php echo "<?php echo \$model->getAttributeLabel('{$columnName}'); ?>\n"; ?>

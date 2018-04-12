@@ -25,9 +25,14 @@ $inflector = new Inflector;
  */
 
 <?php
-$label=$this->class2name($this->modelClass);
+$modelClass = $this->modelClass;
+if(preg_match('/Core/', $modelClass))
+	$modelClass = preg_replace('(Core)', '', $modelClass);
+else
+	$modelClass = preg_replace('(Ommu)', '', $modelClass);
+$label=$inflector->pluralize($this->class2name($modelClass));
 echo "\t\$this->breadcrumbs=array(
-	\t'{$inflector->pluralize($label)}'=>array('manage'),
+	\t'$label'=>array('manage'),
 	\t'Manage',
 \t);\n";
 ?>

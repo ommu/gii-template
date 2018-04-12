@@ -81,13 +81,31 @@ $('#{$class}_model').bind('keyup change', function(){
 		<?php echo $form->error($model,'viewPath'); ?>
 	</div>
 
-	<div class="row">
-		<?php echo $form->labelEx($model,'modified'); ?>
-		<?php echo $form->checkBox($model,'modified'); ?>
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'uploadPath[name]'); ?>
+		<?php echo $form->textField($model,'uploadPath[name]',array('size'=>64)); ?>
 		<div class="tooltip">
-			Default value is <code>false</code>. Used to display modification date in source code
+		It can be either a upload path variable name in source (e.g. <code>article_path, banner_path</code>)
 		</div>
-		<?php echo $form->error($model,'modified'); ?>
+		<?php echo $form->error($model,'uploadPath[name]'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'uploadPath[directory]'); ?>
+		<?php echo $form->textField($model,'uploadPath[directory]',array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a upload path directory (e.g. <code>public/module-name</code>)
+		</div>
+		<?php echo $form->error($model,'uploadPath[directory]'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'uploadPath[subfolder]'); ?>
+		<?php echo $form->checkBox($model,'uploadPath[subfolder]'); ?>
+		<div class="tooltip">
+		It can be either a upload path directory (e.g. <code>public/module-name</code>)
+		</div>
+		<?php echo $form->error($model,'uploadPath[subfolder]'); ?>
 	</div>
 
 	<div class="row sticky">
@@ -97,6 +115,39 @@ $('#{$class}_model').bind('keyup change', function(){
 		It can be either a hyperlink (e.g. <code>http://opensource.ommu.co</code>)
 		</div>
 		<?php echo $form->error($model,'link'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'datepicker'); ?>
+		<?php echo $form->dropDownList($model,'datepicker', array(
+			'0' => 'Native',
+			'1' => 'jQuery UI',
+		), array('prompt'=>'')); ?>
+		<div class="tooltip">
+			Default value is <code>native</code>. Digunakan untuk menentukan datepicker yang akan ditampilkan pada aplikasi
+		</div>
+		<?php echo $form->error($model,'datepicker'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'controllerFor'); ?>
+		<?php echo $form->dropDownList($model,'controllerFor', array(
+			'backend' => 'Backend',
+			'frontend' => 'Frontend',
+		), array('prompt'=>'')); ?>
+		<div class="tooltip">
+			Default value is <code>backend</code>. Digunakan untuk menentukan peruntukan penggunaan controller
+		</div>
+		<?php echo $form->error($model,'controllerFor'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'modified'); ?>
+		<?php echo $form->checkBox($model,'modified'); ?>
+		<div class="tooltip">
+			Default value is <code>false</code>. Digunakan untuk menampilkan tanggal perubahan generate pada source code
+		</div>
+		<?php echo $form->error($model,'modified'); ?>
 	</div>
 
 <?php $this->endWidget(); ?>
