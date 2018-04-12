@@ -1,0 +1,9 @@
+{
+	"id": "<?=$generator->moduleID?>",
+	"name": "<?=ucfirst($generator->moduleID)?>",
+	"description": "<?=($generator->description? $generator->description: $generator->moduleID)?>",
+	"keywords": [
+		"<?=$generator->keyword?>"
+	],
+	"version": "1.0"
+}
