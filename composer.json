@@ -32,7 +32,9 @@
 		}
 	],
 	"require": {
-		"oomphinc/composer-installers-extender": "^1.0"
+		"php": "~7.0",
+		"oomphinc/composer-installers-extender": "^1.0",
+		"yiisoft/yii2": "~2.0.13"
 	},
 	"require-dev": {
 	}
