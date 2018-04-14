@@ -45,21 +45,27 @@ endforeach;
  * foreignKeys Column
  */
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
-
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
 ?>
 /**
  * <?= $className."\n" ?>
- * version: 0.0.1
+ * 
+ * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
+ * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
+ * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @link <?php echo $yaml['link']."\n";?>
  *
  * This is the model class for table "<?= $generator->generateTableName($tableName) ?>".
  *
  * The followings are the available columns in table "<?= $generator->generateTableName($tableName) ?>":
-<?php foreach ($tableSchema->columns as $column): ?>
+<?php foreach ($tableSchema->columns as $column):
+if(!($column->name[0] == '_')): ?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
-<?php endforeach; ?>
+<?php endif;
+endforeach; ?>
 <?php if (!empty($relations)): ?>
  *
  * The followings are the available model relations:
@@ -72,12 +78,6 @@ $relationName = $relation[2] ? $name : $relation[1];?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . ($relation[2] ? lcfirst($generator->setRelationName($relationName)) : lcfirst(Inflector::singularize($generator->setRelationName($relationName)))) ."\n" ?>
 <?php endforeach; ?>
 <?php endif; ?>
-
- * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
- * @link <?php echo $yaml['link']."\n";?>
- * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
- * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
- * @contact <?php echo $yaml['contact']."\n";?>
  *
  */
 
@@ -283,7 +283,7 @@ if(in_array($column->name, array('creation_id','modified_id','user_id','updated_
     $relationNameArray = explode('_', $column->name);
     $relationName = lcfirst($relationNameArray[0]);
     $relationSearchName = $relationName.'_search'; ?>
-        if(!isset($_GET['<?php echo $relationName;?>'])) {
+        if(!Yii::app()->getRequest()->getParam('<?php echo $relationName;?>')) {
             $this->templateColumns['<?php echo $relationSearchName;?>'] = [
                 'attribute' => '<?php echo $relationSearchName;?>',
                 'value' => function($model, $key, $index, $column) {
