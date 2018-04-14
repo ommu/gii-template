@@ -1012,21 +1012,23 @@ if($uploadCondition) {?>
 <?php } else {?>
 				$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
 <?php }?>
-				$verwijderen_path = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
+				$verwijderenPath = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
 				// Add directory
-				if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderen_path)) {
+				if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderenPath)) {
 					@mkdir($<?php echo $this->uploadPathNameSource;?>, 0755, true);
-					@mkdir($verwijderen_path, 0755, true);
+					@mkdir($verwijderenPath, 0755, true);
 
 					// Add file in directory (index.php)
-					$newFile = $<?php echo $this->uploadPathNameSource;?>.'/index.php';
-					$FileHandle = fopen($newFile, 'w');
+					$indexFile = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'index.php'));
+					if(!file_exists($indexFile))
+						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
 
-					$newVerwijderenFile = $verwijderen_path.'/index.php';
-					$FileHandle = fopen($newVerwijderenFile, 'w');
+					$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
+					if(!file_exists($verwijderenFile))
+						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 				} else {
 					@chmod($<?php echo $this->uploadPathNameSource;?>, 0755, true);
-					@chmod($verwijderen_path, 0755, true);
+					@chmod($verwijderenPath, 0755, true);
 				}
 <?php foreach($columns as $name=>$column) {
 	if($column->dbType == 'text' && $column->comment == 'file') {?>
@@ -1130,21 +1132,23 @@ if($uploadCondition) {
 
 		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
 <?php }?>
-		$verwijderen_path = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
+		$verwijderenPath = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
 		// Add directory
-		if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderen_path)) {
+		if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderenPath)) {
 			@mkdir($<?php echo $this->uploadPathNameSource;?>, 0755, true);
-			@mkdir($verwijderen_path, 0755,true);
+			@mkdir($verwijderenPath, 0755,true);
 
 			// Add file in directory (index.php)
-			$newFile = $<?php echo $this->uploadPathNameSource;?>.'/index.php';
-			$FileHandle = fopen($newFile, 'w');
-			
-			$newVerwijderenFile = $verwijderen_path.'/index.php';
-			$FileHandle = fopen($newVerwijderenFile, 'w');
+			$indexFile = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'index.php'));
+			if(!file_exists($indexFile))
+				file_put_contents($indexFile, "<?php echo "<?php"?>\n");
+
+			$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
+			if(!file_exists($verwijderenFile))
+				file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 		} else {
 			@chmod($<?php echo $this->uploadPathNameSource;?>, 0755, true);
-			@chmod($verwijderen_path, 0755,true);
+			@chmod($verwijderenPath, 0755,true);
 		}
 
 		if($this->isNewRecord) {
