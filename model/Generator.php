@@ -222,7 +222,7 @@ class Generator extends \app\libraries\gii\Generator
 
             $_tblName       = $this->generateTableName($tableName);
             $tableType      = $this->getTableType($_tblName);
-            $viewPrimaryKey = current($this->getMysqlViewColumn($_tblName));
+            $viewPrimaryKey = $this->getMysqlViewColumn($_tblName);
             $params = [
                 'tableName'      => $tableName,
                 'className'      => $modelClassName,
@@ -286,12 +286,15 @@ class Generator extends \app\libraries\gii\Generator
     public function generateRules($table)
     {
         $types = [];
-        $lengths = [];
+		$lengths = [];
+		//echo '<pre>';
+		//print_r($table->columns);
         foreach ($table->columns as $column) {
-            if ($column->autoIncrement) {
-                continue;
-            }
-            if (!$column->allowNull && $column->defaultValue === null) {
+            if ($column->autoIncrement || $column->name[0] == '_')
+				continue;
+				
+			$r=!$column->allowNull && $column->defaultValue === null;
+            if ($r && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) {
                 $types['required'][] = $column->name;
             }
             switch ($column->type) {
@@ -322,13 +325,43 @@ class Generator extends \app\libraries\gii\Generator
                         $types['string'][] = $column->name;
                     }
             }
+
+			$commentArray = explode(',', $column->comment);
+			if(in_array('trigger[delete]', $commentArray)) {
+				$columnName = $column->name.'_i';
+				$types['required'] = array_diff($types['required'], array($column->name));
+				$types['required'][]=$columnName;
+				$types['string'][]=$columnName;
+				
+				$lengthSize = in_array('redactor', $commentArray) ? '~' : (in_array('text', $commentArray) ? '128' : '64');
+				if($lengthSize != '~')
+					$lengths[$lengthSize][] = $columnName;
+			}
+			if($column->type == 'text' && $column->comment == 'file') {
+				$types['required'] = array_diff($types['required'], array($column->name));
+				$types['safe'][]=$column->name;
+			}
+			if($column->comment == 'trigger') {
+				$types['safe'] = array_diff($types['safe'], array($column->name));
+			}
         }
+		foreach($table->columns as $column)
+		{
+            if ($column->autoIncrement || $column->name[0] == '_')
+				continue;
+
+			if($column->type == 'text' && $column->comment == 'file') {
+				$columnName = 'old_'.$column->name.'_i';
+				$types['safe'][]=$columnName;
+				$types['string'][]=$columnName;
+			}
+		}
         $rules = [];
         foreach ($types as $type => $columns) {
-            $rules[] = "[['" . implode("', '", $columns) . "'], '$type']";
+			$rules[] = "[['" . implode("', '", $columns) . "'], '$type']";
         }
         foreach ($lengths as $length => $columns) {
-            $rules[] = "[['" . implode("', '", $columns) . "'], 'string', 'max' => $length]";
+			$rules[] = "[['" . implode("', '", $columns) . "'], 'string', 'max' => $length]";
         }
 
         $db = $this->getDbConnection();
@@ -923,7 +956,7 @@ class Generator extends \app\libraries\gii\Generator
         }
 
         $_tblType = null;
-        $allTables = $this->getAllTableNames();
+		$allTables = $this->getAllTableNames();
         foreach($allTables as $item) {
             $vars = get_object_vars($item);
             foreach($vars as $key => $propVal) {
@@ -963,18 +996,16 @@ class Generator extends \app\libraries\gii\Generator
             $model = $this->getDbConnection()->createCommand($sql)->queryAll(\PDO::FETCH_OBJ);
             return $model;
 
-        }else {
+        } else {
             return self::$_allTableNames;
         }
     }
 
-    public function getMysqlViewColumn($viewName) {
-        $sql = sprintf('SHOW COLUMNS FROM %s', $viewName);
-        $model = $this->getDbConnection()->createCommand($sql)->queryAll(\PDO::FETCH_OBJ);
-        $columns = [];
-        foreach($model as $val) {
-            $columns[] = $val->Field;
-        }
-        return $columns;
+	public function getMysqlViewColumn($viewTableName) 
+	{
+        $db = $this->getDbConnection();
+		$tableSchema = $db->getTableSchema($viewTableName);
+
+        return key($tableSchema->columns);
     }
 }
