@@ -222,7 +222,7 @@ foreach($columns as $name=>$column):
 	}
 endforeach;
 foreach($labels as $name=>$label):
-	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) {
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 
@@ -334,20 +334,19 @@ endif;?>
 //echo '<pre>';
 //print_r($relations);
 $availableRelations = array();
-foreach($relations as $name=>$relation): ?>
-			<?php
-			$relationName = setRelationName($name);
-			if($relationName == 'cat')
-				$relationName = 'category';
-			if(preg_match('/Core/', $relation))
-				$relationModel = preg_replace('(Core)', '', $relation);
-			else
-				$relationModel = preg_replace('(Ommu)', '', $relation);
-			if(!in_array($relationName, $availableRelations)) {
-				echo "'$relationName' => $relationModel,\n";
-				$availableRelations[] = $relationName;
-	 		} ?>
-<?php endforeach;
+foreach($relations as $name=>$relation):
+	$relationName = setRelationName($name);
+	if($relationName == 'cat')
+		$relationName = 'category';
+	if(preg_match('/Core/', $relation))
+		$relationModel = preg_replace('(Core)', '', $relation);
+	else
+		$relationModel = preg_replace('(Ommu)', '', $relation);
+	if(!in_array($relationName, $availableRelations)) {
+		echo "\t\t\t'$relationName' => $relationModel,\n";
+		$availableRelations[] = $relationName;
+	}
+endforeach;
 if($i18n):
 	foreach($columns as $name=>$column):
 		$commentArray = explode(',', $column->comment);
@@ -360,26 +359,26 @@ if($i18n):
 		endif;
 	endforeach;
 endif;
-	foreach($columns as $name=>$column):
-		if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
-			$relationArray = explode('_', $name);
-			$relationName = $relationArray[0];
-			if(!in_array($relationName, $availableRelations)) {
-				if($name == 'member_id')
-					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Members', '$name'),\n";
-				else
-					echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Users', '$name'),\n";
-				$availableRelations[] = $relationName;
-			}
-		} else if($name == 'tag_id') {
-			$relationArray = explode('_', $name);
-			$relationName = $relationArray[0];
-			if(!in_array($relationName, $availableRelations)) {
-				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'OmmuTags', '$name'),\n";
-				$availableRelations[] = $relationName;
-			}
+foreach($columns as $name=>$column):
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
+		$relationArray = explode('_', $name);
+		$relationName = $relationArray[0];
+		if(!in_array($relationName, $availableRelations)) {
+			if($name == 'member_id')
+				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Members', '$name'),\n";
+			else
+				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'Users', '$name'),\n";
+			$availableRelations[] = $relationName;
 		}
-	endforeach;?>
+	} else if($name == 'tag_id') {
+		$relationArray = explode('_', $name);
+		$relationName = $relationArray[0];
+		if(!in_array($relationName, $availableRelations)) {
+			echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'OmmuTags', '$name'),\n";
+			$availableRelations[] = $relationName;
+		}
+	}
+endforeach;?>
 		);
 	}
 
@@ -413,13 +412,12 @@ foreach($columns as $name=>$column):
 	}
 endforeach;
 foreach($columns as $name=>$column):
-	if($column->isForeignKey == '1') {
-		$relationName = setRelationName($name, true);
-		if($relationName == 'cat')
-			$relationName = 'category';
-		
-		$publicAttribute = $relationName.'_search';
-		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicAttributes)) {
+	if(in_array($name, array('tag_id'))) {
+		$relationArray = explode('_', $name);
+		$relationName = $relationArray[0];
+
+		$publicAttribute = $relationName.'_i';
+		if(!in_array($publicAttribute, $publicAttributes)) {
 			$publicAttributeLabel = ucwords(strtolower($relationName));
 			echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
 			$publicAttributes[] = $publicAttribute;
@@ -435,8 +433,22 @@ foreach($columns as $name=>$column):
 		}
 	}
 endforeach;
+foreach($columns as $name=>$column):
+	if($column->isForeignKey == '1') {
+		$relationName = setRelationName($name, true);
+		if($relationName == 'cat')
+			$relationName = 'category';
+		
+		$publicAttribute = $relationName.'_search';
+		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributeLabel = ucwords(strtolower($relationName));
+			echo "\t\t\t'$publicAttribute' => Yii::t('attribute', '$publicAttributeLabel'),\n";
+			$publicAttributes[] = $publicAttribute;
+		}
+	}
+endforeach;
 foreach($labels as $name=>$label):
-	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) {
+	if(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 		$publicAttribute = $relationName.'_search';
@@ -672,7 +684,7 @@ foreach($columns as $name=>$column) {
 	} else if($name == 'tag_id') {
 		$relationArray = explode('_',$name);
 		$relationName = $relationArray[0];
-		$publicAttribute = $relationName.'_search';
+		$publicAttribute = $relationName.'_i';
 		$relationAttribute = 'body';
 
 		if(!in_array($publicAttribute, $publicAttributes)) {
@@ -737,6 +749,8 @@ foreach($columns as $name=>$column)
 				$columnName = 'member_name';
 			}
 			$publicAttribute = $relationName.'_search';
+			if($column->name == 'tag_id')
+				$publicAttribute = $relationName.'_i';
 			if($relationName == 'category')
 				$publicAttribute = $column->name;
 				
