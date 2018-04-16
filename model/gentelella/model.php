@@ -74,6 +74,8 @@ endforeach; ?>
 //print_r($relations);
 foreach ($relations as $name => $relation):
 $relationModel = preg_replace($patternClass, '', $relation[1]);
+//echo $name."\n";
+//echo $relation[1]."\n";
 $arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelationName($name)) : lcfirst(Inflector::singularize($generator->setRelationName($relation[1]))));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php endforeach;
@@ -119,6 +121,7 @@ use yii\helpers\Html;
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $publishCondition ? "use ".ltrim('app\libraries\grid\GridView', '\\').";\n" : '';
+echo $i18n ? "use ".ltrim('app\components\Utility', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('app\coremodules\user\models\Users', '\\').";\n" : '';
@@ -133,7 +136,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 foreach ($tableSchema->columns as $column): 
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
-		$inputPublicVariable = $column->name.'_i';
+		$inputPublicVariable = lcfirst(Inflector::singularize($column->name)).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
@@ -141,15 +144,14 @@ endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, array('tag_id'))) {
 		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst($relationNameArray[0]);
-		$inputPublicVariable = $relationName.'_i';
+		$inputPublicVariable = lcfirst(Inflector::singularize($relationNameArray[0])).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if(!(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) && $column->type == 'text' && $column->comment == 'file') {
-		$inputPublicVariable = 'old_'.$column->name.'_i';
+		$inputPublicVariable = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
@@ -168,8 +170,7 @@ endforeach;
 foreach ($tableSchema->columns as $column): 
 if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
 	$relationNameArray = explode('_', $column->name);
-	$relationName = lcfirst($relationNameArray[0]);
-	$searchPublicVariable = $relationName.'_search';
+	$searchPublicVariable = lcfirst(Inflector::singularize($relationNameArray[0])).'_search';
 	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
 		$arraySearchPublicVariable[] = $searchPublicVariable;
 endif;
@@ -266,10 +267,11 @@ endforeach;
 foreach ($tableSchema->columns as $column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
-		$attributeName = $column->name.'_i';
+		$relationName = lcfirst(Inflector::singularize($column->name));
+		$attributeName = $relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $column->name)));
+			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $relationName)));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -279,7 +281,7 @@ endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, array('tag_id'))) {
 		$relationArray = explode('_', $column->name);
-		$relationName = $relationArray[0];
+		$relationName = lcfirst(Inflector::singularize($relationArray[0]));
 		$attributeName = $relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
@@ -292,10 +294,11 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {
-		$attributeName = 'old_'.$column->name.'_i';
+		$relationName = lcfirst(Inflector::singularize($column->name));
+		$attributeName = 'old_'.$relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', 'old_'.$column->name)));
+			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', 'old_'.$relationName)));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -323,8 +326,7 @@ endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
 		$relationArray = explode('_', $column->name);
-		$relationName = lcfirst($relationArray[0]);
-		$attributeName = $relationName.'_search';
+		$attributeName = lcfirst(Inflector::singularize($relationArray[0])).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
 			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $attributeName)));
@@ -378,7 +380,7 @@ endif;
 foreach ($tableSchema->columns as $column):
 	if(!$column->isPrimaryKey && in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
 		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst($relationNameArray[0]); ?>
+		$relationName = lcfirst(Inflector::singularize($relationNameArray[0])); ?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
@@ -574,9 +576,58 @@ foreach($tableSchema->columns as $name=>$column):
 		
 		return $items;
 	}
-
 <?php endif;
-endforeach;?>
+endforeach;
+if($uploadCondition):?>
+
+	/**
+	 * @param returnAlias set true jika ingin kembaliannya path alias atau false jika ingin string
+	 * relative path. default true.
+	 */
+	public static function getPagePath($returnAlias=true) 
+	{
+		return ($returnAlias ? Yii::getAlias('@webroot/public/main') : 'public/main');
+	}
+<?php endif;
+if($i18n || $uploadCondition || $tagCondition):?>
+
+	/**
+	* after find attributes
+	*/
+	public function afterFind() 
+	{
+<?php foreach ($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)) {
+		$publicAttribute = $column->name.'_i';
+		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+		echo "\t\t\$this->$publicAttribute = \$this->{$publicAttributeRelation}->message;\n";
+	}
+}
+foreach ($tableSchema->columns as $column) {
+	if(in_array($column->name, array('tag_id'))) {
+		$relationNameArray = explode('_', $column->name);
+		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
+		$publicAttribute = $relationName.'_i';
+		echo "\t\t\$this->$publicAttribute = \$this->{$relationName}->body;\n";
+	} else {
+		if($column->type == 'text' && $column->comment == 'file') {
+			$inputPublicVariable = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
+			echo "\t\t\$this->$inputPublicVariable = \$this->$column->name;\n";
+		}
+	}
+}?>
+	}
+<?php endif;
+
+$bsEvents = 0;
+foreach($tableSchema->columns as $column)
+{
+	if($uploadCondition || in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))
+		$bsEvents = 1;
+}
+if($generator->generateEvents || $bsEvents): ?>
+
 	/**
 	 * before validate attributes
 	 */
@@ -585,20 +636,19 @@ endforeach;?>
 		if(parent::beforeValidate()) {
 <?php
 $creationCondition = 0;
-foreach($tableSchema->columns as $name=>$column):
+foreach($tableSchema->columns as $column):
 	if(in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'):
 		if($column->name == 'creation_id') {
 			$creationCondition = 1;
-			echo "\t\t\tif(\$this->isNewRecord) {\n";
-			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : '0';\n";
+			echo "\t\t\tif(\$this->isNewRecord)\n";
+			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 
 		} else {
 			if($creationCondition) {
-				echo "\t\t\t\t\$this->{$column->name} = 0;\n";
-				echo "\t\t\t}else\n";
+				echo "\t\t\telse\n";
 			}else
 				echo "\t\t\tif(!\$this->isNewRecord)\n";
-			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : '0';\n";
+			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		}
 	endif;
 endforeach;
@@ -606,34 +656,75 @@ endforeach;
 		}
 		return true;
 	}
-
 <?php 
-$bsEvents = [];
-foreach($tableSchema->columns as $name=>$column)
+endif;
+
+$bsEvents = 0;
+foreach($tableSchema->columns as $column)
 {
-	if(in_array($column->dbType, array('date')) && $column->comment != 'trigger'):
-		$bsEvents[] = $name;
-	endif;
+	if($i18n || (in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')  || ($column->type == 'text' && $column->comment == 'serialize')|| in_array($column->name, ['tag_id']))
+		$bsEvents = 1;
 }
-if($generator->generateEvents || !empty($bsEvents)): ?>
+if($generator->generateEvents || $bsEvents): ?>
+
 	/**
 	 * before save attributes
 	 */
 	public function beforeSave($insert) 
 	{
-		if(parent::beforeSave($insert)) {
-<?php if(!empty($bsEvents)):
-foreach($bsEvents as $name):
-		echo "\t\t\t\$this->$name = date('Y-m-d', strtotime(\$this->$name));\n";
-endforeach;
-else:?>
-			// Create action
-<?php endif; ?>
-		}
-		return true;	
-	}
+<?php if($i18n) {?>
+		$module = strtolower(Yii::$app->controller->module->id);
+		$controller = strtolower(Yii::$app->controller->id);
+		$action = strtolower(Yii::$app->controller->action->id);
 
-<?php if($generator->generateEvents): ?>
+		$location = Utility::getUrlTitle($module.' '.$controller);
+		
+<?php }?>
+		if(parent::beforeSave($insert)) {
+<?php 
+foreach($tableSchema->columns as $column):
+	if(in_array($column->type, array('date','datetime')) && $column->comment != 'trigger')
+		echo "\t\t\t\$this->$column->name = date('Y-m-d', strtotime(\$this->$column->name));\n";	//Y-m-d H:i:s
+
+	else if($column->type == 'text' && $column->comment == 'serialize')
+		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
+
+	else if($column->name == 'tag_id') {
+		$relationArray = explode('_', $column->name);
+		$relationName =  lcfirst(Inflector::singularize($relationArray[0]));
+		$publicAttribute = $relationName.'_i';
+	}
+endforeach;
+foreach($tableSchema->columns as $column):
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)) {
+		$publicAttribute = $column->name.'_i';
+		$publicAttributeLocation = preg_match('/(name|title)/', $column->name) ? '_title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? '_description' : '_'.$column->name) : '_'.$column->name);?>
+
+			if($this->isNewRecord || (!$this->isNewRecord && !$this-><?php echo $column->name;?>)) {
+				$<?php echo $column->name;?> = new SourceMessage();
+				$<?php echo $column->name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
+				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
+				if($<?php echo $column->name;?>->save())
+					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
+				
+			} else {
+				$<?php echo $column->name;?> = SourceMessage::findOne($this->name);
+				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
+				$<?php echo $column->name;?>->save();
+			}
+<?php }
+endforeach;?>
+			// Create action
+		}
+		return true;
+	}
+<?php 
+endif;
+
+$bsEvents = 0;
+if($generator->generateEvents || $bsEvents): ?>
+
 	/**
 	 * after validate attributes
 	 */
@@ -644,7 +735,12 @@ else:?>
 		
 		return true;
 	}
-	
+<?php 
+endif;
+
+$bsEvents = 0;
+if($generator->generateEvents || $bsEvents): ?>
+
 	/**
 	 * After save attributes
 	 */
@@ -653,6 +749,11 @@ else:?>
 		parent::afterSave($insert, $changedAttributes);
 		// Create action
 	}
+<?php 
+endif;
+
+$bsEvents = 0;
+if($generator->generateEvents || $bsEvents): ?>
 
 	/**
 	 * Before delete attributes
@@ -664,6 +765,11 @@ else:?>
 		}
 		return true;
 	}
+<?php 
+endif;
+
+$bsEvents = 0;
+if($generator->generateEvents || $bsEvents): ?>
 
 	/**
 	 * After delete attributes
@@ -673,6 +779,5 @@ else:?>
 		parent::afterDelete();
 		// Create action
 	}
-<?php endif;
-endif; ?>
+<?php endif; ?>
 }

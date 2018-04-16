@@ -328,7 +328,7 @@ class Generator extends \app\libraries\gii\Generator
 
 			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)) {
-				$columnName = $column->name.'_i';
+				$columnName = lcfirst(Inflector::singularize($column->name)).'_i';
 				$types['required'] = array_diff($types['required'], array($column->name));
 				$types['required'][]=$columnName;
 				$types['string'][]=$columnName;
@@ -336,6 +336,13 @@ class Generator extends \app\libraries\gii\Generator
 				$lengthSize = in_array('redactor', $commentArray) ? '~' : (in_array('text', $commentArray) ? '128' : '64');
 				if($lengthSize != '~')
 					$lengths[$lengthSize][] = $columnName;
+			}
+			if($column->name == 'tag_id') {
+				$relationNameArray = explode('_', $column->name);
+				$columnName = lcfirst(Inflector::singularize($relationNameArray[0])).'_i';
+				$types['required'] = array_diff($types['required'], array($column->name));
+				$types['required'][]=$columnName;
+				$types['string'][]=$columnName;
 			}
 			if($column->type == 'text' && $column->comment == 'file') {
 				$types['required'] = array_diff($types['required'], array($column->name));
@@ -351,7 +358,7 @@ class Generator extends \app\libraries\gii\Generator
 				continue;
 
 			if($column->type == 'text' && $column->comment == 'file') {
-				$columnName = 'old_'.$column->name.'_i';
+				$columnName = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
 				$types['safe'][]=$columnName;
 				$types['string'][]=$columnName;
 			}
