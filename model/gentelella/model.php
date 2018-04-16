@@ -374,7 +374,7 @@ if($i18n):
 			$relationName = ucfirst($relationName);
 			if(!in_array($relationName, $arrayRelations)) {
 				$arrayRelations[] = $relationName;?>
-	
+
 	/**
 	 * @return \yii\db\ActiveQuery
 	 */
@@ -382,7 +382,7 @@ if($i18n):
 	{
 		return $this->hasOne(SourceMessage::className(), ['id' => '<?php echo $column->name;?>']);
 	}
-	<?php	}
+<?php		}
 		}
 	endforeach;
 endif;
@@ -572,7 +572,7 @@ endforeach;
 			return $model->$column;
 			
 		} else {
-			$model = self::findOne($id)
+			$model = self::findOne($id);
 			return $model;
 		}
 	}
@@ -588,7 +588,7 @@ if(($tableType != Generator::TYPE_VIEW) && $generator->getFunction):
 	/**
 	 * function get<?= $functionName."\n"; ?>
 	 */
-	public static function get<?= $functionName ?>(<?php echo $publishCondition ? '$publish = null, $array=true' : '$array=true';?>) 
+	public static function get<?= $functionName ?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
 	{
 		$model = self::find()->alias('t');
 <?php 
@@ -599,7 +599,7 @@ if($i18nRelation)
 if($publishCondition) {?>
 		if($publish != null)
 			$model = $model->andWhere(['t.publish' => $publish]);
-			
+
 <?php }?>
 		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : 't.'.$attributeName;?> ASC')->all();
 
@@ -634,8 +634,8 @@ if($uploadCondition):
 if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCondition)):?>
 
 	/**
-	* after find attributes
-	*/
+	 * after find attributes
+	 */
 	public function afterFind() 
 	{
 <?php foreach ($tableSchema->columns as $column) {
@@ -643,7 +643,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCon
 	if(in_array('trigger[delete]', $commentArray)) {
 		$publicAttribute = $column->name.'_i';
 		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
-		echo "\t\t\$this->$publicAttribute = \$this->{$publicAttributeRelation}->message;\n";
+		echo "\t\t\$this->$publicAttribute = isset(\$this->{$publicAttributeRelation}) ? \$this->{$publicAttributeRelation}->message : '';\n";
 	}
 }
 foreach ($tableSchema->columns as $column) {
@@ -651,7 +651,7 @@ foreach ($tableSchema->columns as $column) {
 		$relationNameArray = explode('_', $column->name);
 		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
 		$publicAttribute = $relationName.'_i';
-		echo "\t\t\$this->$publicAttribute = \$this->{$relationName}->body;\n";
+		echo "\t\t\$this->$publicAttribute = isset(\$this->{$relationName}) ? \$this->{$relationName}->body : '';\n";
 	} else {
 		if($column->type == 'text' && $column->comment == 'file') {
 			$inputPublicVariable = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
@@ -681,14 +681,14 @@ foreach($tableSchema->columns as $column):
 	if(in_array($column->name, ['creation_id','modified_id','updated_id']) && $column->comment != 'trigger'):
 		if($column->name == 'creation_id') {
 			$creationCondition = 1;
-			echo "\t\t\tif(\$insert)\n";
+			echo "\t\t\tif(\$this->isNewRecord)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 
 		} else {
 			if($creationCondition) {
 				echo "\t\t\telse\n";
 			}else
-				echo "\t\t\tif(!\$insert)\n";
+				echo "\t\t\tif(!\$this->isNewRecord)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		}
 	endif;
@@ -707,7 +707,6 @@ if($uploadCondition):
 							'{name}'=>$this-><?php echo $column->name;?>->name,
 							'{extensions}'=>Utility::formatFileType($<?php echo $column->name;?>FileType, false),
 						)));
-						return false;
 					}
 				}
 			} /* else {
@@ -758,7 +757,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 		$action = strtolower(Yii::$app->controller->action->id);
 
 		$location = Utility::getUrlTitle($module.' '.$controller);
-		
+
 <?php }?>
 		if(parent::beforeSave($insert)) {
 <?php if($uploadCondition):?>
@@ -880,7 +879,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	public function afterSave($insert, $changedAttributes) 
 	{
 		parent::afterSave($insert, $changedAttributes);
-		
+
 <?php if($uploadCondition):
 if($generator->uploadPath['subfolder']):?>
 		$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
