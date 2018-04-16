@@ -768,6 +768,28 @@ if($generator->uploadPath['subfolder']):?>
 					@chmod($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
 					@chmod($verwijderenPath, 0755, true);
 				}
+
+<?php foreach($tableSchema->columns as $column):
+	if($column->type == 'text' && $column->comment == 'file') {?>
+				$<?php echo $column->name;?>FileType = array('bmp','gif','jpg','png');
+				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+				if($this-><?php echo $column->name;?> != null) {
+					if($this-><?php echo $column->name;?> instanceof UploadedFile) {
+						$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'. $this-><?php echo $column->name;?>->extension; 
+						if($this-><?php echo $column->name;?>->saveAs($<?php echo lcfirst($generator->uploadPath['name']);?>.'/'.$fileName)) {
+							if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i])))
+								rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'_'.$this->old_<?php echo $column->name;?>_i]));
+							$this-><?php echo $column->name;?> = $fileName;
+							//@chmod($fileName, 0777);
+						}
+					}
+				} else {
+					if($this-><?php echo $column->name;?> == '')
+						$this-><?php echo $column->name;?> = $this->old_<?php echo $column->name;?>_i;
+				}
+
+<?php }
+endforeach;?>
 			}
 <?php endif;?>
 <?php 
@@ -848,6 +870,23 @@ if($generator->uploadPath['subfolder']):?>
 		} else {
 			@chmod($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
 			@chmod($verwijderenPath, 0755, true);
+		}
+
+		if($insert) {
+<?php foreach($tableSchema->columns as $column):
+	if($column->type == 'text' && $column->comment == 'file') {?>
+			$<?php echo $column->name;?>FileType = array('bmp','gif','jpg','png');
+			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+			if($this-><?php echo $column->name;?> != null) {
+				if($this-><?php echo $column->name;?> instanceof UploadedFile) {
+					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'. $this-><?php echo $column->name;?>->extension; 
+					if($this-><?php echo $column->name;?>->saveAs($<?php echo lcfirst($generator->uploadPath['name']);?>.'/'.$fileName))
+						self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' = $this-><?php echo $primaryKey;?>]);
+				}
+			}
+
+<?php }
+endforeach;?>
 		}
 <?php endif;?>
 	}
