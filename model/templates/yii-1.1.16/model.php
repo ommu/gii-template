@@ -934,6 +934,15 @@ foreach($columns as $name=>$column):
 		$publicAttributeRelation = preg_match('/(name|title)/', $name) ? 'title' : (preg_match('/(desc|description)/', $name) ? ($name != 'description' ? 'description' : $name.'Rltn') : $name.'Rltn');?>
 		$this-><?php echo $publicAttribute;?> = $this-><?php echo $publicAttributeRelation;?>->message;
 <?php endif;
+endforeach;
+foreach($columns as $name=>$column):
+	if($name == 'tag_id'):
+		$relationArray = explode('_', $name);
+		$relationName = $relationArray[0];
+		$publicAttribute = $relationName.'_i';?>
+		$this-><?php echo $publicAttribute;?> = $this-><?php echo $relationName;?>->body;
+	}
+<?php endif;
 endforeach; ?>
 		
 		parent::afterFind();
@@ -1014,7 +1023,7 @@ if(!($tableName[0] == '_')) {?>
 		$controller = strtolower(Yii::app()->controller->id);
 		$action = strtolower(Yii::app()->controller->action->id);
 
-		$location = $module.' '.$controller;
+		$location = Utility::getUrlTitle($module.' '.$controller);
 		
 <?php }?>
 		if(parent::beforeSave()) {
@@ -1022,18 +1031,18 @@ if(!($tableName[0] == '_')) {?>
 if($uploadCondition) {?>
 			if(!$this->isNewRecord) {
 <?php if($this->uploadPathSubfolderStatus) {?>
-				$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>/'.$this-><?php echo $primaryKeyColumn; ?>;
+				$<?php echo lcfirst($this->uploadPathNameSource);?> = join('/', array('<?php echo $this->uploadPathDirectorySource;?>', $this-><?php echo $primaryKeyColumn; ?>));
 <?php } else {?>
-				$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
+				$<?php echo lcfirst($this->uploadPathNameSource);?> = '<?php echo $this->uploadPathDirectorySource;?>';
 <?php }?>
-				$verwijderenPath = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
+				$verwijderenPath = join('/', array('$<?php echo $this->uploadPathDirectorySource;?>', 'verwijderen'));
 				// Add directory
-				if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderenPath)) {
-					@mkdir($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+				if(!file_exists($<?php echo lcfirst($this->uploadPathNameSource);?>) || !file_exists($verwijderenPath)) {
+					@mkdir($<?php echo lcfirst($this->uploadPathNameSource);?>, 0755, true);
 					@mkdir($verwijderenPath, 0755, true);
 
 					// Add file in directory (index.php)
-					$indexFile = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'index.php'));
+					$indexFile = join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, 'index.php'));
 					if(!file_exists($indexFile))
 						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
 
@@ -1041,7 +1050,7 @@ if($uploadCondition) {?>
 					if(!file_exists($verwijderenFile))
 						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 				} else {
-					@chmod($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+					@chmod($<?php echo lcfirst($this->uploadPathNameSource);?>, 0755, true);
 					@chmod($verwijderenPath, 0755, true);
 				}
 <?php foreach($columns as $name=>$column) {
@@ -1051,9 +1060,9 @@ if($uploadCondition) {?>
 				if($this-><?php echo $name;?> != null) {
 					if($this-><?php echo $name;?> instanceOf CUploadedFile) {
 						$fileName = time().'_'.$this-><?php echo $primaryKeyColumn;?>.'.'.strtolower($this-><?php echo $name;?>->extensionName);
-						if($this-><?php echo $name;?>->saveAs($<?php echo $this->uploadPathNameSource;?>.'/'.$fileName)) {
-							if($this->old_<?php echo $name;?>_i != '' && file_exists($<?php echo $this->uploadPathNameSource;?>.'/'.$this->old_<?php echo $name;?>_i))
-								rename($<?php echo $this->uploadPathNameSource;?>.'/'.$this->old_<?php echo $name;?>_i, 'public/banner/verwijderen/'.$this-><?php echo $primaryKeyColumn;?>.'_'.$this->old_<?php echo $name;?>_i);
+						if($this-><?php echo $name;?>->saveAs(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $fileName)))) {
+							if($this->old_<?php echo $name;?>_i != '' && file_exists(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this->old_<?php echo $name;?>_i))))
+								rename(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this->old_<?php echo $name;?>_i)), join('/', array($verwijderenPath, $this-><?php echo $primaryKeyColumn;?>.'_'.$this->old_<?php echo $name;?>_i)));
 							$this-><?php echo $name;?> = $fileName;
 						}
 					}
@@ -1072,10 +1081,11 @@ foreach($columns as $name=>$column)
 	if(in_array($column->dbType, array('date','datetime')) && $column->comment != 'trigger') {
 		$datetimeType = $column->dbType == 'date' ? 'Y-m-d' : 'Y-m-d';	//Y-m-d H:i:s
 		echo "\t\t\t\$this->$name = date('$datetimeType', strtotime(\$this->$name));\n";
-	} else if($column->dbType == 'text' && $column->comment == 'serialize') {
+
+	} else if($column->dbType == 'text' && $column->comment == 'serialize')
 		echo "\t\t\t\$this->$name = serialize(\$this->$name);\n";
 
-	} else if($column->name == 'tag_id') {
+	else if($column->name == 'tag_id') {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
 		$publicAttribute = $relationName.'_i';?>
@@ -1141,19 +1151,19 @@ if(!($tableName[0] == '_')) {?>
 if($uploadCondition) {
 	if($this->uploadPathSubfolderStatus) {?>
 
-		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>/'.$this-><?php echo $primaryKeyColumn; ?>;
+		$<?php echo lcfirst($this->uploadPathNameSource);?> = join('/', array('<?php echo $this->uploadPathDirectorySource;?>', $this-><?php echo $primaryKeyColumn; ?>));
 <?php } else {?>
 
-		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
+		$<?php echo lcfirst($this->uploadPathNameSource);?> = '<?php echo $this->uploadPathDirectorySource;?>';
 <?php }?>
-		$verwijderenPath = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'verwijderen'));
+		$verwijderenPath = join('/', array('$<?php echo $this->uploadPathDirectorySource;?>', 'verwijderen'));
 		// Add directory
-		if(!file_exists($<?php echo $this->uploadPathNameSource;?>) || !file_exists($verwijderenPath)) {
-			@mkdir($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+		if(!file_exists($<?php echo lcfirst($this->uploadPathNameSource);?>) || !file_exists($verwijderenPath)) {
+			@mkdir($<?php echo lcfirst($this->uploadPathNameSource);?>, 0755, true);
 			@mkdir($verwijderenPath, 0755,true);
 
 			// Add file in directory (index.php)
-			$indexFile = join('/', array($<?php echo $this->uploadPathNameSource;?>, 'index.php'));
+			$indexFile = join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, 'index.php'));
 			if(!file_exists($indexFile))
 				file_put_contents($indexFile, "<?php echo "<?php"?>\n");
 
@@ -1161,7 +1171,7 @@ if($uploadCondition) {
 			if(!file_exists($verwijderenFile))
 				file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 		} else {
-			@chmod($<?php echo $this->uploadPathNameSource;?>, 0755, true);
+			@chmod($<?php echo lcfirst($this->uploadPathNameSource);?>, 0755, true);
 			@chmod($verwijderenPath, 0755,true);
 		}
 
@@ -1173,7 +1183,7 @@ if($uploadCondition) {
 			if($this-><?php echo $name;?> != null) {
 				if($this-><?php echo $name;?> instanceOf CUploadedFile) {
 					$fileName = time().'_'.$this-><?php echo $primaryKeyColumn;?>.'.'.strtolower($this-><?php echo $name;?>->extensionName);
-					if($this-><?php echo $name;?>->saveAs($<?php echo $this->uploadPathNameSource;?>.'/'.$fileName))
+					if($this-><?php echo $name;?>->saveAs(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $fileName))))
 						self::model()->updateByPk($this-><?php echo $primaryKeyColumn;?>, array('<?php echo $name;?>'=>$fileName));
 				}
 			}
@@ -1206,15 +1216,16 @@ if($uploadCondition) {
 		//delete article image
 <?php if($uploadCondition) {
 	if($this->uploadPathSubfolderStatus) {?>
-		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>/'.$this-><?php echo $primaryKeyColumn; ?>;
+		$<?php echo lcfirst($this->uploadPathNameSource);?> = join('/', array('<?php echo $this->uploadPathDirectorySource;?>', $this-><?php echo $primaryKeyColumn; ?>));
 <?php } else {?>
-		$<?php echo $this->uploadPathNameSource;?> = '<?php echo $this->uploadPathDirectorySource;?>';
-<?php }
-	foreach($columns as $name=>$column) {
+		$<?php echo lcfirst($this->uploadPathNameSource);?> = '<?php echo $this->uploadPathDirectorySource;?>';
+<?php }?>
+		$verwijderenPath = join('/', array('$<?php echo $this->uploadPathDirectorySource;?>', 'verwijderen'));
+		
+<?php foreach($columns as $name=>$column) {
 		if($column->dbType == 'text' && $column->comment == 'file') {?>
-
-		if($this-><?php echo $name;?> != '' && file_exists($<?php echo $this->uploadPathNameSource;?>.'/'.$this-><?php echo $name;?>))
-			rename($<?php echo $this->uploadPathNameSource;?>.'/'.$this-><?php echo $name;?>, '<?php echo $this->uploadPathDirectorySource;?>/verwijderen/'.$this-><?php echo $primaryKeyColumn; ?>.'_'.$this-><?php echo $name;?>);
+		if($this-><?php echo $name;?> != '' && file_exists(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this-><?php echo $name;?>))))
+			rename(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this-><?php echo $name;?>)), join('/', array($verwijderenPath, $this-><?php echo $primaryKeyColumn; ?>.'_'.$this-><?php echo $name;?>)));
 <?php 	}
 	}
 }?>
