@@ -130,7 +130,7 @@ use yii\helpers\Html;
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $publishCondition ? "use ".ltrim('app\libraries\grid\GridView', '\\').";\n" : '';
-echo $i18n ? "use ".ltrim('app\components\Utility', '\\').";\n" : '';
+echo $i18n || $tagCondition ? "use ".ltrim('app\components\Utility', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('app\coremodules\user\models\Users', '\\').";\n" : '';
@@ -594,14 +594,14 @@ if(($tableType != Generator::TYPE_VIEW) && $generator->getFunction):
 <?php 
 $i18nRelation = $i18n && preg_match('/(name|title)/', $attributeName) ? 'title' : '';
 if($i18nRelation)
-	echo "\t\t\$model->joinWith(['$i18nRelation $i18nRelation']);\n";
+	echo "\t\t\$model->with(['$i18nRelation $i18nRelation']);\n";
 	
 if($publishCondition) {?>
 		if($publish != null)
 			$model = $model->andWhere(['t.publish' => $publish]);
 			
 <?php }?>
-		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : $attributeName;?> ASC')->all();
+		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : 't.'.$attributeName;?> ASC')->all();
 
 		if($array == true) {
 			$items = [];
@@ -739,9 +739,9 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 		
 <?php }?>
 		if(parent::beforeSave($insert)) {
+<?php if($uploadCondition):?>
 			if(!$insert) {
-<?php if($uploadCondition):
-if($generator->uploadPath['subfolder']):?>
+<?php if($generator->uploadPath['subfolder']):?>
 				$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
 <?php else:?>
 				$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
@@ -803,8 +803,25 @@ foreach($tableSchema->columns as $column):
 	else if($column->name == 'tag_id') {
 		$relationArray = explode('_', $column->name);
 		$relationName =  lcfirst(Inflector::singularize($relationArray[0]));
-		$publicAttribute = $relationName.'_i';
-	}
+		$publicAttribute = $relationName.'_i';?>
+			if($insert) {
+				$<?php echo $publicAttribute;?> = Utility::getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
+				if($this-><?php echo $column->name;?> == 0) {
+					$<?php echo $relationName;?> = self::find()
+						->select(['<?php echo $column->name;?>', 'body'])
+						->andWhere(['body' => $<?php echo $publicAttribute;?>]);
+						
+					if($<?php echo $relationName;?> != null)
+						$this-><?php echo $column->name;?> = $<?php echo $relationName;?>-><?php echo $column->name;?>;
+					else {
+						$data = new OmmuTags();
+						$data->body = $this-><?php echo $publicAttribute;?>;
+						if($data->save())
+							$this-><?php echo $column->name;?> = $data-><?php echo $column->name;?>;
+					}
+				}
+			}
+<?php }
 endforeach;
 foreach($tableSchema->columns as $column):
 	$commentArray = explode(',', $column->comment);
