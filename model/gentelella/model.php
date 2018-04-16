@@ -885,12 +885,14 @@ if($generator->uploadPath['subfolder']):?>
 		$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
 <?php else:?>
 		$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
-<?php endif;
+<?php endif;?>
+		$verwijderenPath = join('/', array(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen'));
 
-foreach($tableSchema->columns as $column):
+<?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
 		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>])))
-			@unlink($<?php echo $column->name;?>);
+			rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'_'.$this-><?php echo $column->name;?>]));
+			//@unlink($<?php echo $column->name;?>);
 <?php }
 endforeach;
 endif;?>
