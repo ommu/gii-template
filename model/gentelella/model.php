@@ -775,7 +775,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 				if($this-><?php echo $column->name;?> != null) {
 					if($this-><?php echo $column->name;?> instanceof UploadedFile) {
-						$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'. $this-><?php echo $column->name;?>->extension; 
+						$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->extension); 
 						if($this-><?php echo $column->name;?>->saveAs($<?php echo lcfirst($generator->uploadPath['name']);?>.'/'.$fileName)) {
 							if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i])))
 								rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'_'.$this->old_<?php echo $column->name;?>_i]));
@@ -896,7 +896,7 @@ if($generator->uploadPath['subfolder']):?>
 			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 			if($this-><?php echo $column->name;?> != null) {
 				if($this-><?php echo $column->name;?> instanceof UploadedFile) {
-					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'. $this-><?php echo $column->name;?>->extension; 
+					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->extension); 
 					if($this-><?php echo $column->name;?>->saveAs($<?php echo lcfirst($generator->uploadPath['name']);?>.'/'.$fileName))
 						self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' = $this-><?php echo $primaryKey;?>]);
 				}
