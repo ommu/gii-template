@@ -984,10 +984,10 @@ if($uploadCondition) {
 			if($<?php echo $name;?>->name != null) {
 				$extension = pathinfo($<?php echo $name;?>->name, PATHINFO_EXTENSION);
 				if(!in_array(strtolower($extension), $<?php echo $name;?>FileType))
-					$this->addError('<?php echo $name;?>', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
+					$this->addError('<?php echo $name;?>', Yii::t('phrase', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
 						'{name}'=>$<?php echo $name;?>->name,
 						'{extensions}'=>Utility::formatFileType($<?php echo $name;?>FileType, false),
-					));
+					)));
 			} /* else {
 				//if($this->isNewRecord && $controller == 'o/media')
 					$this->addError('<?php echo $name;?>', Yii::t('phrase', '{attribute} cannot be blank.', array('{attribute}'=>$this->getAttributeLabel('<?php echo $name;?>'))));
