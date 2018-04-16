@@ -151,7 +151,7 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(in_array($column->name, array('tag_id'))) {
+	if(in_array($column->name, ['tag_id'])) {
 		$relationNameArray = explode('_', $column->name);
 		$inputPublicVariable = lcfirst(Inflector::singularize($relationNameArray[0])).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
@@ -159,7 +159,7 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(!(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) && $column->type == 'text' && $column->comment == 'file') {
+	if(!(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id'])) && $column->type == 'text' && $column->comment == 'file') {
 		$inputPublicVariable = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
@@ -167,7 +167,7 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 
 foreach ($tableSchema->columns as $column): 
-if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 	$relationTableName = array_search($column->name, $foreignKeys);
 	$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
 	$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
@@ -177,7 +177,7 @@ if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($c
 endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
-if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 	$relationNameArray = explode('_', $column->name);
 	$searchPublicVariable = lcfirst(Inflector::singularize($relationNameArray[0])).'_search';
 	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
@@ -288,7 +288,7 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(in_array($column->name, array('tag_id'))) {
+	if(in_array($column->name, ['tag_id'])) {
 		$relationArray = explode('_', $column->name);
 		$relationName = lcfirst(Inflector::singularize($relationArray[0]));
 		$attributeName = $relationName.'_i';
@@ -315,7 +315,7 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+	if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 		$relationTableName = array_search($column->name, $foreignKeys);
 		//echo $relationTableName."\n";
 		$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
@@ -333,7 +333,7 @@ foreach ($tableSchema->columns as $column):
 	endif;
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 		$relationArray = explode('_', $column->name);
 		$attributeName = lcfirst(Inflector::singularize($relationArray[0])).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
@@ -388,7 +388,7 @@ if($i18n):
 endif;
 
 foreach ($tableSchema->columns as $column):
-	if(!$column->isPrimaryKey && in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
+	if(!$column->isPrimaryKey && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
 		$relationNameArray = explode('_', $column->name);
 		$relationName = lcfirst(Inflector::singularize($relationNameArray[0])); ?>
 
@@ -436,7 +436,7 @@ foreach ($tableSchema->columns as $column):
 if(!$column->isPrimaryKey || !$column->autoIncrement):
 //if($column->dbType != 'tinyint(1)' && !in_array($column->name, ['publish','headline'])):
 if($column->dbType != 'tinyint(1)'):
-if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 	$relationNameArray = explode('_', $column->name);
 	$relationName = lcfirst($relationNameArray[0]);
 	$relationSearchName = $relationName.'_search'; ?>
@@ -448,7 +448,7 @@ if(in_array($column->name, array('creation_id','modified_id','user_id','updated_
 				},
 			];
 		}
-<?php elseif(in_array($column->dbType, array('timestamp','datetime','date'))):?>
+<?php elseif(in_array($column->dbType, ['timestamp','datetime','date'])):?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
 			'filter'	=> \yii\jui\DatePicker::widget([
@@ -538,7 +538,7 @@ endforeach; ?>
 		if(count($this->defaultColumns) == 0) {
 foreach ($tableSchema->columns as $column):
 	if(!$column->isPrimaryKey) {
-		if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
+		if(in_array($column->dbType, ['timestamp','datetime','date'])) {?>
 			$this->defaultColumns[] = [
 				'attribute' => '<?php echo $column->name;?>',
 				'filter'	=> \yii\jui\DatePicker::widget(['dateFormat' => Yii::$app->formatter->dateFormat,
@@ -647,7 +647,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCon
 	}
 }
 foreach ($tableSchema->columns as $column) {
-	if(in_array($column->name, array('tag_id'))) {
+	if(in_array($column->name, ['tag_id'])) {
 		$relationNameArray = explode('_', $column->name);
 		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
 		$publicAttribute = $relationName.'_i';
@@ -665,7 +665,7 @@ foreach ($tableSchema->columns as $column) {
 $bsEvents = 0;
 foreach($tableSchema->columns as $column)
 {
-	if($uploadCondition || in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))
+	if($uploadCondition || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 		$bsEvents = 1;
 }
 if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
@@ -676,10 +676,9 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	public function beforeValidate() 
 	{
 		if(parent::beforeValidate()) {
-<?php
-$creationCondition = 0;
+<?php $creationCondition = 0;
 foreach($tableSchema->columns as $column):
-	if(in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'):
+	if(in_array($column->name, ['creation_id','modified_id','updated_id']) && $column->comment != 'trigger'):
 		if($column->name == 'creation_id') {
 			$creationCondition = 1;
 			echo "\t\t\tif(\$insert)\n";
@@ -694,7 +693,30 @@ foreach($tableSchema->columns as $column):
 		}
 	endif;
 endforeach;
-?>
+
+if($uploadCondition):
+	foreach($tableSchema->columns as $column):
+		if($column->type == 'text' && $column->comment == 'file') {?>
+
+			$<?php echo $column->name;?>FileType = ['bmp','gif','jpg','png'];
+			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+			if($this-><?php echo $column->name;?> != null) {
+				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
+					if(!in_array(strtolower($this-><?php echo $column->name;?>->extension), $<?php echo $column->name;?>FileType)) {
+						$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
+							'{name}'=>$this-><?php echo $column->name;?>->name,
+							'{extensions}'=>Utility::formatFileType($<?php echo $column->name;?>FileType, false),
+						)));
+						return false;
+					}
+				}
+			} /* else {
+				//if($insert && $controller == 'o/media')
+					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', array('{attribute}'=>$this->getAttributeLabel('<?php echo $column->name;?>'))));
+			} */
+<?php 	}
+	endforeach;
+endif;?>
 		}
 		return true;
 	}
@@ -746,7 +768,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 <?php else:?>
 				$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
 <?php endif;?>
-				$verwijderenPath = join('/', array(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen'));
+				$verwijderenPath = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen']);
 
 				// Add directory
 				if(!file_exists($<?php echo lcfirst($generator->uploadPath['name']);?>) || !file_exists($verwijderenPath)) {
@@ -757,11 +779,11 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 					@mkdir($verwijderenPath, 0755, true);
 
 					// Add file in directory (index.php)
-					$indexFile = join('/', array($<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php'));
+					$indexFile = join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php']);
 					if(!file_exists($indexFile))
 						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
 						
-					$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
+					$verwijderenFile = join('/', [$verwijderenPath, 'index.php']);
 					if(!file_exists($verwijderenFile))
 						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 				} else {
@@ -771,12 +793,11 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
-				$<?php echo $column->name;?>FileType = array('bmp','gif','jpg','png');
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 				if($this-><?php echo $column->name;?> != null) {
 					if($this-><?php echo $column->name;?> instanceof UploadedFile) {
 						$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->extension); 
-						if($this-><?php echo $column->name;?>->saveAs($<?php echo lcfirst($generator->uploadPath['name']);?>.'/'.$fileName)) {
+						if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName]))) {
 							if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i])))
 								rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'_'.$this->old_<?php echo $column->name;?>_i]));
 							$this-><?php echo $column->name;?> = $fileName;
@@ -794,7 +815,7 @@ endforeach;?>
 <?php endif;?>
 <?php 
 foreach($tableSchema->columns as $column):
-	if(in_array($column->type, array('date','datetime')) && $column->comment != 'trigger')
+	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')
 		echo "\t\t\t\$this->$column->name = date('Y-m-d', strtotime(\$this->$column->name));\n";	//Y-m-d H:i:s
 
 	else if($column->type == 'text' && $column->comment == 'serialize')
@@ -866,7 +887,7 @@ if($generator->uploadPath['subfolder']):?>
 <?php else:?>
 		$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
 <?php endif;?>
-		$verwijderenPath = join('/', array(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen'));
+		$verwijderenPath = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen']);
 
 		// Add directory
 		if(!file_exists($<?php echo lcfirst($generator->uploadPath['name']);?>) || !file_exists($verwijderenPath)) {
@@ -877,11 +898,11 @@ if($generator->uploadPath['subfolder']):?>
 			@mkdir($verwijderenPath, 0755, true);
 
 			// Add file in directory (index.php)
-			$indexFile = join('/', array($<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php'));
+			$indexFile = join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php']);
 			if(!file_exists($indexFile))
 				file_put_contents($indexFile, "<?php echo "<?php"?>\n");
 				
-			$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
+			$verwijderenFile = join('/', [$verwijderenPath, 'index.php']);
 			if(!file_exists($verwijderenFile))
 				file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 		} else {
@@ -892,12 +913,11 @@ if($generator->uploadPath['subfolder']):?>
 		if($insert) {
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
-			$<?php echo $column->name;?>FileType = array('bmp','gif','jpg','png');
 			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 			if($this-><?php echo $column->name;?> != null) {
 				if($this-><?php echo $column->name;?> instanceof UploadedFile) {
 					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->extension); 
-					if($this-><?php echo $column->name;?>->saveAs($<?php echo lcfirst($generator->uploadPath['name']);?>.'/'.$fileName))
+					if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName])))
 						self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' = $this-><?php echo $primaryKey;?>]);
 				}
 			}
@@ -942,7 +962,7 @@ if($generator->uploadPath['subfolder']):?>
 <?php else:?>
 		$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
 <?php endif;?>
-		$verwijderenPath = join('/', array(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen'));
+		$verwijderenPath = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen']);
 
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
