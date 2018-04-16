@@ -41,6 +41,11 @@ $arrayInputPublicVariable = [];
 $arraySearchPublicVariable = [];
 $arrayAttributeName = [];
 
+if($tableType == Generator::TYPE_VIEW)
+	$primaryKey = $viewPrimaryKey;
+else
+	$primaryKey = $tableSchema->primaryKey['0'];
+
 /**
  * foreignKeys Column
  */
@@ -56,7 +61,11 @@ echo "<?php\n";
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
- * @link <?php echo $yaml['link']."\n";?>
+<?php if($generator->getModified):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+<?php endif; ?>
+ * @link <?php echo $generator->link."\n";?>
  *
  * This is the model class for table "<?= $generator->generateTableName($tableName) ?>".
  *
@@ -132,7 +141,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 	public $gridForbiddenColumn = [];
 <?php 
 //echo '<pre>';
-//print_r($tableSchema->columns);
+//print_r($tableSchema);
 foreach ($tableSchema->columns as $column): 
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
@@ -377,6 +386,7 @@ if($i18n):
 		}
 	endforeach;
 endif;
+
 foreach ($tableSchema->columns as $column):
 	if(!$column->isPrimaryKey && in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
 		$relationNameArray = explode('_', $column->name);
@@ -390,12 +400,13 @@ foreach ($tableSchema->columns as $column):
 		return $this->hasOne(<?php echo $column->name == 'tag_id' ? 'CoreTags' : 'Users';?>::className(), ['<?php echo $column->name == 'tag_id' ? 'tag_id' : 'user_id';?>' => '<?php echo $column->name;?>']);
 	}
 <?php endif;
-endforeach; ?>
-<?php if ($queryClassName): ?>
-<?php
+endforeach;
+
+if($queryClassName): 
 	$queryClassFullName = ($generator->ns === $generator->queryNs) ? $queryClassName : '\\' . $generator->queryNs . '\\' . $queryClassName;
 	echo "\n";
 ?>
+
 	/**
 	 * @inheritdoc
 	 * @return <?= $queryClassFullName ?> the active query used by this AR class.
@@ -405,7 +416,7 @@ endforeach; ?>
 		return new <?= $queryClassFullName ?>(get_called_class());
 	}
 <?php endif; ?>
-	
+
 	/**
 	 * Set default columns to display
 	 */
@@ -548,48 +559,79 @@ endforeach;
 */ ?>
 	}
 
+	/**
+	 * User get information
+	 */
+	public static function getInfo($id, $column=null)
+	{
+		if($column != null) {
+			$model = self::find()
+				->select([$column])
+				->where(['<?php echo $primaryKey;?>' => $id])
+				->one();
+			return $model->$column;
+			
+		} else {
+			$model = self::findOne($id)
+			return $model;
+		}
+	}
 <?php
 //echo '<pre>';
 //print_r($tableSchema->columns);
-foreach($tableSchema->columns as $name=>$column):
-	if($column->isPrimaryKey && (($column->type == 'tinyint' && $column->size == '3') || ($column->type == 'smallint' && in_array($column->size, array('3','5'))))):
-		$functionName = $generator->setRelationName($className);
-		$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));?>
+if(($tableType != Generator::TYPE_VIEW) && $generator->getFunction):
+	$functionName = $generator->setRelationName($className);
+	//echo $functionName."\n";
+	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));
+	//echo $attributeName."\n";;?>
+
 	/**
 	 * function get<?= $functionName."\n"; ?>
 	 */
-	public static function get<?= $functionName ?>(<?php echo $publishCondition ? '$publish = null' : '';?>) 
+	public static function get<?= $functionName ?>(<?php echo $publishCondition ? '$publish = null, $array=true' : '$array=true';?>) 
 	{
-		$items = [];
-		$model = self::find();
-<?php if($publishCondition) {?>
+		$model = self::find()->alias('t');
+<?php 
+$i18nRelation = $i18n && preg_match('/(name|title)/', $attributeName) ? 'title' : '';
+if($i18nRelation)
+	echo "\t\t\$model->joinWith(['$i18nRelation $i18nRelation']);\n";
+	
+if($publishCondition) {?>
 		if($publish != null)
-			$model = $model->andWhere(['publish' => $publish]);
+			$model = $model->andWhere(['t.publish' => $publish]);
+			
 <?php }?>
-		$model = $model->orderBy('<?php echo $attributeName;?> ASC')->all();
+		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : $attributeName;?> ASC')->all();
 
-		if($model !== null) {
-			foreach($model as $val) {
-				$items[$val-><?php echo $column->name;?>] = $val-><?php echo $attributeName;?>;
-			}
-		}
-		
-		return $items;
+		if($array == true) {
+			$items = [];
+			if($model !== null) {
+				foreach($model as $val) {
+					$items[$val-><?php echo $primaryKey;?>] = $val-><?php echo $i18nRelation ? $i18nRelation.'->message' : $attributeName;?>;
+				}
+				return $items;
+			} else
+				return false;
+		} else 
+			return $model;
 	}
 <?php endif;
-endforeach;
-if($uploadCondition):?>
+if($uploadCondition):
+	$directoryPath = $generator->uploadPath['directory'];
+	//if($generator->uploadPath['subfolder'])
+	//	$directoryPath = join('/', [$directoryPath, $primaryKey]);
+	$returnAlias = join('/', ['@webroot', $directoryPath]);?>
 
 	/**
 	 * @param returnAlias set true jika ingin kembaliannya path alias atau false jika ingin string
 	 * relative path. default true.
 	 */
-	public static function getPagePath($returnAlias=true) 
+	public static function get<?php echo ucfirst($generator->uploadPath['name']);?>($returnAlias=true) 
 	{
-		return ($returnAlias ? Yii::getAlias('@webroot/public/main') : 'public/main');
+		return ($returnAlias ? Yii::getAlias('<?php echo $returnAlias;?>') : '<?php echo $directoryPath;?>');
 	}
 <?php endif;
-if($i18n || $uploadCondition || $tagCondition):?>
+if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCondition)):?>
 
 	/**
 	* after find attributes
@@ -626,7 +668,7 @@ foreach($tableSchema->columns as $column)
 	if($uploadCondition || in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))
 		$bsEvents = 1;
 }
-if($generator->generateEvents || $bsEvents): ?>
+if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
 	 * before validate attributes
@@ -640,14 +682,14 @@ foreach($tableSchema->columns as $column):
 	if(in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'):
 		if($column->name == 'creation_id') {
 			$creationCondition = 1;
-			echo "\t\t\tif(\$this->isNewRecord)\n";
+			echo "\t\t\tif(\$insert)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 
 		} else {
 			if($creationCondition) {
 				echo "\t\t\telse\n";
 			}else
-				echo "\t\t\tif(!\$this->isNewRecord)\n";
+				echo "\t\t\tif(!\$insert)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		}
 	endif;
@@ -660,17 +702,33 @@ endforeach;
 endif;
 
 $bsEvents = 0;
+if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents)): ?>
+
+	/**
+	 * after validate attributes
+	 */
+	public function afterValidate()
+	{
+		parent::afterValidate();
+		// Create action
+		
+		return true;
+	}
+<?php 
+endif;
+
+$bsEvents = 0;
 foreach($tableSchema->columns as $column)
 {
 	if($i18n || (in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')  || ($column->type == 'text' && $column->comment == 'serialize')|| in_array($column->name, ['tag_id']))
 		$bsEvents = 1;
 }
-if($generator->generateEvents || $bsEvents): ?>
+if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
 	 * before save attributes
 	 */
-	public function beforeSave($insert) 
+	public function beforeSave($insert)
 	{
 <?php if($i18n) {?>
 		$module = strtolower(Yii::$app->controller->module->id);
@@ -681,6 +739,37 @@ if($generator->generateEvents || $bsEvents): ?>
 		
 <?php }?>
 		if(parent::beforeSave($insert)) {
+			if(!$insert) {
+<?php if($uploadCondition):
+if($generator->uploadPath['subfolder']):?>
+				$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
+<?php else:?>
+				$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
+<?php endif;?>
+				$verwijderenPath = join('/', array(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen'));
+
+				// Add directory
+				if(!file_exists($<?php echo lcfirst($generator->uploadPath['name']);?>) || !file_exists($verwijderenPath)) {
+<?php if($generator->uploadPath['subfolder']):?>
+					@mkdir(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 0755, true);
+<?php endif;?>
+					@mkdir($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+					@mkdir($verwijderenPath, 0755, true);
+
+					// Add file in directory (index.php)
+					$indexFile = join('/', array($<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php'));
+					if(!file_exists($indexFile))
+						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
+						
+					$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
+					if(!file_exists($verwijderenFile))
+						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
+				} else {
+					@chmod($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+					@chmod($verwijderenPath, 0755, true);
+				}
+			}
+<?php endif;?>
 <?php 
 foreach($tableSchema->columns as $column):
 	if(in_array($column->type, array('date','datetime')) && $column->comment != 'trigger')
@@ -701,7 +790,7 @@ foreach($tableSchema->columns as $column):
 		$publicAttribute = $column->name.'_i';
 		$publicAttributeLocation = preg_match('/(name|title)/', $column->name) ? '_title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? '_description' : '_'.$column->name) : '_'.$column->name);?>
 
-			if($this->isNewRecord || (!$this->isNewRecord && !$this-><?php echo $column->name;?>)) {
+			if($insert || (!$insert && !$this-><?php echo $column->name;?>)) {
 				$<?php echo $column->name;?> = new SourceMessage();
 				$<?php echo $column->name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
 				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
@@ -723,23 +812,7 @@ endforeach;?>
 endif;
 
 $bsEvents = 0;
-if($generator->generateEvents || $bsEvents): ?>
-
-	/**
-	 * after validate attributes
-	 */
-	public function afterValidate()
-	{
-		parent::afterValidate();
-		// Create action
-		
-		return true;
-	}
-<?php 
-endif;
-
-$bsEvents = 0;
-if($generator->generateEvents || $bsEvents): ?>
+if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
 	 * After save attributes
@@ -747,13 +820,42 @@ if($generator->generateEvents || $bsEvents): ?>
 	public function afterSave($insert, $changedAttributes) 
 	{
 		parent::afterSave($insert, $changedAttributes);
-		// Create action
+		
+<?php if($uploadCondition):
+if($generator->uploadPath['subfolder']):?>
+		$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
+<?php else:?>
+		$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
+<?php endif;?>
+		$verwijderenPath = join('/', array(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen'));
+
+		// Add directory
+		if(!file_exists($<?php echo lcfirst($generator->uploadPath['name']);?>) || !file_exists($verwijderenPath)) {
+<?php if($generator->uploadPath['subfolder']):?>
+			@mkdir(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 0755, true);
+<?php endif;?>
+			@mkdir($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+			@mkdir($verwijderenPath, 0755, true);
+
+			// Add file in directory (index.php)
+			$indexFile = join('/', array($<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php'));
+			if(!file_exists($indexFile))
+				file_put_contents($indexFile, "<?php echo "<?php"?>\n");
+				
+			$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
+			if(!file_exists($verwijderenFile))
+				file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
+		} else {
+			@chmod($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+			@chmod($verwijderenPath, 0755, true);
+		}
+<?php endif;?>
 	}
 <?php 
 endif;
 
 $bsEvents = 0;
-if($generator->generateEvents || $bsEvents): ?>
+if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents)): ?>
 
 	/**
 	 * Before delete attributes
@@ -769,7 +871,7 @@ if($generator->generateEvents || $bsEvents): ?>
 endif;
 
 $bsEvents = 0;
-if($generator->generateEvents || $bsEvents): ?>
+if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
 	 * After delete attributes
@@ -777,7 +879,21 @@ if($generator->generateEvents || $bsEvents): ?>
 	public function afterDelete() 
 	{
 		parent::afterDelete();
-		// Create action
+
+<?php if($uploadCondition):
+if($generator->uploadPath['subfolder']):?>
+		$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
+<?php else:?>
+		$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
+<?php endif;
+
+foreach($tableSchema->columns as $column):
+	if($column->type == 'text' && $column->comment == 'file') {?>
+		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>])))
+			@unlink($<?php echo $column->name;?>);
+<?php }
+endforeach;
+endif;?>
 	}
 <?php endif; ?>
 }

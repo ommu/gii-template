@@ -47,6 +47,14 @@ class Generator extends \app\libraries\gii\Generator
     public $generateEvents = false;
     public $generateMessage = true;
     private static $_allTableNames = null;
+	public $uploadPath = [
+		'name' => 'mainPath',
+		'directory' => 'public/main',
+	];
+	public $getFunction = false;
+	public $datepicker;
+	public $link='http://opensource.ommu.co';
+	public $getModified = false;
 
     /**
      * @inheritdoc
@@ -70,10 +78,12 @@ class Generator extends \app\libraries\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass'], 'filter', 'filter' => 'trim'],
+			[['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass',
+				'link'], 'filter', 'filter' => 'trim'],
             [['ns', 'queryNs'], 'filter', 'filter' => function($value) { return trim($value, '\\'); }],
 
-            [['db', 'ns', 'tableName', 'baseClass', 'queryNs', 'queryBaseClass'], 'required'],
+            [['db', 'ns', 'tableName', 'baseClass', 'queryNs', 'queryBaseClass',
+				'uploadPath', 'link'], 'required'],
             [['db', 'modelClass', 'queryClass'], 'match', 'pattern' => '/^\w+$/', 'message' => 'Only word characters are allowed.'],
             [['ns', 'baseClass', 'queryNs', 'queryBaseClass'], 'match', 'pattern' => '/^[\w\\\\]+$/', 'message' => 'Only word characters and backslashes are allowed.'],
             [['tableName'], 'match', 'pattern' => '/^([\w ]+\.)?([\w\* ]+)$/', 'message' => 'Only word characters, and optionally spaces, an asterisk and/or a dot are allowed.'],
@@ -85,7 +95,7 @@ class Generator extends \app\libraries\gii\Generator
             [['queryBaseClass'], 'validateClass', 'params' => ['extends' => ActiveQuery::className()]],
             [['generateRelations'], 'in', 'range' => [self::RELATIONS_NONE, self::RELATIONS_ALL, self::RELATIONS_ALL_INVERSE]],
             [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery',
-                'generateEvents'], 'boolean'],
+                'generateEvents', 'getFunction', 'getModified'], 'boolean'],
             [['enableI18N'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
         ]);
@@ -109,8 +119,15 @@ class Generator extends \app\libraries\gii\Generator
             'queryClass' => 'ActiveQuery Class',
             'queryBaseClass' => 'ActiveQuery Base Class',
             'useSchemaName' => 'Use Schema Name',
-            'generateEvents' => 'Generate Events',
+			'generateEvents' => 'Generate Events',
             'generateMessage' => 'Generate Message',
+			'uploadPath[name]'=> 'Upload Path (variable name)',
+			'uploadPath[directory]'=>'Upload Path (path location)',
+			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
+			'getFunction'=>'Create GetFunction',
+			'datepicker'=>'Datepicker',
+			'link'=>'Link Repository',
+			'getModified'=>'Modified',
         ]);
     }
 
@@ -150,7 +167,7 @@ class Generator extends \app\libraries\gii\Generator
                 the namespace part as it is specified in "ActiveQuery Namespace". You do not need to specify the class name
                 if "Table Name" ends with asterisk, in which case multiple ActiveQuery classes will be generated.',
             'queryBaseClass' => 'This is the base class of the new ActiveQuery class. It should be a fully qualified namespaced class name.',
-            'generateEvents' => 'Should we generate event afterSave, before/afterDelete, afterValidate etc. <code>default: false</code>',
+			'generateEvents' => 'Should we generate event afterSave, before/afterDelete, afterValidate etc. <code>default: false</code>',
             'generateMessage' => 'Should we generate messages for multi language support. <code>default: true</code>',
         ]);
     }
@@ -186,7 +203,7 @@ class Generator extends \app\libraries\gii\Generator
      */
     public function stickyAttributes()
     {
-        return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass']);
+		return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass', 'datepicker', 'link']);
     }
 
     /**
