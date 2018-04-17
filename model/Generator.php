@@ -313,7 +313,8 @@ class Generator extends \app\libraries\gii\Generator
 			$r=!$column->allowNull && $column->defaultValue === null;
             if ($r && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) {
                 $types['required'][] = $column->name;
-            }
+			}
+			$typeRules = ['required','integer','string','number','double','boolean','safe'];
             switch ($column->type) {
                 case Schema::TYPE_SMALLINT:
                 case Schema::TYPE_INTEGER:
@@ -335,12 +336,16 @@ class Generator extends \app\libraries\gii\Generator
                 case Schema::TYPE_TIMESTAMP:
                     $types['safe'][] = $column->name;
                     break;
-                default: // strings
-                    if ($column->size > 0) {
-                        $lengths[$column->size][] = $column->name;
-                    } else {
-                        $types['string'][] = $column->name;
-                    }
+				default: // strings
+					if ($column->type == 'tinyint') {
+						$types['integer'][] = $column->name;
+					} else {
+						if ($column->size > 0) {
+							$lengths[$column->size][] = $column->name;
+						} else {
+							$types['string'][] = $column->name;
+						}
+					}
             }
 
 			$commentArray = explode(',', $column->comment);
@@ -376,14 +381,24 @@ class Generator extends \app\libraries\gii\Generator
 
 			if($column->type == 'text' && $column->comment == 'file') {
 				$columnName = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
-				$types['safe'][]=$columnName;
 				$types['string'][]=$columnName;
+				$types['safe'][]=$columnName;
 			}
 		}
-        $rules = [];
+		$rules = [];
+		//echo '<pre>';
+		//print_r($types);
+		//print_r($typeRules);
+		foreach ($typeRules as $rule) {
+			//echo  $rule."\n";
+			if(!empty($types[$rule]))
+				$rules[] = "[['" . implode("', '", $types[$rule]) . "'], '$rule']";
+		}
+		/*
         foreach ($types as $type => $columns) {
 			$rules[] = "[['" . implode("', '", $columns) . "'], '$type']";
-        }
+		}
+		*/
         foreach ($lengths as $length => $columns) {
 			$rules[] = "[['" . implode("', '", $columns) . "'], 'string', 'max' => $length]";
         }

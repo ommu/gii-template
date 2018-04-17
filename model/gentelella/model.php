@@ -130,7 +130,6 @@ use yii\helpers\Html;
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $publishCondition ? "use ".ltrim('app\libraries\grid\GridView', '\\').";\n" : '';
-echo $i18n || $tagCondition ? "use ".ltrim('app\components\Utility', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('app\coremodules\user\models\Users', '\\').";\n" : '';
@@ -138,6 +137,7 @@ echo $userCondition ? "use ".ltrim('app\coremodules\user\models\Users', '\\').";
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
+<?php echo $i18n || $tagCondition || $uploadCondition ? "\tuse \\".ltrim('\app\components\traits\FileSystem', '\\').";\n\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 //echo '<pre>';
@@ -250,7 +250,7 @@ $getNameAttribute = $generator->getNameAttribute();?>
 	 */
 	public function rules()
 	{
-        return [<?= "\n            " . implode(",\n            ", preg_replace($patternClass, '', $rules)) . ",\n        " ?>];
+		return [<?= "\n			" . implode(",\n			", preg_replace($patternClass, '', $rules)) . ",\n		" ?>];
 	}
 
 	/**
@@ -699,18 +699,17 @@ if($uploadCondition):
 		if($column->type == 'text' && $column->comment == 'file') {?>
 
 			$<?php echo $column->name;?>FileType = ['bmp','gif','jpg','png'];
-			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-			if($this-><?php echo $column->name;?> != null) {
-				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
-					if(!in_array(strtolower($this-><?php echo $column->name;?>->extension), $<?php echo $column->name;?>FileType)) {
-						$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
-							'{name}'=>$this-><?php echo $column->name;?>->name,
-							'{extensions}'=>Utility::formatFileType($<?php echo $column->name;?>FileType, false),
-						)));
-					}
+			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+
+			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
+				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $column->name;?>FileType)) {
+					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
+						'{name}'=>$<?php echo $column->name;?>->name,
+						'{extensions}'=>$this->formatFileType($<?php echo $column->name;?>FileType, false),
+					)));
 				}
 			} /* else {
-				//if($insert && $controller == 'o/media')
+				//if($this->isNewRecord && $controller == 'o/media')
 					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', array('{attribute}'=>$this->getAttributeLabel('<?php echo $column->name;?>'))));
 			} */
 <?php 	}
@@ -756,7 +755,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 		$controller = strtolower(Yii::$app->controller->id);
 		$action = strtolower(Yii::$app->controller->action->id);
 
-		$location = Utility::getUrlTitle($module.' '.$controller);
+		$location = $this->getUrlTitle($module.' '.$controller);
 
 <?php }?>
 		if(parent::beforeSave($insert)) {
@@ -781,7 +780,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 					$indexFile = join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php']);
 					if(!file_exists($indexFile))
 						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
-						
+
 					$verwijderenFile = join('/', [$verwijderenPath, 'index.php']);
 					if(!file_exists($verwijderenFile))
 						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
@@ -793,15 +792,13 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-				if($this-><?php echo $column->name;?> != null) {
-					if($this-><?php echo $column->name;?> instanceof UploadedFile) {
-						$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->extension); 
-						if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName]))) {
-							if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i])))
-								rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'_'.$this->old_<?php echo $column->name;?>_i]));
-							$this-><?php echo $column->name;?> = $fileName;
-							//@chmod($fileName, 0777);
-						}
+
+				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
+					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+					if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName]))) {
+						if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i])))
+							rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, time().'_change_'.$this->old_<?php echo $column->name;?>_i]));
+						$this-><?php echo $column->name;?> = $fileName;
 					}
 				} else {
 					if($this-><?php echo $column->name;?> == '')
@@ -825,7 +822,7 @@ foreach($tableSchema->columns as $column):
 		$relationName =  lcfirst(Inflector::singularize($relationArray[0]));
 		$publicAttribute = $relationName.'_i';?>
 			if($insert) {
-				$<?php echo $publicAttribute;?> = Utility::getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
+				$<?php echo $publicAttribute;?> = $this->getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
 				if($this-><?php echo $column->name;?> == 0) {
 					$<?php echo $relationName;?> = self::find()
 						->select(['<?php echo $column->name;?>', 'body'])
@@ -857,7 +854,7 @@ foreach($tableSchema->columns as $column):
 					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
 				
 			} else {
-				$<?php echo $column->name;?> = SourceMessage::findOne($this->name);
+				$<?php echo $column->name;?> = SourceMessage::findOne($this-><?php echo $column->name;?>);
 				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
 				$<?php echo $column->name;?>->save();
 			}
@@ -913,12 +910,11 @@ if($generator->uploadPath['subfolder']):?>
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
 			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-			if($this-><?php echo $column->name;?> != null) {
-				if($this-><?php echo $column->name;?> instanceof UploadedFile) {
-					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->extension); 
-					if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName])))
-						self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' = $this-><?php echo $primaryKey;?>]);
-				}
+
+			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
+				$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+				if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName])))
+					self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' => $this-><?php echo $primaryKey;?>]);
 			}
 
 <?php }
@@ -966,8 +962,7 @@ if($generator->uploadPath['subfolder']):?>
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
 		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>])))
-			rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'_'.$this-><?php echo $column->name;?>]));
-			//@unlink($<?php echo $column->name;?>);
+			rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, time().'_deleted_'.$this-><?php echo $column->name;?>]));
 <?php }
 endforeach;
 endif;?>
