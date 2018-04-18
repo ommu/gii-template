@@ -12,7 +12,7 @@ use yii\helpers\Inflector;
 $modelClass = StringHelper::basename($generator->modelClass);
 $searchModelClass = StringHelper::basename($generator->searchModelClass);
 if ($modelClass === $searchModelClass) {
-    $modelAlias = $modelClass . 'Model';
+	$modelAlias = $modelClass . 'Model';
 }
 $rules = $generator->generateSearchRules();
 $labels = $generator->generateSearchLabels();
@@ -34,16 +34,16 @@ $patternClass[1] = '(Swt)';
  */
 $userCondition = 0;
 foreach ($tableSchema->columns as $column) {
-    if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))
-        $userCondition = 1;
+	if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id')))
+		$userCondition = 1;
 }
 
 $relationModel = [];
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 foreach ($tableSchema->columns as $column): 
 if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))) {
-    $relationTableName = array_search($column->name, $foreignKeys);
-    $relationModel[] = $relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
+	$relationTableName = array_search($column->name, $foreignKeys);
+	$relationModel[] = $relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
 }
 endforeach;
 
@@ -51,17 +51,17 @@ $publicVariable = array();
 $relationVariable = array();
 foreach ($tableSchema->columns as $column): 
 if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
-    $relationTableName = array_search($column->name, $foreignKeys);
-    $relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-    $relationVariable[] = $relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-    $publicVariable[] = $relationSearchName = $relationName.'_search';
+	$relationTableName = array_search($column->name, $foreignKeys);
+	$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
+	$relationVariable[] = $relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
+	$publicVariable[] = $relationSearchName = $relationName.'_search';
 endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
 if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
-    $relationNameArray = explode('_', $column->name);
-    $relationVariable[] = $relationName = lcfirst($relationNameArray[0]);
-    $publicVariable[] = $relationSearchName = $relationName.'_search';
+	$relationNameArray = explode('_', $column->name);
+	$relationVariable[] = $relationName = lcfirst($relationNameArray[0]);
+	$publicVariable[] = $relationSearchName = $relationName.'_search';
 endif;
 endforeach;
 
@@ -96,10 +96,10 @@ use yii\data\ActiveDataProvider;
 use <?= ltrim($generator->modelClass, '\\') . (isset($modelAlias) ? " as $modelAlias" : "") ?>;
 <?php if(!empty($relationModel)) {
 foreach ($relationModel as $val):
-    $modelClassArray = explode('\\', $generator->modelClass);
-    // Only variables should be passed by reference
-    $arrKeys = array_keys($modelClassArray);
-    $modelClassArray[array_pop($arrKeys)] = $val;
+	$modelClassArray = explode('\\', $generator->modelClass);
+	// Only variables should be passed by reference
+	$arrKeys = array_keys($modelClassArray);
+	$modelClassArray[array_pop($arrKeys)] = $val;
 echo '//use '.implode('\\', $modelClassArray).";\n";
 endforeach;
 }
@@ -107,115 +107,115 @@ echo $userCondition ? "//use ".ltrim('app\coremodules\user\models\Users', '\\').
 
 class <?= $searchModelClass ?> extends <?= (isset($modelAlias) ? $modelAlias : $modelClass). "\n"; ?>
 {
-    /**
-     * @inheritdoc
-     */
-    public function rules()
-    {
-        return [
+	/**
+	 * @inheritdoc
+	 */
+	public function rules()
+	{
+		return [
 <?php
 foreach($rules as $rule):
 if(count($rule->columns)):
-    // Jika public var ada merge ke safe rule columns
-    if($rule->ruleType == 'safe' && !empty($publicVariable)) {
-        $rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, $publicVariable);
-    }
+	// Jika public var ada merge ke safe rule columns
+	if($rule->ruleType == 'safe' && !empty($publicVariable)) {
+		$rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, $publicVariable);
+	}
 ?>
 <?php echo "\t\t\t[['".implode("', '", $rule->columns)?>'], '<?=$rule->ruleType?>'],
 <?php endif;
 endforeach;?>
-        ];
-    }
+		];
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function scenarios()
+	{
+		// bypass scenarios() implementation in the parent class
+		return Model::scenarios();
+	}
 
-    /**
-     * Tambahkan fungsi beforeValidate ini pada model search untuk menumpuk validasi pd model induk. 
-     * dan "jangan" tambahkan parent::beforeValidate, cukup "return true" saja.
-     * maka validasi yg akan dipakai hanya pd model ini, semua script yg ditaruh di beforeValidate pada model induk
-     * tidak akan dijalankan.
-     */
-    public function beforeValidate() {
-        return true;
-    }
+	/**
+	 * Tambahkan fungsi beforeValidate ini pada model search untuk menumpuk validasi pd model induk. 
+	 * dan "jangan" tambahkan parent::beforeValidate, cukup "return true" saja.
+	 * maka validasi yg akan dipakai hanya pd model ini, semua script yg ditaruh di beforeValidate pada model induk
+	 * tidak akan dijalankan.
+	 */
+	public function beforeValidate() {
+		return true;
+	}
 
-    /**
-     * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     * @return ActiveDataProvider
-     */
-    public function search($params)
-    {
-        $query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
+	/**
+	 * Creates data provider instance with search query applied
+	 *
+	 * @param array $params
+	 * @return ActiveDataProvider
+	 */
+	public function search($params)
+	{
+		$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
 <?php 
 //echo '<pre>';
 //print_r($relationVariable);
 if(!empty($relationVariable)):
 foreach ($relationVariable as $key => $val):
-    $relationVariable[$key] = $val.' '.$val;
+	$relationVariable[$key] = $val.' '.$val;
 endforeach;
 echo "\t\t";?>$query->joinWith([<?php echo "'" .implode("', '", $relationVariable). "'";?>]);
 <?php endif;?>
 
-        // add conditions that should always apply here
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-        ]);
+		// add conditions that should always apply here
+		$dataProvider = new ActiveDataProvider([
+			'query' => $query,
+		]);
 
-        $attributes = array_keys($this->getTableSchema()->columns);
+		$attributes = array_keys($this->getTableSchema()->columns);
 <?php 
 if(!empty($publicVariable)):
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 foreach ($tableSchema->columns as $column): 
-    if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
-        $relationTableName = array_search($column->name, $foreignKeys);
-        $relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-        $relationAttributeName = $generator->getNameAttribute($relationTableName);
-        //echo $relationModelName.' xxx '.$relationTableName;
-        $relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-        $relationSearchName = $relationName.'_search';?>
-        $attributes['<?php echo $relationSearchName;?>'] = [
-            'asc' => ['<?php echo $relationName;?>.<?php echo $relationAttributeName;?>' => SORT_ASC],
-            'desc' => ['<?php echo $relationName;?>.<?php echo $relationAttributeName;?>' => SORT_DESC],
-        ];
+	if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+		$relationTableName = array_search($column->name, $foreignKeys);
+		$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
+		$relationAttributeName = $generator->getNameAttribute($relationTableName);
+		//echo $relationModelName.' xxx '.$relationTableName;
+		$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
+		$relationSearchName = $relationName.'_search';?>
+		$attributes['<?php echo $relationSearchName;?>'] = [
+			'asc' => ['<?php echo $relationName;?>.<?php echo $relationAttributeName;?>' => SORT_ASC],
+			'desc' => ['<?php echo $relationName;?>.<?php echo $relationAttributeName;?>' => SORT_DESC],
+		];
 <?php endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
-    if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
-        $relationNameArray = explode('_', $column->name);
-        $relationName = lcfirst($relationNameArray[0]);
-        $relationSearchName = $relationName.'_search'; ?>
-        $attributes['<?php echo $relationSearchName;?>'] = [
-            'asc' => ['<?php echo $relationName;?>.displayname' => SORT_ASC],
-            'desc' => ['<?php echo $relationName;?>.displayname' => SORT_DESC],
-        ];
+	if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+		$relationNameArray = explode('_', $column->name);
+		$relationName = lcfirst($relationNameArray[0]);
+		$relationSearchName = $relationName.'_search'; ?>
+		$attributes['<?php echo $relationSearchName;?>'] = [
+			'asc' => ['<?php echo $relationName;?>.displayname' => SORT_ASC],
+			'desc' => ['<?php echo $relationName;?>.displayname' => SORT_DESC],
+		];
 <?php endif;
 endforeach;
 endif;?>
-        $dataProvider->setSort([
-            'attributes' => $attributes,
-            'defaultOrder' => ['<?php echo $tableSchema->primaryKey[0]?>' => SORT_DESC],
-        ]);
+		$dataProvider->setSort([
+			'attributes' => $attributes,
+			'defaultOrder' => ['<?php echo $tableSchema->primaryKey[0]?>' => SORT_DESC],
+		]);
 
-        $this->load($params);
+		$this->load($params);
 
-        if(!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
-            return $dataProvider;
-        }
+		if(!$this->validate()) {
+			// uncomment the following line if you do not want to return any records when validation fails
+			// $query->where('0=1');
+			return $dataProvider;
+		}
 
-        // grid filtering conditions
-        <?php echo implode("\n\t\t", $searchConditions); ?>
+		// grid filtering conditions
+		<?php echo implode("\n\t\t", $searchConditions); ?>
 
-        return $dataProvider;
-    }
+		return $dataProvider;
+	}
 }
