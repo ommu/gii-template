@@ -936,15 +936,18 @@ foreach($columns as $name=>$column):
 <?php endif;
 endforeach;
 foreach($columns as $name=>$column):
-	if($name == 'tag_id'):
+	if($name == 'tag_id') {
 		$relationArray = explode('_', $name);
 		$relationName = $relationArray[0];
-		$publicAttribute = $relationName.'_i';?>
-		$this-><?php echo $publicAttribute;?> = $this-><?php echo $relationName;?>->body;
+		$publicAttribute = $relationName.'_i';
+		echo "\t\t\$this->$publicAttribute = \$this->{$relationName}->body;";
+	} else {
+		if($column->dbType == 'text' && $column->comment == 'file') {
+			$publicAttribute = 'old_'.$name.'_i';
+			echo "\t\t\$this->$publicAttribute = \$this->$name;";
+		}
 	}
-<?php endif;
 endforeach; ?>
-		
 		parent::afterFind();
 	}
 <?php }
@@ -1062,7 +1065,7 @@ if($uploadCondition) {?>
 						$fileName = time().'_'.$this-><?php echo $primaryKeyColumn;?>.'.'.strtolower($this-><?php echo $name;?>->extensionName);
 						if($this-><?php echo $name;?>->saveAs(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $fileName)))) {
 							if($this->old_<?php echo $name;?>_i != '' && file_exists(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this->old_<?php echo $name;?>_i))))
-								rename(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this->old_<?php echo $name;?>_i)), join('/', array($verwijderenPath, $this-><?php echo $primaryKeyColumn;?>.'_'.$this->old_<?php echo $name;?>_i)));
+								rename(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this->old_<?php echo $name;?>_i)), join('/', array($verwijderenPath, time().'_change_'.$this->old_<?php echo $name;?>_i)));
 							$this-><?php echo $name;?> = $fileName;
 						}
 					}
@@ -1225,7 +1228,7 @@ if($uploadCondition) {
 <?php foreach($columns as $name=>$column) {
 		if($column->dbType == 'text' && $column->comment == 'file') {?>
 		if($this-><?php echo $name;?> != '' && file_exists(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this-><?php echo $name;?>))))
-			rename(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this-><?php echo $name;?>)), join('/', array($verwijderenPath, $this-><?php echo $primaryKeyColumn; ?>.'_'.$this-><?php echo $name;?>)));
+			rename(join('/', array($<?php echo lcfirst($this->uploadPathNameSource);?>, $this-><?php echo $name;?>)), join('/', array($verwijderenPath, time().'_deleted_'.$this-><?php echo $name;?>)));
 <?php 	}
 	}
 }?>
