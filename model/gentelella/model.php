@@ -51,6 +51,8 @@ else
  * foreignKeys Column
  */
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
+//echo '<pre>';
+//print_r($foreignKeys);
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
@@ -98,7 +100,7 @@ foreach ($tableSchema->columns as $column):
 		$slugCondition = 1;
 	elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
 		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst($relationNameArray[0]);
+		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
 		if(!in_array($relationName, $arrayRelations)) {
 			if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 				echo " * @property Users \${$relationName}\n";
@@ -115,8 +117,11 @@ foreach ($tableSchema->columns as $column):
 			$uploadCondition = 1;
 		else {
 			$commentArray = explode(',', $column->comment);
-			if(in_array('trigger[delete]', $commentArray))
+			if(in_array('trigger[delete]', $commentArray)) {
 				$i18n = 1;
+				$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
+				echo " * @property SourceMessage \${$relationName}\n";
+			}
 		}
 	}
 endforeach;
@@ -293,8 +298,8 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['tag_id'])) {
-		$relationArray = explode('_', $column->name);
-		$relationName = lcfirst(Inflector::singularize($relationArray[0]));
+		$relationNameArray = explode('_', $column->name);
+		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
 		$attributeName = $relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
@@ -338,8 +343,8 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-		$relationArray = explode('_', $column->name);
-		$attributeName = lcfirst(Inflector::singularize($relationArray[0])).'_search';
+		$relationNameArray = explode('_', $column->name);
+		$attributeName = lcfirst(Inflector::singularize($relationNameArray[0])).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
 			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $attributeName)));
@@ -434,63 +439,108 @@ if($queryClassName):
 			'contentOptions' => ['class'=>'center'],
 		];
 <?php 
-echo '<pre>';
-print_r($tableSchema->columns);
+//echo '<pre>';
+//print_r($tableSchema->columns);
+$arraySearchPublicVariable = [];
 foreach ($tableSchema->columns as $column):
 	if($column->isPrimaryKey || $column->autoIncrement || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
 		continue;
 
-	//if($column->dbType != 'tinyint(1)' && !in_array($column->name, ['publish','headline'])):
-	if($column->type != 'tinyint'):
-		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-	$relationNameArray = explode('_', $column->name);
-	$relationName = lcfirst($relationNameArray[0]);
-	$relationSearchName = $relationName.'_search'; ?>
-		if(!Yii::app()->getRequest()->getParam('<?php echo $relationName;?>')) {
-			$this->templateColumns['<?php echo $relationSearchName;?>'] = [
-				'attribute' => '<?php echo $relationSearchName;?>',
+	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		$relationNameArray = explode('_', $column->name);
+		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
+		$searchPublicVariable = $relationName.'_search';
+		$searchObjectVariable = 'displayname';
+		if($column->name == 'tag_id') {
+			$searchPublicVariable = $relationName.'_i';
+			$searchObjectVariable = 'body';
+		}
+		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+			$arraySearchPublicVariable[] = $searchPublicVariable;?>
+		if(!Yii::$app->request->get('<?php echo $relationName;?>')) {
+			$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
+				'attribute' => '<?php echo $searchPublicVariable;?>',
 				'value' => function($model, $key, $index, $column) {
-					return isset($model-><?php echo $relationName;?>->displayname) ? $model-><?php echo $relationName;?>->displayname : '-';
+					return isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $searchObjectVariable;?> : '-';
 				},
 			];
 		}
-<?php 	elseif(in_array($column->dbType, ['timestamp','datetime','date'])):?>
-		$this->templateColumns['<?php echo $column->name;?>'] = [
-			'attribute' => '<?php echo $column->name;?>',
-			'filter'	=> \yii\jui\DatePicker::widget([
+<?php 	}
+	} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
+		$searchPublicVariable = $column->name;
+		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+			$arraySearchPublicVariable[] = $searchPublicVariable;?>
+		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
+			'attribute' => '<?php echo $searchPublicVariable;?>',
+<?php if($generator->datepicker):?>
+			'filter' => \yii\jui\DatePicker::widget([
 				'dateFormat' => 'yyyy-MM-dd',
 				'attribute' => '<?php echo $column->name;?>',
 				'model'  => $this,
 			]),
+<?php endif;?>
 			'value' => function($model, $key, $index, $column) {
-				if(!in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "\n\t\t\t\t\t['0000-00-00','1970-01-01','-0001-11-30']" : "\n\t\t\t\t\t['0000-00-00 00:00:00','1970-01-01 00:00:00','-0001-11-30 00:00:00']";?>)) {
-					return Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'date';?>'/*datetime*/);
-				}else {
-					return '-';
-				}
+				return !in_array($model-><?php echo $column->name;?>, <?php echo $column->type == 'date' ? '[\'0000-00-00\',\'1970-01-01\',\'-0001-11-30\']' : '[\'0000-00-00 00:00:00\',\'1970-01-01 00:00:00\',\'-0001-11-30 00:00:00\']';?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-';
 			},
-			'format'	=> 'html',
+			'format' => 'html',
 		];
-<?php 	else:
-			if(!empty($foreignKeys) && in_array($column->name, $foreignKeys)):
-				$relationTableName = array_search($column->name, $foreignKeys);
-				$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-				$relationAttributeName = $generator->getNameAttribute($relationTableName);
-				$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-				$relationSearchName = $relationName.'_search';?>
-		if(!isset($_GET['<?php echo $relationName;?>'])) {
-			$this->templateColumns['<?php echo $relationSearchName;?>'] = [
-				'attribute' => '<?php echo $relationSearchName;?>',
+<?php 	}
+	} else {
+		if(!empty($foreignKeys) && in_array($column->name, $foreignKeys)) {
+			$relationTableName = array_search($column->name, $foreignKeys);
+			$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
+			$relationAttributeName = $generator->getNameAttribute($relationTableName);
+			$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
+			$searchPublicVariable = $relationName.'_search';
+			if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+				$arraySearchPublicVariable[] = $searchPublicVariable;?>
+		if(!Yii::$app->request->get('<?php echo $relationName;?>')) {
+			$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
+				'attribute' => '<?php echo $searchPublicVariable;?>',
 				'value' => function($model, $key, $index, $column) {
 					return $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?>;
 				},
 			];
 		}
-<?php 		else:?>
-		$this->templateColumns['<?php echo $column->name;?>'] = '<?php echo $column->name;?>';
-<?php	 	endif;
-		endif;
-	endif;
+<?php 		}
+		} else if($column->type == 'text' && $column->comment == 'file') {
+			$searchPublicVariable = $column->name;
+			if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+				$arraySearchPublicVariable[] = $searchPublicVariable;?>
+		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
+			'attribute' => '<?php echo $searchPublicVariable;?>',
+			'value' => function($model, $key, $index, $column) {
+				return $model-><?php echo $searchPublicVariable;?>;
+			},
+		];
+<?php 		}
+		} else {
+			$translateCondition = 0;
+			$commentArray = explode(',', $column->comment);
+			$searchPublicVariable = $column->name;
+			if(in_array('trigger[delete]', $commentArray)) {
+				$searchPublicVariable = $column->name.'_i';
+				$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+				$translateCondition = 1;
+			}
+			if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+				$arraySearchPublicVariable[] = $searchPublicVariable;?>
+		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
+			'attribute' => '<?php echo $searchPublicVariable;?>',
+			'value' => function($model, $key, $index, $column) {
+<?php if($translateCondition):?>
+				return isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-';
+<?php else:?>
+				return $model-><?php echo $searchPublicVariable;?>;
+<?php endif;?>
+			},
+<?php if(($translateCondition && in_array('redactor', $commentArray)) || ($column->type == 'text' && $column->comment == 'redactor')):?>
+			'format' => 'html',
+<?php endif;?>
+		];
+<?php 		}
+		}
+	}
 endforeach;
 
 foreach ($tableSchema->columns as $column):
@@ -526,7 +576,7 @@ foreach ($tableSchema->columns as $column):
 <?php endif;?>
 			},
 			'contentOptions' => ['class'=>'center'],
-			'format'	=> 'raw',
+			'format' => 'raw',
 		];
 <?php endif;
 endforeach;
@@ -831,8 +881,8 @@ foreach($tableSchema->columns as $column):
 		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
 
 	else if($column->name == 'tag_id') {
-		$relationArray = explode('_', $column->name);
-		$relationName =  lcfirst(Inflector::singularize($relationArray[0]));
+		$relationNameArray = explode('_', $column->name);
+		$relationName =  lcfirst(Inflector::singularize($relationNameArray[0]));
 		$publicAttribute = $relationName.'_i';?>
 			if($insert) {
 				$<?php echo $publicAttribute;?> = $this->getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
