@@ -487,6 +487,8 @@ foreach ($tableSchema->columns as $column):
 				'attribute' => '<?php echo $column->name;?>',
 				'model'  => $this,
 			]),
+<?php else:?>
+			'filter' => Html::input('date', '<?php echo $column->name;?>', Yii::$app->request->get('<?php echo $column->name;?>'), ['class'=>'form-control']),
 <?php endif;?>
 			'value' => function($model, $key, $index, $column) {
 				return !in_array($model-><?php echo $column->name;?>, <?php echo $column->type == 'date' ? '[\'0000-00-00\',\'1970-01-01\',\'-0001-11-30\']' : '[\'0000-00-00 00:00:00\',\'1970-01-01 00:00:00\',\'-0001-11-30 00:00:00\']';?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-';
@@ -635,7 +637,7 @@ endforeach;
 //echo '<pre>';
 //print_r($tableSchema->columns);
 if(($tableType != Generator::TYPE_VIEW) && $generator->getFunction):
-	$functionName = $generator->setRelationName($className);
+	$functionName = $generator->setRelationName($className, true);
 	//echo $functionName."\n";
 	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));
 	//echo $attributeName."\n";;?>
