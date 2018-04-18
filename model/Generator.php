@@ -49,13 +49,12 @@ class Generator extends \app\libraries\gii\Generator
     public $generateMessage = true;
     private static $_allTableNames = null;
 	public $uploadPath = [
-		'name' => 'mainPath',
 		'directory' => 'public/main',
 	];
-	public $getFunction = false;
-	public $datepicker;
+	public $useGetFunction = false;
+	public $useJuiDatePicker = false;
 	public $link='http://opensource.ommu.co';
-	public $getModified = false;
+	public $useModified = false;
 
     /**
      * @inheritdoc
@@ -96,7 +95,7 @@ class Generator extends \app\libraries\gii\Generator
             [['queryBaseClass'], 'validateClass', 'params' => ['extends' => ActiveQuery::className()]],
             [['generateRelations'], 'in', 'range' => [self::RELATIONS_NONE, self::RELATIONS_ALL, self::RELATIONS_ALL_INVERSE]],
             [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery', 'generateRelationsFromCurrentSchema',
-                'generateEvents', 'getFunction', 'getModified'], 'boolean'],
+                'generateEvents', 'useGetFunction', 'useJuiDatePicker', 'useModified'], 'boolean'],
             [['enableI18N'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
         ]);
@@ -123,13 +122,12 @@ class Generator extends \app\libraries\gii\Generator
             'useSchemaName' => 'Use Schema Name',
 			'generateEvents' => 'Generate Events',
             'generateMessage' => 'Generate Message',
-			'uploadPath[name]'=> 'Upload Path (variable name)',
 			'uploadPath[directory]'=>'Upload Path (path location)',
-			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
-			'getFunction'=>'Create GetFunction',
-			'datepicker'=>'Datepicker',
+			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
+			'useGetFunction'=>'Use Get Function',
+			'useJuiDatePicker' => 'Use JQuery DatePicker',
 			'link'=>'Link Repository',
-			'getModified'=>'Modified',
+			'useModified'=>'Use Modified Info',
         ]);
     }
 
@@ -172,6 +170,9 @@ class Generator extends \app\libraries\gii\Generator
             'queryBaseClass' => 'This is the base class of the new ActiveQuery class. It should be a fully qualified namespaced class name.',
 			'generateEvents' => 'Should we generate event afterSave, before/afterDelete, afterValidate etc. <code>default: false</code>',
             'generateMessage' => 'Should we generate messages for multi language support. <code>default: true</code>',
+			'useGetFunction' => 'Use simple GET function in models. <code>default: false</code>',
+			'useJuiDatePicker' => 'Use JUI DatePicker or use html5 date picker. <code>default: false</code>',
+			'useModified' => 'Use generate-source modified info. <code>default: false</code>',
         ]);
     }
 
@@ -206,7 +207,7 @@ class Generator extends \app\libraries\gii\Generator
      */
     public function stickyAttributes()
     {
-		return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass', 'useTablePrefix', 'generateQuery', 'datepicker', 'link']);
+		return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass', 'useTablePrefix', 'generateQuery', 'link']);
     }
 
     /**

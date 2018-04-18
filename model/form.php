@@ -66,35 +66,32 @@ echo $form->field($generator, 'useSchemaName', ['template' => '{label}<div class
     ->checkbox()
     ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
-echo $form->field($generator, 'generateEvents', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
-    ->checkbox()
-    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
-
 echo $form->field($generator, 'generateMessage', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
     ->checkbox()
     ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
-echo $form->field($generator, 'uploadPath[name]', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}'])
-    ->label($generator->getAttributeLabel('uploadPath[name]'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'generateEvents', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
+    ->checkbox()
+    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
 echo $form->field($generator, 'uploadPath[directory]', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}'])
     ->label($generator->getAttributeLabel('uploadPath[directory]'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
 echo $form->field($generator, 'uploadPath[subfolder]', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
-    ->checkbox(['label'=>''])
-    ->label($generator->getAttributeLabel('uploadPath[subfolder]'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+    ->checkbox(['label'=>$generator->getAttributeLabel('uploadPath[subfolder]')])
+    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
-echo $form->field($generator, 'datepicker', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
-    ->dropDownList(['0' => 'Native', '1' => 'jQuery UI'])
-    ->label($generator->getAttributeLabel('datepicker'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'useJuiDatePicker', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
+	->checkbox()
+    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
-echo $form->field($generator, 'getFunction', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
+echo $form->field($generator, 'useGetFunction', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
+    ->checkbox()
+    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+	
+echo $form->field($generator, 'useModified', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
     ->checkbox()
     ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
 echo $form->field($generator, 'link', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}	'])
 	->label($generator->getAttributeLabel('link'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
-	
-echo $form->field($generator, 'getModified', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
-    ->checkbox()
-    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);

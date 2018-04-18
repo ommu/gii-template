@@ -65,7 +65,7 @@ echo "<?php\n";
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($generator->getModified):?>
+<?php if($generator->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
 <?php endif; ?>
@@ -481,7 +481,7 @@ foreach ($tableSchema->columns as $column):
 			$arraySearchPublicVariable[] = $searchPublicVariable;?>
 		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
 			'attribute' => '<?php echo $searchPublicVariable;?>',
-<?php if($generator->datepicker):?>
+<?php if($generator->useJuiDatePicker):?>
 			'filter' => \yii\jui\DatePicker::widget([
 				'dateFormat' => 'yyyy-MM-dd',
 				'attribute' => '<?php echo $column->name;?>',
@@ -636,7 +636,7 @@ endforeach;
 <?php
 //echo '<pre>';
 //print_r($tableSchema->columns);
-if(($tableType != Generator::TYPE_VIEW) && $generator->getFunction):
+if(($tableType != Generator::TYPE_VIEW) && $generator->useGetFunction):
 	$functionName = $generator->setRelationName($className, true);
 	//echo $functionName."\n";
 	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));
@@ -683,7 +683,7 @@ if($uploadCondition):
 	 * @param returnAlias set true jika ingin kembaliannya path alias atau false jika ingin string
 	 * relative path. default true.
 	 */
-	public static function get<?php echo ucfirst($generator->uploadPath['name']);?>($returnAlias=true) 
+	public static function getUploadPath($returnAlias=true) 
 	{
 		return ($returnAlias ? Yii::getAlias('<?php echo $returnAlias;?>') : '<?php echo $directoryPath;?>');
 	}
@@ -818,22 +818,22 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 <?php if($uploadCondition):?>
 			if(!$insert) {
 <?php if($generator->uploadPath['subfolder']):?>
-				$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
+				$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
 <?php else:?>
-				$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
+				$uploadPath = self::getUploadPath();
 <?php endif;?>
-				$verwijderenPath = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen']);
+				$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
 
 				// Add directory
-				if(!file_exists($<?php echo lcfirst($generator->uploadPath['name']);?>) || !file_exists($verwijderenPath)) {
+				if(!file_exists($uploadPath) || !file_exists($verwijderenPath)) {
 <?php if($generator->uploadPath['subfolder']):?>
-					@mkdir(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 0755, true);
+					@mkdir(self::getUploadPath(), 0755, true);
 <?php endif;?>
-					@mkdir($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+					@mkdir($uploadPath, 0755, true);
 					@mkdir($verwijderenPath, 0755, true);
 
 					// Add file in directory (index.php)
-					$indexFile = join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php']);
+					$indexFile = join('/', [$uploadPath, 'index.php']);
 					if(!file_exists($indexFile))
 						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
 
@@ -841,7 +841,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 					if(!file_exists($verwijderenFile))
 						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 				} else {
-					@chmod($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+					@chmod($uploadPath, 0755, true);
 					@chmod($verwijderenPath, 0755, true);
 				}
 
@@ -851,9 +851,9 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 
 				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
-					if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName]))) {
-						if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i])))
-							rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, time().'_change_'.$this->old_<?php echo $column->name;?>_i]));
+					if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName]))) {
+						if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>_i])))
+							rename(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, time().'_change_'.$this->old_<?php echo $column->name;?>_i]));
 						$this-><?php echo $column->name;?> = $fileName;
 					}
 				} else {
@@ -934,22 +934,22 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 
 <?php if($uploadCondition):
 if($generator->uploadPath['subfolder']):?>
-		$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
+		$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
 <?php else:?>
-		$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
+		$uploadPath = self::getUploadPath();
 <?php endif;?>
-		$verwijderenPath = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen']);
+		$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
 
 		// Add directory
-		if(!file_exists($<?php echo lcfirst($generator->uploadPath['name']);?>) || !file_exists($verwijderenPath)) {
+		if(!file_exists($uploadPath) || !file_exists($verwijderenPath)) {
 <?php if($generator->uploadPath['subfolder']):?>
-			@mkdir(self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 0755, true);
+			@mkdir(self::getUploadPath(), 0755, true);
 <?php endif;?>
-			@mkdir($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+			@mkdir($uploadPath, 0755, true);
 			@mkdir($verwijderenPath, 0755, true);
 
 			// Add file in directory (index.php)
-			$indexFile = join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, 'index.php']);
+			$indexFile = join('/', [$uploadPath, 'index.php']);
 			if(!file_exists($indexFile))
 				file_put_contents($indexFile, "<?php echo "<?php"?>\n");
 				
@@ -957,7 +957,7 @@ if($generator->uploadPath['subfolder']):?>
 			if(!file_exists($verwijderenFile))
 				file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
 		} else {
-			@chmod($<?php echo lcfirst($generator->uploadPath['name']);?>, 0755, true);
+			@chmod($uploadPath, 0755, true);
 			@chmod($verwijderenPath, 0755, true);
 		}
 
@@ -968,7 +968,7 @@ if($generator->uploadPath['subfolder']):?>
 
 			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 				$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
-				if($this-><?php echo $column->name;?>->saveAs(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $fileName])))
+				if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName])))
 					self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' => $this-><?php echo $primaryKey;?>]);
 			}
 
@@ -1008,16 +1008,16 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 
 <?php if($uploadCondition):
 if($generator->uploadPath['subfolder']):?>
-		$<?php echo lcfirst($generator->uploadPath['name']);?> = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), $this-><?php echo $primaryKey;?>]);
+		$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
 <?php else:?>
-		$<?php echo lcfirst($generator->uploadPath['name']);?> = self::get<?php echo ucfirst($generator->uploadPath['name']);?>();
+		$uploadPath = self::getUploadPath();
 <?php endif;?>
-		$verwijderenPath = join('/', [self::get<?php echo ucfirst($generator->uploadPath['name']);?>(), 'verwijderen']);
+		$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
 
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
-		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>])))
-			rename(join('/', [$<?php echo lcfirst($generator->uploadPath['name']);?>, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, time().'_deleted_'.$this-><?php echo $column->name;?>]));
+		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this-><?php echo $column->name;?>])))
+			rename(join('/', [$uploadPath, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, time().'_deleted_'.$this-><?php echo $column->name;?>]));
 <?php }
 endforeach;
 endif;?>
