@@ -13,6 +13,7 @@ namespace app\libraries\gii;
 
 use Yii;
 use yii\helpers\VarDumper;
+use yii\helpers\Inflector;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Exception\ParseException;
 
@@ -99,29 +100,43 @@ class Generator extends \yii\gii\Generator
 	/**
 	 * set name relation with underscore
 	 */
-	public function setRelationName($names) 
+	public function setRelationName($names, $model=false) 
 	{
-		$patterns = array();
-		$patterns[0] = '(_ommu)';
-		$patterns[1] = '(_core)';
-		$patterns[2] = '(_swt)';
+		if($model == true) {
+			$patterns = array();
+			$patterns[0] = '(_ommu)';
+			$patterns[1] = '(_core)';
+			$patterns[2] = '(_swt)';
 
-		$char=range("A","Z");
-		foreach($char as $val) {
-			if(strpos($names, $val) !== false) {
-				$names = str_replace($val, '_'.strtolower($val), $names);
+			$char=range("A","Z");
+			foreach($char as $val) {
+				if(strpos($names, $val) !== false) {
+					$names = str_replace($val, '_'.strtolower($val), $names);
+				}
 			}
-		}
-		$return = trim(preg_replace($patterns, '', $names), '_');
-		$return = array_map('ucfirst', explode('_', $return));
-		//print_r($return);
-		if(count($return) != 1)
-			return end($return);
-		else {
-			if(is_array($return))
-				return implode('', $return);
-			else
-				return $return;
+			$return = trim(preg_replace($patterns, '', $names), '_');
+			$return = array_map('ucfirst', explode('_', $return));
+			//print_r($return);
+			if(count($return) != 1)
+				return end($return);
+			else {
+				if(is_array($return))
+					return implode('', $return);
+				else
+					return $return;
+			}
+
+		} else {
+			$key = $names;
+			if (!empty($key) && strcasecmp($key, 'id')) {
+				if (substr_compare($key, 'id', -2, 2, true) === 0) {
+					$key = rtrim(substr($key, 0, -2), '_');
+				} elseif (substr_compare($key, 'id', 0, 2, true) === 0) {
+					$key = ltrim(substr($key, 2, strlen($key)), '_');
+				}
+			}
+			$key = Inflector::singularize(Inflector::id2camel($key, '_'));
+			return lcfirst($key);
 		}
 	}
 	
@@ -131,9 +146,9 @@ class Generator extends \yii\gii\Generator
 		if(!empty($tableForeignKeys)) {
 			foreach($tableForeignKeys as $val) {
 				// Only variables should be passed by reference
-				$arrVal = array_values($val);
 				$arrKey = array_keys($val);
-				$column[array_shift($arrVal)] = array_pop($arrKey);
+				$arrVal = array_values($val);
+				$column[array_pop($arrKey)] = array_shift($arrVal);
 			}
 		}
 	

@@ -244,15 +244,15 @@ class Generator extends \app\libraries\gii\Generator
             $tableType      = $this->getTableType($_tblName);
             $viewPrimaryKey = $this->getMysqlViewColumn($_tblName);
             $params = [
-                'tableName'      => $tableName,
-                'className'      => $modelClassName,
+                'tableName' => $tableName,
+                'className' => $modelClassName,
                 'queryClassName' => $queryClassName,
-                'tableSchema'    => $tableSchema,
+                'tableSchema' => $tableSchema,
                 'properties' => $this->generateProperties($tableSchema),
-                'labels'         => $this->generateLabels($tableSchema),
-                'rules'          => $this->generateRules($tableSchema),
-                'relations'      => isset($relations[$tableName]) ? $relations[$tableName] : [],
-                'tableType'      => $tableType,
+                'labels' => $this->generateLabels($tableSchema),
+                'rules' => $this->generateRules($tableSchema),
+                'relations' => isset($relations[$tableName]) ? $relations[$tableName] : [],
+                'tableType' => $tableType,
                 'viewPrimaryKey' => $viewPrimaryKey,
             ];
             $files[] = new CodeFile(
@@ -930,7 +930,7 @@ class Generator extends \app\libraries\gii\Generator
      * @param bool $useSchemaName should schema name be included in the class name, if present
      * @return string the generated class name
      */
-    protected function generateClassName($tableName, $useSchemaName = null)
+    public function generateClassName($tableName, $useSchemaName = null)
     {
         if (isset($this->classNames[$tableName])) {
             return $this->classNames[$tableName];

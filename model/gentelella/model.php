@@ -74,10 +74,11 @@ echo "<?php\n";
  * This is the model class for table "<?= $generator->generateTableName($tableName) ?>".
  *
  * The followings are the available columns in table "<?= $generator->generateTableName($tableName) ?>":
-<?php foreach ($properties as $property => $data): ?>
+<?php /* foreach ($properties as $property => $data): ?>
  * @property <?= "{$data['type']} \${$property}"  . ($data['comment'] ? ' ' . strtr($data['comment'], ["\n" => ' ']) : '') . "\n" ?>
-<?php endforeach; ?>
-<?php foreach ($tableSchema->columns as $column):
+<?php endforeach; */?>
+<?php 
+foreach ($tableSchema->columns as $column):
 if(!($column->name[0] == '_')): ?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php endif;
@@ -92,7 +93,7 @@ foreach ($relations as $name => $relation):
 $relationModel = preg_replace($patternClass, '', $relation[1]);
 //echo $name."\n";
 //echo $relation[1]."\n";
-$arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelationName($name)) : lcfirst(Inflector::singularize($generator->setRelationName($relation[1]))));?>
+$arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelationName($name, true)) : $generator->setRelationName($name));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php endforeach;
 foreach ($tableSchema->columns as $column):
@@ -103,14 +104,13 @@ foreach ($tableSchema->columns as $column):
 	} elseif($column->name == 'slug') 
 		$slugCondition = 1;
 	elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
+		$relationName = $generator->setRelationName($column->name);
 		if(!in_array($relationName, $arrayRelations)) {
+			$arrayRelations[] = $relationName;
 			if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 				echo " * @property Users \${$relationName}\n";
 			else if($column->name == 'tag_id') 
 				echo " * @property CoreTags \${$relationName}\n";
-			$arrayRelations[] = $relationName;
 		}
 		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 			$userCondition = 1;
@@ -158,41 +158,36 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 foreach ($tableSchema->columns as $column): 
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
-		$inputPublicVariable = lcfirst(Inflector::singularize($column->name)).'_i';
+		$inputPublicVariable = $generator->setRelationName($column->name).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['tag_id'])) {
-		$relationNameArray = explode('_', $column->name);
-		$inputPublicVariable = lcfirst(Inflector::singularize($relationNameArray[0])).'_i';
+		$inputPublicVariable = $generator->setRelationName($column->name).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if(!(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id'])) && $column->type == 'text' && $column->comment == 'file') {
-		$inputPublicVariable = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
+		$inputPublicVariable = 'old_'.$generator->setRelationName($column->name).'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
 endforeach;
 
 foreach ($tableSchema->columns as $column): 
-if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-	$relationTableName = array_search($column->name, $foreignKeys);
-	$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-	$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-	$searchPublicVariable = $relationName.'_search';
+if(!empty($foreignKeys) && in_array($column->name, array_keys($foreignKeys)) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
+	$searchPublicVariable = $generator->setRelationName($column->name).'_search';
 	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
 		$arraySearchPublicVariable[] = $searchPublicVariable;
 endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
 if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-	$relationNameArray = explode('_', $column->name);
-	$searchPublicVariable = lcfirst(Inflector::singularize($relationNameArray[0])).'_search';
+	$searchPublicVariable = $generator->setRelationName($column->name).'_search';
 	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
 		$arraySearchPublicVariable[] = $searchPublicVariable;
 endif;
@@ -289,7 +284,7 @@ endforeach;
 foreach ($tableSchema->columns as $column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
-		$relationName = lcfirst(Inflector::singularize($column->name));
+		$relationName = $generator->setRelationName($column->name);
 		$attributeName = $relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
@@ -302,8 +297,7 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['tag_id'])) {
-		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
+		$relationName = $generator->setRelationName($column->name);
 		$attributeName = $relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
@@ -316,7 +310,7 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {
-		$relationName = lcfirst(Inflector::singularize($column->name));
+		$relationName = $generator->setRelationName($column->name);
 		$attributeName = 'old_'.$relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
@@ -328,14 +322,8 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-		$relationTableName = array_search($column->name, $foreignKeys);
-		//echo $relationTableName."\n";
-		$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-		//echo $relationModelName."\n";
-		$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-		//echo $relationName."\n";
-		$attributeName = $relationName.'_search';
+	if(!empty($foreignKeys) && in_array($column->name, array_keys($foreignKeys)) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
+		$attributeName = $generator->setRelationName($column->name).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
 			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $attributeName)));
@@ -347,8 +335,7 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-		$relationNameArray = explode('_', $column->name);
-		$attributeName = lcfirst(Inflector::singularize($relationNameArray[0])).'_search';
+		$attributeName = $generator->setRelationName($column->name).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
 			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $attributeName)));
@@ -365,8 +352,7 @@ endforeach; ?>
 //print_r($relations);
 $arrayRelations = [];
 foreach ($relations as $name => $relation):
-	$relationName = $relation[2] ? $name : Inflector::singularize($relation[1]);
-	$arrayRelations[] = $relationName = $generator->setRelationName($relationName);
+	$arrayRelations[] = $relationName = ($relation[2] ? ucfirst($generator->setRelationName($name, true)) : ucfirst($generator->setRelationName($name)));
 	//echo $relationName; ?>
 
 	/**
@@ -402,17 +388,19 @@ endif;
 
 foreach ($tableSchema->columns as $column):
 	if(!$column->isPrimaryKey && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
-		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst(Inflector::singularize($relationNameArray[0])); ?>
+		$relationName = ucfirst($generator->setRelationName($column->name));
+		if(!in_array($relationName, $arrayRelations)) {
+			$arrayRelations[] = $relationName; ?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
 	 */
-	public function get<?= ucfirst($relationName) ?>()
+	public function get<?php echo $relationName;?>()
 	{
 		return $this->hasOne(<?php echo $column->name == 'tag_id' ? 'CoreTags' : 'Users';?>::className(), ['<?php echo $column->name == 'tag_id' ? 'tag_id' : 'user_id';?>' => '<?php echo $column->name;?>']);
 	}
-<?php endif;
+<?php 	}
+	endif;
 endforeach;
 
 if($queryClassName): 
@@ -450,9 +438,26 @@ foreach ($tableSchema->columns as $column):
 	if($column->isPrimaryKey || $column->autoIncrement || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
 		continue;
 
-	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
+	if(!empty($foreignKeys) && in_array($column->name, array_keys($foreignKeys))) {
+		$relationTableName = trim($foreignKeys[$column->name]);
+		$relationAttributeName = $generator->getNameAttribute($relationTableName);
+		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
+			$relationAttributeName = 'displayname';
+		$relationName = $generator->setRelationName($column->name);
+		$searchPublicVariable = $relationName.'_search';
+		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+			$arraySearchPublicVariable[] = $searchPublicVariable;?>
+		if(!Yii::$app->request->get('<?php echo $relationName;?>')) {
+			$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
+				'attribute' => '<?php echo $searchPublicVariable;?>',
+				'value' => function($model, $key, $index, $column) {
+					return isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?> : '-';
+				},
+			];
+		}
+<?php 	}
+	} else if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		$relationName = $generator->setRelationName($column->name);
 		$searchPublicVariable = $relationName.'_search';
 		$searchObjectVariable = 'displayname';
 		if($column->name == 'tag_id') {
@@ -490,24 +495,7 @@ foreach ($tableSchema->columns as $column):
 		];
 <?php 	}
 	} else {
-		if(!empty($foreignKeys) && in_array($column->name, $foreignKeys)) {
-			$relationTableName = array_search($column->name, $foreignKeys);
-			$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-			$relationAttributeName = $generator->getNameAttribute($relationTableName);
-			$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-			$searchPublicVariable = $relationName.'_search';
-			if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-				$arraySearchPublicVariable[] = $searchPublicVariable;?>
-		if(!Yii::$app->request->get('<?php echo $relationName;?>')) {
-			$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
-				'attribute' => '<?php echo $searchPublicVariable;?>',
-				'value' => function($model, $key, $index, $column) {
-					return $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?>;
-				},
-			];
-		}
-<?php 		}
-		} else if($column->type == 'text' && $column->comment == 'file') {
+		if($column->type == 'text' && $column->comment == 'file') {
 			$searchPublicVariable = $column->name;
 			if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
 				$arraySearchPublicVariable[] = $searchPublicVariable;?>
@@ -715,13 +703,12 @@ if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCon
 }
 foreach ($tableSchema->columns as $column) {
 	if(in_array($column->name, ['tag_id'])) {
-		$relationNameArray = explode('_', $column->name);
-		$relationName = lcfirst(Inflector::singularize($relationNameArray[0]));
+		$relationName = $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';
 		echo "\t\t\$this->$publicAttribute = isset(\$this->{$relationName}) ? \$this->{$relationName}->body : '';\n";
 	} else {
 		if($column->type == 'text' && $column->comment == 'file') {
-			$inputPublicVariable = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
+			$inputPublicVariable = 'old_'.$generator->setRelationName($column->name).'_i';
 			echo "\t\t\$this->$inputPublicVariable = \$this->$column->name;\n";
 		}
 	}
@@ -885,8 +872,7 @@ foreach($tableSchema->columns as $column):
 		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
 
 	else if($column->name == 'tag_id') {
-		$relationNameArray = explode('_', $column->name);
-		$relationName =  lcfirst(Inflector::singularize($relationNameArray[0]));
+		$relationName =  $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';?>
 			if($insert) {
 				$<?php echo $publicAttribute;?> = $this->getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
