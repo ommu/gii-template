@@ -10,7 +10,7 @@ use yii\helpers\StringHelper;
 $model = new $generator->modelClass();
 $safeAttributes = $model->safeAttributes();
 if (empty($safeAttributes)) {
-	$safeAttributes = $model->attributes();
+    $safeAttributes = $model->attributes();
 }
 
 echo "<?php\n";
@@ -26,17 +26,17 @@ use yii\widgets\ActiveForm;
 
 <div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-form">
 
-	<?= "<?php " ?>$form = ActiveForm::begin(); ?>
+    <?= "<?php " ?>$form = ActiveForm::begin(); ?>
 
 <?php foreach ($generator->getColumnNames() as $attribute) {
-	if (in_array($attribute, $safeAttributes)) {
-		echo "	<?= " . $generator->generateActiveField($attribute) . " ?>\n\n";
-	}
+    if (in_array($attribute, $safeAttributes)) {
+        echo "    <?= " . $generator->generateActiveField($attribute) . " ?>\n\n";
+    }
 } ?>
-	<div class="form-group">
-		<?= "<?= " ?>Html::submitButton($model->isNewRecord ? <?= $generator->generateString('Create') ?> : <?= $generator->generateString('Update') ?>, ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-	</div>
+    <div class="form-group">
+        <?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Save') ?>, ['class' => 'btn btn-success']) ?>
+    </div>
 
-	<?= "<?php " ?>ActiveForm::end(); ?>
+    <?= "<?php " ?>ActiveForm::end(); ?>
 
 </div>
