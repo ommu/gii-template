@@ -272,7 +272,7 @@ $getNameAttribute = $generator->getNameAttribute();?>
 //print_r($labels);
 foreach ($labels as $name => $label):
 if(count(explode(' ', $label)) > 1)
-	$label = trim(preg_replace($patternLabel, '', $label));
+	$label = Inflector::camel2words(Inflector::id2camel($generator->setRelationName(trim(preg_replace($patternLabel, '', $label)))));
 	if(!($name[0] == '_')) {
 		$arrayAttributeName[] = $label;
 		echo "\t\t\t'$name' => " . $generator->generateString($label) . ",\n";

@@ -135,7 +135,11 @@ class Generator extends \yii\gii\Generator
 					$key = ltrim(substr($key, 2, strlen($key)), '_');
 				}
 			}
+			if(strtolower($key) == 'cat')
+				$key = 'category';
+
 			$key = Inflector::singularize(Inflector::id2camel($key, '_'));
+
 			return lcfirst($key);
 		}
 	}
