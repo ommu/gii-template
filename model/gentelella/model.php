@@ -288,7 +288,7 @@ foreach ($tableSchema->columns as $column):
 		$attributeName = $relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $relationName)));
+			$attributeLabels = Inflector::camel2words(Inflector::id2camel($relationName, '_'));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -301,7 +301,7 @@ foreach ($tableSchema->columns as $column):
 		$attributeName = $relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $relationName)));
+			$attributeLabels = Inflector::camel2words(Inflector::id2camel($relationName, '_'));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -314,7 +314,7 @@ foreach ($tableSchema->columns as $column):
 		$attributeName = 'old_'.$relationName.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', 'old_'.$relationName)));
+			$attributeLabels = Inflector::camel2words(Inflector::id2camel('old_'.$relationName, '_'));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -326,7 +326,7 @@ foreach ($tableSchema->columns as $column):
 		$attributeName = $generator->setRelationName($column->name).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $attributeName)));
+			$attributeLabels = Inflector::camel2words(Inflector::id2camel($attributeName, '_'));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -338,7 +338,7 @@ foreach ($tableSchema->columns as $column):
 		$attributeName = $generator->setRelationName($column->name).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = implode(' ', array_map('ucfirst', explode('_', $attributeName)));
+			$attributeLabels = Inflector::camel2words(Inflector::id2camel($attributeName, '_'));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
