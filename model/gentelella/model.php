@@ -9,6 +9,7 @@
 /* @var $className string class name */
 /* @var $queryClassName string query class name */
 /* @var $tableSchema yii\db\TableSchema */
+/* @var $properties array list of properties (property => [type, name. comment]) */
 /* @var $labels string[] list of attribute labels (name => label) */
 /* @var $rules string[] list of validation rules */
 /* @var $relations array list of relations (name => relation declaration) */
@@ -73,6 +74,9 @@ echo "<?php\n";
  * This is the model class for table "<?= $generator->generateTableName($tableName) ?>".
  *
  * The followings are the available columns in table "<?= $generator->generateTableName($tableName) ?>":
+<?php foreach ($properties as $property => $data): ?>
+ * @property <?= "{$data['type']} \${$property}"  . ($data['comment'] ? ' ' . strtr($data['comment'], ["\n" => ' ']) : '') . "\n" ?>
+<?php endforeach; ?>
 <?php foreach ($tableSchema->columns as $column):
 if(!($column->name[0] == '_')): ?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
@@ -259,7 +263,7 @@ $getNameAttribute = $generator->getNameAttribute();?>
 	 */
 	public function rules()
 	{
-		return [<?= "\n			" . implode(",\n			", preg_replace($patternClass, '', $rules)) . ",\n		" ?>];
+		return [<?= empty($rules) ? '' : ("\n			" . implode(",\n			", preg_replace($patternClass, '', $rules)) . ",\n		") ?>];
 	}
 
 	/**
