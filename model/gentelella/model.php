@@ -29,6 +29,7 @@ $patternLabel[1] = '(Search)';
 /**
  * Condition
  */
+$tinyCondition = 0;
 $publishCondition = 0;
 $slugCondition = 0;
 $userCondition = 0;
@@ -89,9 +90,11 @@ $arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelat
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php endforeach;
 foreach ($tableSchema->columns as $column):
-	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','headline']))
-		$publishCondition = 1;
-	elseif($column->name == 'slug') 
+	if($column->dbType == 'tinyint(1)') {
+		$tinyCondition = 1;
+		if(in_array($column->name, ['publish','headline']))
+			$publishCondition = 1;
+	} elseif($column->name == 'slug') 
 		$slugCondition = 1;
 	elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
 		$relationNameArray = explode('_', $column->name);
@@ -129,7 +132,6 @@ use yii\helpers\Html;
 <?php 
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
-echo $publishCondition ? "use ".ltrim('app\libraries\grid\GridView', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('app\coremodules\user\models\Users', '\\').";\n" : '';
@@ -137,7 +139,9 @@ echo $userCondition ? "use ".ltrim('app\coremodules\user\models\Users', '\\').";
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $i18n || $tagCondition || $uploadCondition ? "\tuse \\".ltrim('\app\components\traits\FileSystem', '\\').";\n\n" : '';?>
+<?php echo $tinyCondition ? "\tuse \\".ltrim('\app\components\traits\GridViewSystem', '\\').";\n" : '';?>
+<?php echo $i18n || $tagCondition || $uploadCondition ? "\tuse \\".ltrim('\app\components\traits\FileSystem', '\\').";\n" : '';?>
+<?php echo $tinyCondition || $i18n || $tagCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 //echo '<pre>';
@@ -430,13 +434,15 @@ if($queryClassName):
 			'contentOptions' => ['class'=>'center'],
 		];
 <?php 
-//echo '<pre>';
-//print_r($tableSchema);
+echo '<pre>';
+print_r($tableSchema->columns);
 foreach ($tableSchema->columns as $column):
-if(!$column->isPrimaryKey || !$column->autoIncrement):
-//if($column->dbType != 'tinyint(1)' && !in_array($column->name, ['publish','headline'])):
-if($column->dbType != 'tinyint(1)'):
-if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
+	if($column->isPrimaryKey || $column->autoIncrement || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
+		continue;
+
+	//if($column->dbType != 'tinyint(1)' && !in_array($column->name, ['publish','headline'])):
+	if($column->type != 'tinyint'):
+		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 	$relationNameArray = explode('_', $column->name);
 	$relationName = lcfirst($relationNameArray[0]);
 	$relationSearchName = $relationName.'_search'; ?>
@@ -448,7 +454,7 @@ if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])
 				},
 			];
 		}
-<?php elseif(in_array($column->dbType, ['timestamp','datetime','date'])):?>
+<?php 	elseif(in_array($column->dbType, ['timestamp','datetime','date'])):?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
 			'filter'	=> \yii\jui\DatePicker::widget([
@@ -465,13 +471,13 @@ if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])
 			},
 			'format'	=> 'html',
 		];
-<?php else:
-if(!empty($foreignKeys) && in_array($column->name, $foreignKeys)):
-	$relationTableName = array_search($column->name, $foreignKeys);
-	$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-	$relationAttributeName = $generator->getNameAttribute($relationTableName);
-	$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-	$relationSearchName = $relationName.'_search';?>
+<?php 	else:
+			if(!empty($foreignKeys) && in_array($column->name, $foreignKeys)):
+				$relationTableName = array_search($column->name, $foreignKeys);
+				$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
+				$relationAttributeName = $generator->getNameAttribute($relationTableName);
+				$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
+				$relationSearchName = $relationName.'_search';?>
 		if(!isset($_GET['<?php echo $relationName;?>'])) {
 			$this->templateColumns['<?php echo $relationSearchName;?>'] = [
 				'attribute' => '<?php echo $relationSearchName;?>',
@@ -480,59 +486,66 @@ if(!empty($foreignKeys) && in_array($column->name, $foreignKeys)):
 				},
 			];
 		}
-<?php else:?>
+<?php 		else:?>
 		$this->templateColumns['<?php echo $column->name;?>'] = '<?php echo $column->name;?>';
-<?php endif;
-endif;
-endif;
-endif;
+<?php	 	endif;
+		endif;
+	endif;
 endforeach;
+
 foreach ($tableSchema->columns as $column):
-if(!$column->isPrimaryKey || !$column->autoIncrement):
-if($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline'])):?>
+	if(($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline']) || $column->comment != '')) || $column->name[0] == '_')
+		continue;
+		
+	if($column->dbType == 'tinyint(1)'):?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
+			'filter' => $this->filterYesNo(),
 			'value' => function($model, $key, $index, $column) {
-				return $model-><?php echo $column->name;?>;
+				return $model-><?php echo $column->name;?> ? Yii::t('app', 'Yes') : Yii::t('app', 'No');
 			},
 			'contentOptions' => ['class'=>'center'],
 		];
 <?php endif;
-endif;
 endforeach;
+
 foreach ($tableSchema->columns as $column):
-if(!$column->isPrimaryKey || !$column->autoIncrement):
-if($column->dbType == 'tinyint(1)' && $column->name == 'headline'):?>
+	if(($column->dbType == 'tinyint(1)' && $column->name == 'publish') || $column->name[0] == '_')
+		continue;
+
+	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || $column->comment != '')):?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
-			'filter' => GridView::getFilterYesNo(),
+			'filter' => $this->filterYesNo(),
 			'value' => function($model, $key, $index, $column) {
-				$url = Url::to(['headline', 'id' => $model->primaryKey]);
-				return GridView::getHeadline($url, $model-><?php echo $column->name;?>);
+				$url = Url::to(['<?php echo $column->name;?>', 'id' => $model->primaryKey]);
+<?php if($column->name == 'headline'):?>
+				return $this->quickAction($url, $model-><?php echo $column->name;?>, 'Headline,No Headline', true);
+<?php else:?>
+				return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>');
+<?php endif;?>
 			},
 			'contentOptions' => ['class'=>'center'],
 			'format'	=> 'raw',
 		];
 <?php endif;
-endif;
 endforeach;
+
 foreach ($tableSchema->columns as $column):
-if(!$column->isPrimaryKey || !$column->autoIncrement):
-if($column->dbType == 'tinyint(1)' && $column->name == 'publish'):?>
+	if($column->dbType == 'tinyint(1)' && $column->name == 'publish'):?>
 		if(!isset($_GET['trash'])) {
 			$this->templateColumns['<?php echo $column->name;?>'] = [
 				'attribute' => '<?php echo $column->name;?>',
-				'filter' => GridView::getFilterYesNo(),
+				'filter' => $this->filterYesNo(),
 				'value' => function($model, $key, $index, $column) {
-					$url = Url::to(['publish', 'id' => $model->primaryKey]);
-					return GridView::getPublish($url, $model-><?php echo $column->name;?>);
+					$url = Url::to(['<?php echo $column->name;?>', 'id' => $model->primaryKey]);
+					return $this->quickAction($url, $model-><?php echo $column->name;?>);
 				},
 				'contentOptions' => ['class'=>'center'],
 				'format'	=> 'raw',
 			];
 		}
 <?php endif;
-endif;
 endforeach; ?>
 <?php /*
 		if(count($this->defaultColumns) == 0) {
