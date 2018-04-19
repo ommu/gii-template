@@ -179,7 +179,7 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 
 foreach ($tableSchema->columns as $column): 
-if(!empty($foreignKeys) && in_array($column->name, array_keys($foreignKeys)) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
+if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 	$searchPublicVariable = $generator->setRelationName($column->name).'_search';
 	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
 		$arraySearchPublicVariable[] = $searchPublicVariable;
@@ -322,7 +322,7 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(!empty($foreignKeys) && in_array($column->name, array_keys($foreignKeys)) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 		$attributeName = $generator->setRelationName($column->name).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
@@ -438,7 +438,7 @@ foreach ($tableSchema->columns as $column):
 	if($column->isPrimaryKey || $column->autoIncrement || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
 		continue;
 
-	if(!empty($foreignKeys) && in_array($column->name, array_keys($foreignKeys))) {
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
 		$relationTableName = trim($foreignKeys[$column->name]);
 		$relationAttributeName = $generator->getNameAttribute($relationTableName);
 		if(trim($foreignKeys[$column->name]) == 'ommu_users')
@@ -562,7 +562,7 @@ foreach ($tableSchema->columns as $column):
 			'attribute' => '<?php echo $column->name;?>',
 			'filter' => $this->filterYesNo(),
 			'value' => function($model, $key, $index, $column) {
-				$url = Url::to(['<?php echo $column->name;?>', 'id' => $model->primaryKey]);
+				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]);
 <?php if($column->name == 'headline'):?>
 				return $this->quickAction($url, $model-><?php echo $column->name;?>, 'Headline,No Headline', true);
 <?php else:?>
@@ -582,7 +582,7 @@ foreach ($tableSchema->columns as $column):
 				'attribute' => '<?php echo $column->name;?>',
 				'filter' => $this->filterYesNo(),
 				'value' => function($model, $key, $index, $column) {
-					$url = Url::to(['<?php echo $column->name;?>', 'id' => $model->primaryKey]);
+					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]);
 					return $this->quickAction($url, $model-><?php echo $column->name;?>);
 				},
 				'contentOptions' => ['class'=>'center'],
