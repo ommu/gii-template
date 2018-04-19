@@ -26,10 +26,13 @@ $actionParamComments = $generator->generateActionParamComments();
 $label = Inflector::camel2words($modelClass);
 $attributeName = $generator->getNameAttribute();
 $tableSchemaColumns = $generator->tableSchema->columns;
+//echo '<pre>';
+//print_r($tableSchemaColumns);
 
 $patternLabel = array();
 $patternLabel[0] = '(Core )';
 $patternLabel[1] = '(Zone )';
+$patternLabel[2] = '(Ommu )';
 
 $labelButton = preg_replace($patternLabel, '', $label);
 
@@ -46,43 +49,60 @@ echo "<?php\n";
  * <?= $controllerClass ?> implements the CRUD actions for <?= $modelClass ?> model.
  * Reference start
  * TOC :
- *  Index
- *  Create
- *  Update
- *  View
- *  Delete
+ *	Index
+ *	Create
+ *	Update
+ *	View
+ *	Delete
 <?php if(array_key_exists('publish', $tableSchemaColumns)): ?>
- *  RunAction
- *  Publish
-<?php endif; ?>
-<?php if(array_key_exists('headline', $tableSchemaColumns)): ?>
- *  Headline
-<?php endif; ?>
+ *	RunAction
+<?php endif;
+//echo '<pre>';
+//print_r($tableSchemaColumns);
+foreach ($tableSchemaColumns as $column): 
+	if(in_array($column->name, ['publish','headline'])):
+		$actionName = Inflector::id2camel($column->name, '_');
+		echo " *	$actionName\n";
+	endif;
+endforeach;
+foreach ($tableSchemaColumns as $column): 
+	if(in_array($column->name, ['publish','headline']))
+		continue;
+		
+	if($column->dbType == 'tinyint(1)' && $column->comment != ''):
+		$actionName = Inflector::id2camel($column->name, '_');
+		echo " *	$actionName\n";
+	endif;
+endforeach;?>
  *
- *  findModel
+ *	findModel
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
- * @link <?php echo $yaml['link']."\n";?>
+<?php if($generator->useModified):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+<?php endif; ?>
+ * @link <?php echo $generator->link."\n";?>
  *
  */
  
 namespace <?= StringHelper::dirname(ltrim($generator->controllerClass, '\\')) ?>;
 
 use Yii;
+use yii\filters\VerbFilter;
+use yii\web\NotFoundHttpException;
+use <?= ltrim($generator->baseControllerClass, '\\') ?>;
+<?php if($generator->attachRBACFilter): ?>
+use mdm\admin\components\AccessControl;
+<?php endif; ?>
 use <?= ltrim($generator->modelClass, '\\') ?>;
 <?php if (!empty($generator->searchModelClass)): ?>
 use <?= ltrim($generator->searchModelClass, '\\') . (isset($searchModelAlias) ? " as $searchModelAlias" : "") ?>;
 <?php else: ?>
 use yii\data\ActiveDataProvider;
-<?php endif; ?>
-use <?= ltrim($generator->baseControllerClass, '\\') ?>;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-<?php if($generator->attachRBACFilter): ?>
-use mdm\admin\components\AccessControl;
 <?php endif; ?>
 
 class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->baseControllerClass) . "\n" ?>
@@ -102,12 +122,21 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 				'class' => VerbFilter::className(),
 				'actions' => [
 					'delete' => ['POST'],
-<?php if(array_key_exists('publish', $tableSchemaColumns)): ?>
-					'publish' => ['POST'],
-<?php endif;
-if(array_key_exists('headline', $tableSchemaColumns)): ?>
-					'headline' => ['POST'],
-<?php endif; ?>
+<?php foreach ($tableSchemaColumns as $column): 
+	if(in_array($column->name, ['publish','headline'])):
+		$actionName = Inflector::camel2id($column->name);
+		echo "\t\t\t\t\t'$actionName' => ['POST'],\n";
+	endif;
+endforeach;
+foreach ($tableSchemaColumns as $column): 
+	if(in_array($column->name, ['publish','headline']))
+		continue;
+		
+	if($column->dbType == 'tinyint(1)' && $column->comment != ''):
+		$actionName = Inflector::camel2id($column->name);
+		echo "\t\t\t\t\t'$actionName' => ['POST'],\n";
+	endif;
+endforeach;?>
 				],
 			],
 		];
@@ -139,7 +168,7 @@ if(array_key_exists('headline', $tableSchemaColumns)): ?>
 		return $this->render('admin_index', [
 			'searchModel' => $searchModel,
 			'dataProvider' => $dataProvider,
-			'columns'	 => $columns,
+			'columns' => $columns,
 		]);
 <?php else: ?>
 		$dataProvider = new ActiveDataProvider([
@@ -167,13 +196,13 @@ if(array_key_exists('headline', $tableSchemaColumns)): ?>
 		if(Yii::$app->request->isPost) {
 			$model->load(Yii::$app->request->post());
 			if($model->save()) {
-				//return $this->redirect(['view', <?= $urlParams ?>]);
-				Yii::$app->session->setFlash('success', <?php echo $generator->generateString($labelButton.' success created.');?>);
+				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success created.');?>);
 				return $this->redirect(['index']);
+				//return $this->redirect(['view', <?= $urlParams ?>]);
 			} 
 		}
 
-		$this->view->title = <?php echo $generator->generateString('Create ' . $labelButton);?>;
+		$this->view->title = <?php echo $generator->generateString('Create '.Inflector::singularize($labelButton));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('admin_create', [
@@ -194,19 +223,19 @@ if(array_key_exists('headline', $tableSchemaColumns)): ?>
 			$model->load(Yii::$app->request->post());
 
 			if($model->save()) {
-				//return $this->redirect(['view', <?= $urlParams ?>]);
-				Yii::$app->session->setFlash('success', <?php echo $generator->generateString($labelButton.' success updated.');?>);
+				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success updated.');?>);
 				return $this->redirect(['index']);
+				//return $this->redirect(['view', <?= $urlParams ?>]);
 			}
 		}
 
 <?php if($generator->enableI18N) {
-	$pageTitleArray = ['modelClass' => $labelButton];
+	$pageTitleArray = ['modelClass' => Inflector::singularize($labelButton)];
 	$pageTitleArray[$attributeName] = "\$model->$attributeName";
 ?>
 		$this->view->title = <?php echo $generator->generateString('Update {modelClass}: {'.$attributeName.'}', $pageTitleArray);?>;
 <?php } else {?>
-		$this->view->title = <?= $generator->generateString('Update {modelClass}: ', ['modelClass' => $labelButton]) ?>.$model-><?= $attributeName ?>;
+		$this->view->title = <?= $generator->generateString('Update {modelClass}: ', ['modelClass' => Inflector::singularize($labelButton)]) ?>.$model-><?= $attributeName ?>;
 <?php }?>
 		$this->view->description = '';
 		$this->view->keywords = '';
@@ -225,12 +254,12 @@ if(array_key_exists('headline', $tableSchemaColumns)): ?>
 		$model = $this->findModel(<?= $actionParams ?>);
 
 <?php if($generator->enableI18N) {
-	$pageTitleArray = ['modelClass' => $labelButton];
+	$pageTitleArray = ['modelClass' => Inflector::singularize($labelButton)];
 	$pageTitleArray[$attributeName] = "\$model->$attributeName";
 ?>
-		$this->view->title = <?php echo $generator->generateString('View {modelClass}: {'.$attributeName.'}', $pageTitleArray);?>;
+		$this->view->title = <?php echo $generator->generateString('Detail {modelClass}: {'.$attributeName.'}', $pageTitleArray);?>;
 <?php } else {?>
-		$this->view->title = <?= $generator->generateString('View {modelClass}: ', ['modelClass' => $labelButton]) ?>.$model-><?= $attributeName; ?>;
+		$this->view->title = <?= $generator->generateString('Detail {modelClass}: ', ['modelClass' => Inflector::singularize($labelButton)]) ?>.$model-><?= $attributeName; ?>;
 <?php }?>
 		$this->view->description = '';
 		$this->view->keywords = '';
@@ -252,57 +281,78 @@ if(array_key_exists('headline', $tableSchemaColumns)): ?>
 		$model->publish = 2;
 
 		if($model->save(false, ['publish'])) {
-			//return $this->redirect(['view', <?= $urlParams ?>]);
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString($labelButton.' success deleted.');?>);
+			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success deleted.');?>);
 			return $this->redirect(['index']);
+			//return $this->redirect(['view', <?= $urlParams ?>]);
 		}
 <?php else: ?>
 		$this->findModel(<?= $actionParams ?>)->delete();
 		
-		Yii::$app->session->setFlash('success', <?php echo $generator->generateString($labelButton.' success deleted.');?>);
+		Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success deleted.');?>);
 		return $this->redirect(['index']);
 <?php endif; ?>
 	}
-<?php if(array_key_exists('publish', $tableSchemaColumns)): ?>
+<?php 
+//echo '<pre>';
+//print_r($tableSchemaColumns);
+foreach ($tableSchemaColumns as $column): 
+	if(in_array($column->name, ['publish','headline'])):
+		$actionName = Inflector::id2camel($column->name, '_');?>
 
 	/**
-	 * Publish/Unpublish an existing <?= $modelClass ?> model.
-	 * If publish/unpublish is successful, the browser will be redirected to the 'index' page.
+	 * action<?php echo $actionName;?> an existing <?= $modelClass ?> model.
+	 * If <?php echo Inflector::camel2id($column->name);?> is successful, the browser will be redirected to the 'index' page.
 	 * <?= implode("\n   * ", $actionParamComments) . "\n" ?>
 	 * @return mixed
 	 */
-	public function actionPublish(<?= $actionParams ?>)
+	public function action<?php echo $actionName;?>(<?= $actionParams ?>)
 	{
 		$model = $this->findModel(<?= $actionParams ?>);
-		$replace = $model->publish == 1 ? 0 : 1;
-		$model->publish = $replace;
+<?php if($column->name == 'headline'):?>
+		$model-><?php echo $column->name;?> = 1;
+		$model->publish  = 1;
+<?php else:?>
+		$replace = $model-><?php echo $column->name;?> == 1 ? 0 : 1;
+		$model-><?php echo $column->name;?> = $replace;
+<?php endif;?>
 
-		if($model->save(false, ['publish'])) {
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString($labelButton.' success updated.');?>);
+<?php if($column->name == 'headline'):?>
+		if($model->save(false, ['publish', '<?php echo $column->name;?>'])) {
+<?php else:?>
+		if($model->save(false, ['<?php echo $column->name;?>'])) {
+<?php endif;?>
+			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success updated.');?>);
 			return $this->redirect(['index']);
 		}
 	}
 <?php endif;
-if(array_key_exists('headline', $tableSchemaColumns)): ?>
+endforeach;
+foreach ($tableSchemaColumns as $column): 
+	if(in_array($column->name, ['publish','headline']))
+		continue;
+		
+	if($column->dbType == 'tinyint(1)' && $column->comment != ''):
+		$actionName = Inflector::id2camel($column->name, '_');?>
 
 	/**
-	 * Headline an existing <?= $modelClass ?> model.
-	 * If headline is successful, the browser will be redirected to the 'index' page.
+	 * action<?php echo $actionName;?> an existing <?= $modelClass ?> model.
+	 * If <?php echo Inflector::camel2id($column->name);?> is successful, the browser will be redirected to the 'index' page.
 	 * <?= implode("\n   * ", $actionParamComments) . "\n" ?>
 	 * @return mixed
 	 */
-	public function actionHeadline(<?= $actionParams ?>)
+	public function action<?php echo $actionName;?>(<?= $actionParams ?>)
 	{
 		$model = $this->findModel(<?= $actionParams ?>);
-		$model->headline = 1;
-		$model->publish  = 1;
-
-		if ($model->save(false, ['publish', 'headline'])) {
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString($labelButton.' success updated.');?>);
+		$replace = $model-><?php echo $column->name;?> == 1 ? 0 : 1;
+		$model-><?php echo $column->name;?> = $replace;
+		
+		if($model->save(false, ['<?php echo $column->name;?>'])) {
+			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success updated.');?>);
 			return $this->redirect(['index']);
 		}
 	}
-<?php endif; ?>
+<?php endif;
+endforeach;?>
 
 	/**
 	 * Finds the <?= $modelClass ?> model based on its primary key value.

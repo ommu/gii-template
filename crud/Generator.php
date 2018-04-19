@@ -39,6 +39,8 @@ class Generator extends \app\libraries\gii\Generator
 	public $searchModelClass = '';
 	public $useJuiDatePicker = false;
 	public $attachRBACFilter = false;
+	public $link='http://opensource.ommu.co';
+	public $useModified = false;
 	
 	/**
 	 * @var boolean whether to wrap the `GridView` or `ListView` widget with the `yii\widgets\Pjax` widget
@@ -70,8 +72,10 @@ class Generator extends \app\libraries\gii\Generator
 	public function rules()
 	{
 		return array_merge(parent::rules(), [
-			[['controllerClass', 'modelClass', 'searchModelClass', 'baseControllerClass'], 'filter', 'filter' => 'trim'],
-			[['modelClass', 'controllerClass', 'baseControllerClass', 'indexWidgetType'], 'required'],
+			[['controllerClass', 'modelClass', 'searchModelClass', 'baseControllerClass',
+				'link'], 'filter', 'filter' => 'trim'],
+			[['modelClass', 'controllerClass', 'baseControllerClass', 'indexWidgetType',
+				'link'], 'required'],
 			[['searchModelClass'], 'compare', 'compareAttribute' => 'modelClass', 'operator' => '!==', 'message' => 'Search Model Class must not be equal to Model Class.'],
 			[['modelClass', 'controllerClass', 'baseControllerClass', 'searchModelClass'], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
 			[['modelClass'], 'validateClass', 'params' => ['extends' => BaseActiveRecord::className()]],
@@ -81,7 +85,8 @@ class Generator extends \app\libraries\gii\Generator
 			[['controllerClass', 'searchModelClass'], 'validateNewClass'],
 			[['indexWidgetType'], 'in', 'range' => ['grid', 'list']],
 			[['modelClass'], 'validateModelClass'],
-			[['enableI18N', 'enablePjax'], 'boolean'],
+			[['enableI18N', 'enablePjax',
+				'useModified'], 'boolean'],
 			[['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
 			[['viewPath', 'useJuiDatePicker', 'attachRBACFilter'], 'safe'],
 		]);
@@ -101,7 +106,9 @@ class Generator extends \app\libraries\gii\Generator
 			'searchModelClass' => 'Search Model Class',
 			'enablePjax' => 'Enable Pjax',
 			'useJuiDatePicker' => 'Use JQuery DatePicker',
-			'attachRBACFilter' => 'Attach RBAC filter'
+			'attachRBACFilter' => 'Attach RBAC filter',
+			'link'=>'Link Repository',
+			'useModified'=>'Use Modified Info',
 		]);
 	}
 
@@ -130,7 +137,8 @@ class Generator extends \app\libraries\gii\Generator
 				widget on the index page with <code>yii\widgets\Pjax</code> widget. Set this to <code>true</code> if you want to get
 				sorting, filtering and pagination without page refreshing.',
 			'useJuiDatePicker' => 'Use JUI DatePicker or use html5 date picker. <code>default: false</code>',
-			'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: false</code>',			
+			'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: false</code>',
+			'useModified' => 'Use generate-source modified info. <code>default: false</code>',
 		]);
 	}
 
@@ -147,7 +155,7 @@ class Generator extends \app\libraries\gii\Generator
 	 */
 	public function stickyAttributes()
 	{
-		return array_merge(parent::stickyAttributes(), ['baseControllerClass', 'indexWidgetType']);
+		return array_merge(parent::stickyAttributes(), ['baseControllerClass', 'indexWidgetType', 'link']);
 	}
 
 	/**
