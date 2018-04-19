@@ -441,7 +441,7 @@ foreach ($tableSchema->columns as $column):
 	if(!empty($foreignKeys) && in_array($column->name, array_keys($foreignKeys))) {
 		$relationTableName = trim($foreignKeys[$column->name]);
 		$relationAttributeName = $generator->getNameAttribute($relationTableName);
-		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
+		if(trim($foreignKeys[$column->name]) == 'ommu_users')
 			$relationAttributeName = 'displayname';
 		$relationName = $generator->setRelationName($column->name);
 		$searchPublicVariable = $relationName.'_search';
@@ -823,32 +823,11 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 				$uploadPath = self::getUploadPath();
 <?php endif;?>
 				$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
-
-				// Add directory
-				if(!file_exists($uploadPath) || !file_exists($verwijderenPath)) {
-<?php if($generator->uploadPath['subfolder']):?>
-					@mkdir(self::getUploadPath(), 0755, true);
-<?php endif;?>
-					@mkdir($uploadPath, 0755, true);
-					@mkdir($verwijderenPath, 0755, true);
-
-					// Add file in directory (index.php)
-					$indexFile = join('/', [$uploadPath, 'index.php']);
-					if(!file_exists($indexFile))
-						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
-
-					$verwijderenFile = join('/', [$verwijderenPath, 'index.php']);
-					if(!file_exists($verwijderenFile))
-						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
-				} else {
-					@chmod($uploadPath, 0755, true);
-					@chmod($verwijderenPath, 0755, true);
-				}
+				$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-
 				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
 					if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName]))) {
@@ -939,33 +918,12 @@ if($generator->uploadPath['subfolder']):?>
 		$uploadPath = self::getUploadPath();
 <?php endif;?>
 		$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
-
-		// Add directory
-		if(!file_exists($uploadPath) || !file_exists($verwijderenPath)) {
-<?php if($generator->uploadPath['subfolder']):?>
-			@mkdir(self::getUploadPath(), 0755, true);
-<?php endif;?>
-			@mkdir($uploadPath, 0755, true);
-			@mkdir($verwijderenPath, 0755, true);
-
-			// Add file in directory (index.php)
-			$indexFile = join('/', [$uploadPath, 'index.php']);
-			if(!file_exists($indexFile))
-				file_put_contents($indexFile, "<?php echo "<?php"?>\n");
-				
-			$verwijderenFile = join('/', [$verwijderenPath, 'index.php']);
-			if(!file_exists($verwijderenFile))
-				file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
-		} else {
-			@chmod($uploadPath, 0755, true);
-			@chmod($verwijderenPath, 0755, true);
-		}
+		$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
 		if($insert) {
 <?php foreach($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') {?>
 			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-
 			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 				$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
 				if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName])))
