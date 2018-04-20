@@ -37,6 +37,7 @@ $userCondition = 0;
 $tagCondition = 0;
 $uploadCondition = 0;
 $i18n = 0;
+$useGetFunctionCondition = 0;
 
 $arrayRelations = [];
 $arrayInputPublicVariable = [];
@@ -47,6 +48,10 @@ if($tableType == Generator::TYPE_VIEW)
 	$primaryKey = $viewPrimaryKey;
 else
 	$primaryKey = $tableSchema->primaryKey['0'];
+
+$primaryKeyColumn = $tableSchema->columns[$primaryKey];
+if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)'))
+	$useGetFunctionCondition = 1;
 
 /**
  * foreignKeys Column
@@ -573,7 +578,7 @@ endforeach;
 
 foreach ($tableSchema->columns as $column):
 	if($column->dbType == 'tinyint(1)' && $column->name == 'publish'):?>
-		if(!Yii::$app->request->get('trash')) {'trash')) {
+		if(!Yii::$app->request->get('trash')) {
 			$this->templateColumns['<?php echo $column->name;?>'] = [
 				'attribute' => '<?php echo $column->name;?>',
 				'filter' => $this->filterYesNo(),
@@ -632,7 +637,7 @@ endforeach;
 <?php
 //echo '<pre>';
 //print_r($tableSchema->columns);
-if(($tableType != Generator::TYPE_VIEW) && $generator->useGetFunction):
+if(($tableType != Generator::TYPE_VIEW) && ($generator->useGetFunction || $useGetFunctionCondition)):
 	$functionName = $generator->setRelationName($className, true);
 	//echo $functionName."\n";
 	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));
