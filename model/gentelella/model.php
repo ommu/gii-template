@@ -322,7 +322,7 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
 		$attributeName = $generator->setRelationName($column->name).'_search';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
@@ -438,7 +438,7 @@ foreach ($tableSchema->columns as $column):
 	if($column->isPrimaryKey || $column->autoIncrement || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
 		continue;
 
-	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
 		$relationTableName = trim($foreignKeys[$column->name]);
 		$relationAttributeName = $generator->getNameAttribute($relationTableName);
 		if(trim($foreignKeys[$column->name]) == 'ommu_users')
@@ -577,7 +577,7 @@ endforeach;
 
 foreach ($tableSchema->columns as $column):
 	if($column->dbType == 'tinyint(1)' && $column->name == 'publish'):?>
-		if(!isset($_GET['trash'])) {
+		if(!Yii::$app->request->get('trash')) {'trash')) {
 			$this->templateColumns['<?php echo $column->name;?>'] = [
 				'attribute' => '<?php echo $column->name;?>',
 				'filter' => $this->filterYesNo(),

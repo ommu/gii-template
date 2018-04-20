@@ -346,15 +346,49 @@ class Generator extends \app\libraries\gii\Generator
 	public function generateActiveSearchField($attribute)
 	{
 		$tableSchema = $this->getTableSchema();
+		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
+		//echo '<pre>';
+		//print_r($foreignKeys);
 		if ($tableSchema === false) {
 			return "\$form->field(\$model, '$attribute')";
 		}
 		$column = $tableSchema->columns[$attribute];
-		if ($column->phpType === 'boolean') {
-			return "\$form->field(\$model, '$attribute')->checkbox()";
-		} else {
-			return "\$form->field(\$model, '$attribute')";
-		}
+		//echo '<pre>';
+		//print_r($column);
+		$i18n = 0;
+		$commentArray = explode(',', $column->comment);
+		if(in_array('trigger[delete]', $commentArray))
+			$i18n = 1;
+
+		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
+			$attributeName = $this->setRelationName($column->name).'_search';
+			return "\$form->field(\$model, '$attributeName')";
+
+		elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
+			$relationName = $this->setRelationName($column->name);
+			$attributeName = $relationName.'_search';
+			if($column->name == 'tag_id')
+				$attributeName = $relationName.'_i';
+			return "\$form->field(\$model, '$attributeName')";
+
+		elseif(in_array($column->dbType, ['timestamp','datetime','date'])):
+			if($this->useJuiDatePicker):
+				return "\$form->field(\$model, '$attribute')\n\t\t\t->widget(\yii\jui\DatePicker::classname(), [\n\t\t\t\t'dateFormat' => Yii::\$app->formatter->dateFormat,\n\t\t\t\t'options' => ['class' => 'form-control']\n\t\t\t])";
+			else:
+				return "\$form->field(\$model, '$attribute')\n\t\t\t->input('date')";
+			endif;
+
+		else:
+			if($i18n):
+				$attributeName = $this->setRelationName($column->name).'_i';
+				return "\$form->field(\$model, '$attributeName')";
+			else:
+				if ($column->phpType === 'boolean')
+					return "\$form->field(\$model, '$attribute')->checkbox()";
+				else
+					return "\$form->field(\$model, '$attribute')";
+			endif;
+		endif;
 	}
 
 	/**

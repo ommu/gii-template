@@ -9,6 +9,8 @@ $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
 
+$tableSchema = $generator->tableSchema;
+
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
@@ -19,13 +21,16 @@ echo "<?php\n";
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->searchModelClass)."\n"; ?>
  * @var $form yii\widgets\ActiveForm
- * version: 0.0.1
  *
- * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
- * @link <?php echo $yaml['link']."\n";?>
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
- * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @contact <?php echo $yaml['contact']."\n";?>
+ * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
+ * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php if($generator->useModified):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+<?php endif; ?>
+ * @link <?php echo $generator->link."\n";?>
  *
  */
 
@@ -40,14 +45,13 @@ use yii\widgets\ActiveForm;
 	]); ?>
 <?php
 $count = 0;
+//echo '<pre>';
+//print_r($generator->getColumnNames());
 foreach ($generator->getColumnNames() as $attribute) {
-	//if (++$count < 6) {
-		echo "\t\t<?= " . $generator->generateActiveSearchField($attribute) . " ?>\n\n";
-	/*
-	} else {
-		echo "\t\t<?php // echo " . $generator->generateActiveSearchField($attribute) . " ?>\n\n";
-	}
-	*/
+	if($attribute == $tableSchema->primaryKey[0] || $attribute[0] == '_')
+		continue;
+		
+	echo "\t\t<?php echo ".$generator->generateActiveSearchField($attribute)."; ?>\n\n";
 }
 ?>
 		<div class="form-group">
