@@ -117,7 +117,7 @@ foreach ($tableSchema->columns as $column):
 		else if($column->name == 'tag_id') 
 			$tagCondition = 1;
 	} else {
-		if($column->type == 'text' && $column->comment == 'file') 
+		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && $column->comment == 'file') 
 			$uploadCondition = 1;
 		else {
 			$commentArray = explode(',', $column->comment);
@@ -157,8 +157,8 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 //print_r($tableSchema);
 foreach ($tableSchema->columns as $column): 
 	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray)) {
-		$inputPublicVariable = $generator->setRelationName($column->name).'_i';
+	if($tableType != Generator::TYPE_VIEW && in_array('trigger[delete]', $commentArray)) {
+		$inputPublicVariable = $column->name.'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
@@ -171,8 +171,8 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if(!(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id'])) && $column->type == 'text' && $column->comment == 'file') {
-		$inputPublicVariable = 'old_'.$generator->setRelationName($column->name).'_i';
+	if($tableType != Generator::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
+		$inputPublicVariable = 'old_'.$column->name.'_i';
 		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
 			$arrayInputPublicVariable[] = $inputPublicVariable;
 	}
@@ -283,12 +283,11 @@ endforeach;
 //print_r($tableSchema->columns);
 foreach ($tableSchema->columns as $column):
 	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray)) {
-		$relationName = $generator->setRelationName($column->name);
-		$attributeName = $relationName.'_i';
+	if($tableType != Generator::TYPE_VIEW && in_array('trigger[delete]', $commentArray)) {
+		$attributeName = $column->name.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = Inflector::camel2words(Inflector::id2camel($relationName, '_'));
+			$attributeLabels = Inflector::camel2words(Inflector::id2camel($column->name, '_'));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -309,12 +308,11 @@ foreach ($tableSchema->columns as $column):
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
-	if($column->type == 'text' && $column->comment == 'file') {
-		$relationName = $generator->setRelationName($column->name);
-		$attributeName = 'old_'.$relationName.'_i';
+	if($tableType != Generator::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
+		$attributeName = 'old_'.$column->name.'_i';
 		if(!in_array($attributeName, $arrayAttributeName)) {
 			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = Inflector::camel2words(Inflector::id2camel('old_'.$relationName, '_'));
+			$attributeLabels = Inflector::camel2words(Inflector::id2camel('old_'.$column->name, '_'));
 			if(count(explode(' ', $attributeLabels)) > 1)
 				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
 			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
@@ -496,11 +494,10 @@ foreach ($tableSchema->columns as $column):
 			'format' => 'html',
 		];
 <?php 	}
-	} else {
-		if($column->type == 'text' && $column->comment == 'file') {
-			$searchPublicVariable = $column->name;
-			if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-				$arraySearchPublicVariable[] = $searchPublicVariable;?>
+	} else if($column->type == 'text' && $column->comment == 'file') {
+		$searchPublicVariable = $column->name;
+		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+			$arraySearchPublicVariable[] = $searchPublicVariable;?>
 		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
 			'attribute' => '<?php echo $searchPublicVariable;?>',
 			'value' => function($model, $key, $index, $column) {
@@ -508,17 +505,17 @@ foreach ($tableSchema->columns as $column):
 			},
 		];
 <?php 		}
-		} else {
-			$translateCondition = 0;
-			$commentArray = explode(',', $column->comment);
-			$searchPublicVariable = $column->name;
-			if(in_array('trigger[delete]', $commentArray)) {
-				$searchPublicVariable = $column->name.'_i';
-				$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
-				$translateCondition = 1;
-			}
-			if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-				$arraySearchPublicVariable[] = $searchPublicVariable;?>
+	} else {
+		$translateCondition = 0;
+		$commentArray = explode(',', $column->comment);
+		$searchPublicVariable = $column->name;
+		if(in_array('trigger[delete]', $commentArray)) {
+			$searchPublicVariable = $column->name.'_i';
+			$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			$translateCondition = 1;
+		}
+		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
+			$arraySearchPublicVariable[] = $searchPublicVariable;?>
 		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
 			'attribute' => '<?php echo $searchPublicVariable;?>',
 			'value' => function($model, $key, $index, $column) {
@@ -533,7 +530,6 @@ foreach ($tableSchema->columns as $column):
 <?php endif;?>
 		];
 <?php 		}
-		}
 	}
 endforeach;
 
@@ -708,11 +704,9 @@ foreach ($tableSchema->columns as $column) {
 		$relationName = $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';
 		echo "\t\t\$this->$publicAttribute = isset(\$this->{$relationName}) ? \$this->{$relationName}->body : '';\n";
-	} else {
-		if($column->type == 'text' && $column->comment == 'file') {
-			$inputPublicVariable = 'old_'.$generator->setRelationName($column->name).'_i';
-			echo "\t\t\$this->$inputPublicVariable = \$this->$column->name;\n";
-		}
+	} else if($column->type == 'text' && $column->comment == 'file') {
+		$inputPublicVariable = 'old_'.$column->name.'_i';
+		echo "\t\t\$this->$inputPublicVariable = \$this->$column->name;\n";
 	}
 }?>
 	}
@@ -752,7 +746,7 @@ endforeach;
 
 if($uploadCondition):
 	foreach($tableSchema->columns as $column):
-		if($column->type == 'text' && $column->comment == 'file') {?>
+		if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {?>
 
 			$<?php echo $column->name;?>FileType = ['bmp','gif','jpg','png'];
 			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
@@ -826,7 +820,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 				$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
 <?php foreach($tableSchema->columns as $column):
-	if($column->type == 'text' && $column->comment == 'file') {?>
+	if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {?>
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
@@ -922,7 +916,7 @@ if($generator->uploadPath['subfolder']):?>
 
 		if($insert) {
 <?php foreach($tableSchema->columns as $column):
-	if($column->type == 'text' && $column->comment == 'file') {?>
+	if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {?>
 			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 				$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 

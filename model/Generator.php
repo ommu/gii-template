@@ -338,7 +338,7 @@ class Generator extends \app\libraries\gii\Generator
         $types = [];
         $lengths = [];
 		//echo '<pre>';
-		//print_r($table->columns);
+		//print_r($this->tableName);
         foreach ($table->columns as $column) {
             if ($column->autoIncrement || $column->name[0] == '_')
 				continue;
@@ -382,8 +382,9 @@ class Generator extends \app\libraries\gii\Generator
 
 			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)) {
-				$columnName = lcfirst(Inflector::singularize($column->name)).'_i';
-				$types['required'] = array_diff($types['required'], array($column->name));
+				$columnName = $column->name.'_i';
+				if(!empty($types['required']))
+					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['required'][]=$columnName;
 				$types['string'][]=$columnName;
 				
@@ -392,18 +393,20 @@ class Generator extends \app\libraries\gii\Generator
 					$lengths[$lengthSize][] = $columnName;
 			}
 			if($column->name == 'tag_id') {
-				$relationNameArray = explode('_', $column->name);
-				$columnName = lcfirst(Inflector::singularize($relationNameArray[0])).'_i';
-				$types['required'] = array_diff($types['required'], array($column->name));
+				$columnName = $this->setRelationName($column->name).'_i';
+				if(!empty($types['required']))
+					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['required'][]=$columnName;
 				$types['string'][]=$columnName;
 			}
-			if($column->type == 'text' && $column->comment == 'file') {
-				$types['required'] = array_diff($types['required'], array($column->name));
+			if($this->getTableType($this->tableName) != self::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
+				if(!empty($types['required']))
+					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['safe'][]=$column->name;
 			}
 			if($column->comment == 'trigger') {
-				$types['safe'] = array_diff($types['safe'], array($column->name));
+				if(!empty($types['safe']))
+					$types['safe'] = array_diff($types['safe'], array($column->name));
 			}
         }
 		foreach($table->columns as $column)
@@ -411,8 +414,8 @@ class Generator extends \app\libraries\gii\Generator
             if ($column->autoIncrement || $column->name[0] == '_')
 				continue;
 
-			if($column->type == 'text' && $column->comment == 'file') {
-				$columnName = 'old_'.lcfirst(Inflector::singularize($column->name)).'_i';
+			if($this->getTableType($this->tableName) != self::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
+				$columnName = 'old_'.$column->name.'_i';
 				$types['string'][]=$columnName;
 				$types['safe'][]=$columnName;
 			}
