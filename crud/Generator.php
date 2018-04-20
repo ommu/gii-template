@@ -392,6 +392,9 @@ class Generator extends \app\libraries\gii\Generator
 
 		$types = [];
 		foreach ($table->columns as $column) {
+			if($column->name[0] == '_')
+				continue;
+				
 			switch ($column->type) {
 				case Schema::TYPE_SMALLINT:
 				case Schema::TYPE_INTEGER:
@@ -412,7 +415,10 @@ class Generator extends \app\libraries\gii\Generator
 				case Schema::TYPE_DATETIME:
 				case Schema::TYPE_TIMESTAMP:
 				default:
-					$types['safe'][] = $column->name;
+					if($column->dbType == 'tinyint(1)')
+						$types['integer'][] = $column->name;
+					else
+						$types['safe'][] = $column->name;
 					break;
 			}
 		}
@@ -489,6 +495,8 @@ class Generator extends \app\libraries\gii\Generator
 			}
 		} else {
 			foreach ($table->columns as $column) {
+				if($column->name[0] == '_')
+					continue;
 				$columns[$column->name] = $column->type;
 			}
 		}
@@ -498,6 +506,11 @@ class Generator extends \app\libraries\gii\Generator
 		$likeConditions = [];
 		$hashConditions = [];
 		$publishConditions = [];
+
+		$arrayHasColumn = [];
+		$arrayLikeColumn = [];
+		//echo '<pre>';
+		//print_r($columns);
 		foreach ($columns as $column => $type) {
 			switch ($type) {
 				case Schema::TYPE_SMALLINT:
@@ -512,61 +525,101 @@ class Generator extends \app\libraries\gii\Generator
 				case Schema::TYPE_TIME:
 				case Schema::TYPE_DATETIME:
 				case Schema::TYPE_TIMESTAMP:
-					if(in_array($column, array('creation_id','modified_id','user_id','updated_id'))) {
-						$relationArray = explode('_', $column);
-						$relation = lcfirst($relationArray[0]);
-						$hashConditions[] = "'t.{$column}' => isset(\$params['$relation']) ? \$params['$relation'] : \$this->{$column},";
-
-					} else {
-						if(!empty($foreignKeys) && in_array($column, $foreignKeys)) {
-							$relationTable = array_search($column, $foreignKeys);
-							$relationModel = preg_replace($patternClass, '', $this->generateClassName($relationTable));
-							$relation = lcfirst(Inflector::singularize($this->setRelationName($relationModel)));
+					//echo $column."\n";
+					if(in_array($column, array('creation_id','modified_id','user_id','updated_id','tag_id'))) {
+						if(!in_array($column, $arrayHasColumn)) {
+							$arrayHasColumn[] = $column;
+							$relation = $this->setRelationName($column);
 							$hashConditions[] = "'t.{$column}' => isset(\$params['$relation']) ? \$params['$relation'] : \$this->{$column},";
+						}
 
-						} else {
-							if(in_array($type, array('timestamp','datetime','date')))
-								$hashConditions[] = "'cast(t.{$column} as date)' => \$this->{$column},";
-							else {
-								if($column == 'publish')
-									$hashConditions[] = "'t.{$column}' => isset(\$params['publish']) ? 1 : \$this->{$column},";
-								else {
-									if($column == $primaryKey)
-										$hashConditions[] = "'t.{$column}' => isset(\$params['id']) ? \$params['id'] : \$this->{$column},";
-									else
-										$hashConditions[] = "'t.{$column}' => \$this->{$column},";
-								}
-							}
+					} else if(!empty($foreignKeys) && array_key_exists($column, $foreignKeys)) {
+						if(!in_array($column, $arrayHasColumn)) {
+							$arrayHasColumn[] = $column;
+							$relation = $this->setRelationName($column);
+							$hashConditions[] = "'t.{$column}' => isset(\$params['$relation']) ? \$params['$relation'] : \$this->{$column},";
+						}
+
+					} if(in_array($type, array('timestamp','datetime','date'))) {
+						if(!in_array($column, $arrayHasColumn)) {
+							$arrayHasColumn[] = $column;
+							$hashConditions[] = "'cast(t.{$column} as date)' => \$this->{$column},";
+						}
+						
+					} else {
+						if(!in_array($column, $arrayHasColumn)) {
+							$arrayHasColumn[] = $column;
+							$hashConditions[] = "'t.{$column}' => \$this->{$column},";
 						}
 					}
 					break;
 				default:
-					$likeConditions[] = "->andFilterWhere(['like', 't.{$column}', \$this->{$column}])";
+					if($type == 'tinyint') {
+						if($column != 'publish') {
+							if(!in_array($column, $arrayHasColumn)) {
+								$arrayHasColumn[] = $column;
+								$hashConditions[] = "'t.{$column}' => \$this->{$column},";
+							}
+						}
+					} else
+						if(!in_array($column, $arrayLikeColumn)) {
+							$arrayLikeColumn[] = $column;
+							$likeConditions[] = "->andFilterWhere(['like', 't.{$column}', \$this->{$column}])";
+						}
 					break;
 			}
 		}
 		foreach ($tableSchema->columns as $column): 
 		if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
-			$publishConditions[] = "if(!isset(\$params['trash']))\n\t\t\t\$query->andFilterWhere(['IN', 't.publish', [0,1]]);\n\t\telse\n\t\t\t\$query->andFilterWhere(['NOT IN', 't.publish', [0,1]]);";
+			$publishConditions[] = "if(isset(\$params['trash']))\n\t\t\t\$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);\n\t\telse {\n\t\t\tif(!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == ''))\n\t\t\t\t\$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);\n\t\t\telse\n\t\t\t\t\$query->andFilterWhere(['t.$column->name' => \$this->$column->name]);\n\t\t}";
 		}
 		endforeach;
-		foreach ($tableSchema->columns as $column): 
-		if(!empty($foreignKeys) && in_array($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))) {
-			$relationTableName = array_search($column->name, $foreignKeys);
-			$relationModelName = preg_replace($patternClass, '', $this->generateClassName($relationTableName));
-			$relationAttributeName = $this->getNameAttribute($relationTableName);
-			$relationName = lcfirst(Inflector::singularize($this->setRelationName($relationModelName)));
-			$relationSearchName = $relationName.'_search';
-			$likeConditions[] = "->andFilterWhere(['like', '{$relationName}.{$relationAttributeName}', \$this->{$relationSearchName}])";
-		}
+		$arrayPublicVariable = [];
+
+		foreach ($tableSchema->columns as $column):
+			$commentArray = explode(',', $column->comment);
+			if(in_array('trigger[delete]', $commentArray)):
+				$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
+				$publicVariable = $this->setRelationName($column->name).'_i';
+				if(!in_array($publicVariable, $arrayPublicVariable)) {
+					$arrayPublicVariable[] = $publicVariable;
+					$likeConditions[] = "->andFilterWhere(['like', '{$relationName}.message', \$this->{$publicVariable}])";
+				}
+			endif;
 		endforeach;
 		foreach ($tableSchema->columns as $column): 
-		if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))) {
-			$relationNameArray = explode('_', $column->name);
-			$relationName = lcfirst($relationNameArray[0]);
-			$relationSearchName = $relationName.'_search';
-			$likeConditions[] = "->andFilterWhere(['like', '{$relationName}.displayname', \$this->{$relationSearchName}])";
-		}
+			if(in_array($column->name, ['tag_id'])):
+				$relationName = $this->setRelationName($column->name);
+				$publicVariable = $relationName.'_i';
+				if(!in_array($publicVariable, $arrayPublicVariable)) {
+					$arrayPublicVariable[] = $publicVariable;
+					$likeConditions[] = "->andFilterWhere(['like', '{$relationName}.body', \$this->{$publicVariable}])";
+				}
+			endif;
+		endforeach;
+		foreach ($tableSchema->columns as $column): 
+			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
+				$relationTableName = trim($foreignKeys[$column->name]);
+				$relationAttributeName = $this->getNameAttribute($relationTableName);
+				if(trim($foreignKeys[$column->name]) == 'ommu_users')
+					$relationAttributeName = 'displayname';
+				$relationName = $this->setRelationName($column->name);
+				$publicVariable = $relationName.'_search';
+				if(!in_array($publicVariable, $arrayPublicVariable)) {
+					$arrayPublicVariable[] = $publicVariable;
+					$likeConditions[] = "->andFilterWhere(['like', '{$relationName}.{$relationAttributeName}', \$this->{$publicVariable}])";
+				}
+			endif;
+		endforeach;
+		foreach ($tableSchema->columns as $column): 
+			if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+				$relationName = $this->setRelationName($column->name);
+				$publicVariable = $relationName.'_search';
+				if(!in_array($publicVariable, $arrayPublicVariable)) {
+					$arrayPublicVariable[] = $publicVariable;
+					$likeConditions[] = "->andFilterWhere(['like', '{$relationName}.displayname', \$this->{$publicVariable}])";
+				}
+			endif;
 		endforeach;
 
 		$conditions = [];

@@ -179,7 +179,7 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 
 foreach ($tableSchema->columns as $column): 
-if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
+if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
 	$searchPublicVariable = $generator->setRelationName($column->name).'_search';
 	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
 		$arraySearchPublicVariable[] = $searchPublicVariable;
