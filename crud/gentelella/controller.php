@@ -23,19 +23,17 @@ $pks = $class::primaryKey();
 $urlParams = $generator->generateUrlParams();
 $actionParams = $generator->generateActionParams();
 $actionParamComments = $generator->generateActionParamComments();
-$label = Inflector::camel2words($modelClass);
-$attributeName = $generator->getNameAttribute();
-$tableSchemaColumns = $generator->tableSchema->columns;
-//echo '<pre>';
-//print_r($tableSchemaColumns);
 
 $patternLabel = array();
-$patternLabel[0] = '(Core )';
-$patternLabel[1] = '(Zone )';
-$patternLabel[2] = '(Ommu )';
+$patternLabel[0] = '(Core)';
+$patternLabel[1] = '(Zone)';
+$patternLabel[2] = '(Ommu)';
 
-$labelButton = preg_replace($patternLabel, '', $label);
+$label = Inflector::camel2words(Inflector::singularize(preg_replace($patternLabel, '', $modelClass)));
+$attributeName = $generator->getNameAttribute();
+$relationAttributeName = $generator->getNameRelationAttribute();
 
+$tableSchema = $generator->tableSchema;
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -54,18 +52,18 @@ echo "<?php\n";
  *	Update
  *	View
  *	Delete
-<?php if(array_key_exists('publish', $tableSchemaColumns)): ?>
+<?php if(array_key_exists('publish', $tableSchema->columns)): ?>
  *	RunAction
 <?php endif;
 //echo '<pre>';
-//print_r($tableSchemaColumns);
-foreach ($tableSchemaColumns as $column): 
+//print_r($tableSchema->columns);
+foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::id2camel($column->name, '_');
 		echo " *	$actionName\n";
 	endif;
 endforeach;
-foreach ($tableSchemaColumns as $column): 
+foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline']))
 		continue;
 		
@@ -122,13 +120,13 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 				'class' => VerbFilter::className(),
 				'actions' => [
 					'delete' => ['POST'],
-<?php foreach ($tableSchemaColumns as $column): 
+<?php foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::camel2id($column->name);
 		echo "\t\t\t\t\t'$actionName' => ['POST'],\n";
 	endif;
 endforeach;
-foreach ($tableSchemaColumns as $column): 
+foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline']))
 		continue;
 		
@@ -162,7 +160,7 @@ endforeach;?>
 		}
 		$columns = $searchModel->getGridColumn($cols);
 
-		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($labelButton));?>;
+		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($label));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('admin_index', [
@@ -175,7 +173,7 @@ endforeach;?>
 			'query' => <?= $modelClass ?>::find(),
 		]);
 
-		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($labelButton));?>;
+		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($label));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('admin_index', [
@@ -196,13 +194,13 @@ endforeach;?>
 		if(Yii::$app->request->isPost) {
 			$model->load(Yii::$app->request->post());
 			if($model->save()) {
-				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success created.');?>);
+				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success created.');?>);
 				return $this->redirect(['index']);
 				//return $this->redirect(['view', <?= $urlParams ?>]);
 			} 
 		}
 
-		$this->view->title = <?php echo $generator->generateString('Create '.Inflector::singularize($labelButton));?>;
+		$this->view->title = <?php echo $generator->generateString('Create '.$label);?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('admin_create', [
@@ -223,19 +221,19 @@ endforeach;?>
 			$model->load(Yii::$app->request->post());
 
 			if($model->save()) {
-				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success updated.');?>);
+				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
 				return $this->redirect(['index']);
 				//return $this->redirect(['view', <?= $urlParams ?>]);
 			}
 		}
 
 <?php if($generator->enableI18N) {
-	$pageTitleArray = ['modelClass' => Inflector::singularize($labelButton)];
-	$pageTitleArray[$attributeName] = "\$model->$attributeName";
+	$pageTitle = [Inflector::camel2id('modelClass') => $label];
+	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";
 ?>
-		$this->view->title = <?php echo $generator->generateString('Update {modelClass}: {'.$attributeName.'}', $pageTitleArray);?>;
+		$this->view->title = <?php echo $generator->generateString('Update '.Inflector::camel2id('{modelClass}').': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;
 <?php } else {?>
-		$this->view->title = <?= $generator->generateString('Update {modelClass}: ', ['modelClass' => Inflector::singularize($labelButton)]) ?>.$model-><?= $attributeName ?>;
+		$this->view->title = <?= $generator->generateString('Update '.Inflector::camel2id('{modelClass}').': ', [Inflector::camel2id('modelClass') => $label]) ?>.$model-><?= $relationAttributeName ?>;
 <?php }?>
 		$this->view->description = '';
 		$this->view->keywords = '';
@@ -254,12 +252,12 @@ endforeach;?>
 		$model = $this->findModel(<?= $actionParams ?>);
 
 <?php if($generator->enableI18N) {
-	$pageTitleArray = ['modelClass' => Inflector::singularize($labelButton)];
-	$pageTitleArray[$attributeName] = "\$model->$attributeName";
+	$pageTitle = [Inflector::camel2id('modelClass') => $label];
+	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";
 ?>
-		$this->view->title = <?php echo $generator->generateString('Detail {modelClass}: {'.$attributeName.'}', $pageTitleArray);?>;
+		$this->view->title = <?php echo $generator->generateString('Detail '.Inflector::camel2id('{modelClass}').': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;
 <?php } else {?>
-		$this->view->title = <?= $generator->generateString('Detail {modelClass}: ', ['modelClass' => Inflector::singularize($labelButton)]) ?>.$model-><?= $attributeName; ?>;
+		$this->view->title = <?= $generator->generateString('Detail '.Inflector::camel2id('{modelClass}').': ', [Inflector::camel2id('modelClass') => $label]) ?>.$model-><?= $relationAttributeName; ?>;
 <?php }?>
 		$this->view->description = '';
 		$this->view->keywords = '';
@@ -276,26 +274,26 @@ endforeach;?>
 	 */
 	public function actionDelete(<?= $actionParams ?>)
 	{
-<?php if(array_key_exists('publish', $tableSchemaColumns)): ?>
+<?php if(array_key_exists('publish', $tableSchema->columns)): ?>
 		$model = $this->findModel(<?= $actionParams ?>);
 		$model->publish = 2;
 
 		if($model->save(false, ['publish'])) {
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success deleted.');?>);
+			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
 			return $this->redirect(['index']);
 			//return $this->redirect(['view', <?= $urlParams ?>]);
 		}
 <?php else: ?>
 		$this->findModel(<?= $actionParams ?>)->delete();
 		
-		Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success deleted.');?>);
+		Yii::$app->session->setFlash('success', <?php echo $generator->generateString($label.' success deleted.');?>);
 		return $this->redirect(['index']);
 <?php endif; ?>
 	}
 <?php 
 //echo '<pre>';
-//print_r($tableSchemaColumns);
-foreach ($tableSchemaColumns as $column): 
+//print_r($tableSchema->columns);
+foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::id2camel($column->name, '_');?>
 
@@ -321,13 +319,13 @@ foreach ($tableSchemaColumns as $column):
 <?php else:?>
 		if($model->save(false, ['<?php echo $column->name;?>'])) {
 <?php endif;?>
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success updated.');?>);
+			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
 			return $this->redirect(['index']);
 		}
 	}
 <?php endif;
 endforeach;
-foreach ($tableSchemaColumns as $column): 
+foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline']))
 		continue;
 		
@@ -347,7 +345,7 @@ foreach ($tableSchemaColumns as $column):
 		$model-><?php echo $column->name;?> = $replace;
 		
 		if($model->save(false, ['<?php echo $column->name;?>'])) {
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::singularize($labelButton).' success updated.');?>);
+			Yii::$app->session->setFlash('success', <?php echo $generator->generateString($label.' success updated.');?>);
 			return $this->redirect(['index']);
 		}
 	}

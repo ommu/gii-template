@@ -227,33 +227,88 @@ class Generator extends \app\libraries\gii\Generator
 		}
 	}
 
-	public function getNameAttribute($tableNameRelation=null)
+	public function getNameAttribute($tableName=null)
 	{
-		if($tableNameRelation != null) {
-			$primaryKey = [];
-			$tableSchema = [];
+		if($tableName != null) {
 			$db = $this->getDbConnection();
-			$tableSchema = $db->getTableSchema($tableNameRelation);
-			
-			foreach ($tableSchema->columns as $key => $column) {
-				if($column->isPrimaryKey || $column->autoIncrement)
-					$primaryKey[] = $key;
-				if(preg_match('/(name|title)/', $key))
-					return $key;
-			}
-
-			$pk = $primaryKey;
+			$tableSchema = $db->getTableSchema($tableName);
 
 		} else {
-			foreach ($this->getColumnNames() as $name) {
-				if(preg_match('/(name|title)/', $name))
-					return $name;
-			}
-			
-			/* @var $class \yii\db\ActiveRecord */
-			$class = $this->modelClass;
-			$pk = $class::primaryKey();
+			$tableSchema = $this->getTableSchema();
+			//$columnNames = $this->getColumnNames();
 		}
+		
+		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
+		$foreignCondition = 0;
+
+		/* @var $class \yii\db\ActiveRecord */
+		foreach ($tableSchema->columns as $column) {
+			if(preg_match('/(name|title)/', $column->name))
+				return $column->name;
+		}
+		foreach ($tableSchema->columns as $column) {
+			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+				if(!$foreignCondition) {
+					return $column->name;
+					$foreignCondition = 1;
+				}
+			} else if($column->name == 'tag_id')
+				return $column->name;
+		}
+		$pk = $tableSchema->primaryKey;
+
+		return Inflector::camel2id($pk[0]);
+	}
+
+	public function getNameRelationAttribute($tableName=null, $separator='->')
+	{
+		if($tableName != null) {
+			$db = $this->getDbConnection();
+			$tableSchema = $db->getTableSchema($tableName);
+
+		} else {
+			$tableSchema = $this->getTableSchema();
+			//$columnNames = $this->getColumnNames();
+		}
+
+		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
+		$titleCondition = 0;
+		$foreignCondition = 0;
+
+		/* @var $class \yii\db\ActiveRecord */
+		foreach ($tableSchema->columns as $column) {
+			$relationColumn = [];
+			if(preg_match('/(name|title)/', $column->name)) {
+				$commentArray = explode(',', $column->comment);
+				if(in_array('trigger[delete]', $commentArray)) {
+					$relationColumn[] = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
+					$relationColumn[] = 'message';
+				} else
+					$relationColumn[] = $column->name;
+				$titleCondition = 1;
+			}
+			if(!empty($relationColumn))
+				return implode($separator, $relationColumn);
+		}
+		if(!$titleCondition) {
+			foreach ($tableSchema->columns as $column) {
+				$relationColumn = [];
+				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+					$relationTableName = trim($foreignKeys[$column->name]);
+					if(!$foreignCondition) {
+						$relationColumn[] = $this->setRelationName($column->name);
+						$relationColumn[] = $this->getNameRelationAttribute($relationTableName);
+						$foreignCondition = 1;
+					}
+				} else if($column->name == 'tag_id') {
+					$relationColumn[] = $this->setRelationName($column->name);
+					$relationColumn[] = 'body';
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		$pk = $tableSchema->primaryKey;
 
 		return $pk[0];
 	}
