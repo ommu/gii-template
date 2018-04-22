@@ -12,8 +12,9 @@ $label = Inflector::camel2words($modelClass);
 $patternLabel = array();
 $patternLabel[0] = '(Core )';
 $patternLabel[1] = '(Zone )';
+$patternLabel[2] = '(Ommu )';
 
-$labelButton = preg_replace($patternLabel, '', $label);
+$labelButton = Inflector::pluralize(preg_replace($patternLabel, '', $label));
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -25,45 +26,30 @@ echo "<?php\n";
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
  * @var $form yii\widgets\ActiveForm
- * version: 0.0.1
  *
- * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
- * @link <?php echo $yaml['link']."\n";?>
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
- * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @contact <?php echo $yaml['contact']."\n";?>
+ * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
+ * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php if($generator->useModified):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+<?php endif; ?>
+ * @link <?php echo $generator->link."\n";?>
  *
  */
 
 use yii\helpers\Html;
 use yii\helpers\Url;
-use app\libraries\MenuContent;
 
-$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString(Inflector::pluralize($labelButton)) ?>, 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($labelButton) ?>, 'url' => ['index']];
+$this->params['breadcrumbs'][] = <?php echo $generator->generateString('Create')?>;
 
 $this->params['menu']['content'] = [
 	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['index']), 'icon' => 'table'],
 ];
 ?>
 
-<div class="col-md-12 col-sm-12 col-xs-12">
-	<div class="x_panel">
-		<div class="x_title">
-			<h2><?= "<?php echo "?>Html::encode($this->title); ?></h2>
-			<?= "<?php " ?>if($this->params['menu']['content']):
-			echo MenuContent::widget(['items' => $this->params['menu']['content']]);
-			endif;?>
-			<ul class="nav navbar-right panel_toolbox">
-				<li><a href="#" title="<?php echo "<?php echo {$generator->generateString('Toggle')};?>";?>" class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
-				<li><a href="#" title="<?php echo "<?php echo {$generator->generateString('Close')};?>";?>" class="close-link"><i class="fa fa-close"></i></a></li>
-			</ul>
-			<div class="clearfix"></div>
-		</div>
-		<div class="x_content">
-			<?= "<?php echo " ?>$this->render('_form', [
-				'model' => $model,
-			]); ?>
-		</div>
-	</div>
-</div>
+<?= "<?php echo " ?>$this->render('_form', [
+	'model' => $model,
+]); ?>

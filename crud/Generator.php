@@ -247,13 +247,16 @@ class Generator extends \app\libraries\gii\Generator
 				return $column->name;
 		}
 		foreach ($tableSchema->columns as $column) {
+			if($column->name == 'tag_id')
+				return $column->name;
+		}
+		foreach ($tableSchema->columns as $column) {
 			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
 				if(!$foreignCondition) {
 					return $column->name;
 					$foreignCondition = 1;
 				}
-			} else if($column->name == 'tag_id')
-				return $column->name;
+			}
 		}
 		$pk = $tableSchema->primaryKey;
 
@@ -293,6 +296,17 @@ class Generator extends \app\libraries\gii\Generator
 		if(!$titleCondition) {
 			foreach ($tableSchema->columns as $column) {
 				$relationColumn = [];
+				if($column->name == 'tag_id') {
+					$relationColumn[] = $this->setRelationName($column->name);
+					$relationColumn[] = 'body';
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		if(!$titleCondition) {
+			foreach ($tableSchema->columns as $column) {
+				$relationColumn = [];
 				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
@@ -300,9 +314,6 @@ class Generator extends \app\libraries\gii\Generator
 						$relationColumn[] = $this->getNameRelationAttribute($relationTableName);
 						$foreignCondition = 1;
 					}
-				} else if($column->name == 'tag_id') {
-					$relationColumn[] = $this->setRelationName($column->name);
-					$relationColumn[] = 'body';
 				}
 				if(!empty($relationColumn))
 					return implode($separator, $relationColumn);

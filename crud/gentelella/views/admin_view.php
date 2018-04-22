@@ -20,7 +20,7 @@ $patternLabel = array();
 $patternLabel[0] = '(Core )';
 $patternLabel[1] = '(Zone )';
 
-$labelButton = preg_replace($patternLabel, '', $label);
+$labelButton = Inflector::pluralize(preg_replace($patternLabel, '', $label));
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -31,22 +31,24 @@ echo "<?php\n";
  * @var $this yii\web\View
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
- * version: 0.0.1
  *
- * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
- * @link <?php echo $yaml['link']."\n";?>
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
- * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @contact <?php echo $yaml['contact']."\n";?>
+ * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
+ * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php if($generator->useModified):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+<?php endif; ?>
+ * @link <?php echo $generator->link."\n";?>
  *
  */
 
 use yii\helpers\Html;
 use yii\helpers\Url;
-use app\libraries\MenuContent;
 use yii\widgets\DetailView;
 
-$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString(Inflector::pluralize($labelButton)) ?>, 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($labelButton) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->params['menu']['content'] = [
@@ -56,81 +58,85 @@ $this->params['menu']['content'] = [
 ];
 ?>
 
-<div class="col-md-12 col-sm-12 col-xs-12">
-	<div class="x_panel">
-		<div class="x_title">
-			<h2><?= "<?php echo "?>Html::encode($this->title); ?></h2>
-			<?= "<?php " ?>if($this->params['menu']['content']):
-			echo MenuContent::widget(['items' => $this->params['menu']['content']]);
-			endif;?>
-			<ul class="nav navbar-right panel_toolbox">
-				<li><a href="#" title="<?php echo "<?php echo {$generator->generateString('Toggle')};?>";?>" class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
-				<li><a href="#" title="<?php echo "<?php echo {$generator->generateString('Close')};?>";?>" class="close-link"><i class="fa fa-close"></i></a></li>
-			</ul>
-			<div class="clearfix"></div>
-		</div>
-		<div class="x_content">
-			<?= "<?php echo " ?>DetailView::widget([
-				'model' => $model,
-				'options' => [
-					'class'=>'table table-striped detail-view',
-				],
-				'attributes' => [
+<?= "<?php echo " ?>DetailView::widget([
+	'model' => $model,
+	'options' => [
+		'class'=>'table table-striped detail-view',
+	],
+	'attributes' => [
 <?php
 //echo '<pre>';
 //print_r($tableSchema);
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 if (($tableSchema = $tableSchema) === false) {
 	foreach ($generator->getColumnNames() as $name) {
-		echo "\t\t\t\t\t'" . $name . "',\n";
+		echo "\t\t'" . $name . "',\n";
 	}
 } else {
 	foreach ($tableSchema->columns as $column) {
-if($column->dbType == 'tinyint(1)') {?>
-					[
-						'attribute' => '<?php echo $column->name;?>',
-						'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', 'Yes') : Yii::t('app', 'No'),
-					],
-<?php } else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))) {
-	$relationNameArray = explode('_', $column->name);
-	$relationName = lcfirst($relationNameArray[0]);
-	$relationSearchName = $relationName.'_search';?>
-					[
-						'attribute' => '<?php echo $relationSearchName;?>',
-						'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $relationName;?>->displayname : '-',
-					],
+		if($column->isPrimaryKey || $column->autoIncrement || $column->name[0] == '_')
+			continue;
+
+if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+	$relationTableName = trim($foreignKeys[$column->name]);
+	$relationAttributeName = $generator->getNameRelationAttribute($relationTableName);
+	if(trim($foreignKeys[$column->name]) == 'ommu_users')
+		$relationAttributeName = 'displayname';
+	$relationName = $generator->setRelationName($column->name);
+	$publicVariable = $relationName.'_search';?>
+		[
+			'attribute' => '<?php echo $publicVariable;?>',
+			'value' => isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?> : '-',
+		],
+<?php } else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))) {
+	$relationName = $generator->setRelationName($column->name);
+	$publicVariable = $relationName.'_search';
+	$relationAttributeName = 'displayname';
+	if($column->name == 'tag_id') {
+		$publicVariable = $relationName.'_i';
+		$relationAttributeName = 'body';
+	}?>
+		[
+			'attribute' => '<?php echo $publicVariable;?>',
+			'value' => isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?> : '-',
+		],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
-					[
-						'attribute' => '<?php echo $column->name;?>',
-						'value' => !in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "['0000-00-00','1970-01-01']" : "['0000-00-00 00:00:00','1970-01-01 00:00:00']";?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-',
-					],
+		[
+			'attribute' => '<?php echo $column->name;?>',
+			'value' => !in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "['0000-00-00','1970-01-01','-0001-11-30']" : "['0000-00-00 00:00:00','1970-01-01 00:00:00','-0001-11-30 00:00:00']";?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-',
+		],
+<?php } else if($column->dbType == 'tinyint(1)') {?>
+		[
+			'attribute' => '<?php echo $column->name;?>',
+			'value' => $model-><?php echo $column->name;?> == 1 ? <?php echo $generator->generateString('Yes');?> : <?php echo $generator->generateString('No');?>,
+		],
 <?php } else if(in_array($column->dbType, array('text'))) {?>
-					[
-						'attribute' => '<?php echo $column->name;?>',
-						'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
-						'format'	=> 'html',
-					],
+		[
+			'attribute' => '<?php echo $column->name;?>',
+			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
+<?php if(in_array($column->comment, array('redactor','file'))):?>
+			'format' => 'html',
+<?php endif;?>
+		],
 <?php } else {
-if(!empty($foreignKeys) && in_array($column->name, $foreignKeys)) {
-	$relationTableName = array_search($column->name, $foreignKeys);
-	$relationModelName = preg_replace($patternClass, '', $generator->generateClassName($relationTableName));
-	$relationAttributeName = $generator->getNameAttribute($relationTableName);
-	$relationName = lcfirst(Inflector::singularize($generator->setRelationName($relationModelName)));
-	$relationSearchName = $relationName.'_search';?>
-					[
-						'attribute' => '<?php echo $relationSearchName;?>',
-						'value' => $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?>,
-					],
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)) {
+		$publicVariable = $column->name.'_i';
+		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');?>
+		[
+			'attribute' => '<?php echo $publicVariable;?>',
+			'value' => isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-',
+<?php if(in_array('redactor', $commentArray)):?>
+			'format' => 'html',
+<?php endif;?>
+		],
 <?php } else {
-	$format = $generator->generateColumnFormat($column);
-			echo "\t\t\t\t\t'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+		$format = $generator->generateColumnFormat($column);
+		echo "\t\t'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
 		}
 	}
 	}
 }
 ?>
-				],
-			]) ?>
-		</div>
-	</div>
-</div>
+	],
+]) ?>

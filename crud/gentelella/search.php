@@ -162,7 +162,7 @@ if(!empty($arrayRelations)):
 foreach ($arrayRelations as $val):
 	$relations[] = $val.' '.$val;
 endforeach;?>
-		$query->joinWith([<?php echo "'" .implode("', '", $relations). "'";?>]);
+		$query->joinWith([<?php echo "\n\t\t\t'" .implode("', \n\t\t\t'", $relations). "'\n\t\t";?>]);
 <?php endif;?>
 
 		// add conditions that should always apply here
@@ -204,7 +204,7 @@ endforeach;
 foreach ($tableSchema->columns as $column): 
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
 		$relationTableName = trim($foreignKeys[$column->name]);
-		$relationAttributeName = $generator->getNameAttribute($relationTableName);
+		$relationAttributeName = $generator->getNameRelationAttribute($relationTableName, '.');
 		if(trim($foreignKeys[$column->name]) == 'ommu_users')
 			$relationAttributeName = 'displayname';
 		$relationName = $generator->setRelationName($column->name);

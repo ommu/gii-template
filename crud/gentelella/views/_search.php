@@ -51,7 +51,7 @@ foreach ($generator->getColumnNames() as $attribute) {
 	if($attribute == $tableSchema->primaryKey[0] || $attribute[0] == '_')
 		continue;
 		
-	echo "\t\t<?php echo ".$generator->generateActiveSearchField($attribute)."; ?>\n\n";
+	echo "\t\t<?php echo ".$generator->generateActiveSearchField($attribute).";?>\n\n";
 }
 ?>
 		<div class="form-group">
