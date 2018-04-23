@@ -53,18 +53,18 @@ $this->params['menu']['content'] = [
 ];
 <?php if(!empty($generator->searchModelClass)): ?>
 $this->params['menu']['option'] = [
-<?= ($generator->indexWidgetType === 'grid' ? "\t// " : "\t") ?>['label' => <?php echo $generator->generateString('Search');?>, 'url' => 'javascript:void(0);'],
-<?= ($generator->indexWidgetType !== 'grid' ? "\t// " : "\t") ?>['label' => <?php echo $generator->generateString('Grid Option');?>, 'url' => 'javascript:void(0);'],
+<?= ($generator->indexWidgetType === 'grid' ? "\t//" : "\t") ?>['label' => <?php echo $generator->generateString('Search');?>, 'url' => 'javascript:void(0);'],
+<?= ($generator->indexWidgetType !== 'grid' ? "\t//" : "\t") ?>['label' => <?php echo $generator->generateString('Grid Option');?>, 'url' => 'javascript:void(0);'],
 ];
 <?php endif; ?>
 ?>
 
-<?= $generator->enablePjax ? "<?php //Pjax::begin(); ?>\n" : ''; ?>
+<?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n" : ''; ?>
 
 <?php if(!empty($generator->searchModelClass)): ?>
-<?= "<?php " . ($generator->indexWidgetType === 'grid' ? "// " : "") ?>echo $this->render('_search', ['model' => $searchModel]); ?>
+<?= "<?php " . ($generator->indexWidgetType === 'grid' ? "//" : "") ?>echo $this->render('_search', ['model' => $searchModel]); ?>
 
-<?= "<?php " . ($generator->indexWidgetType !== 'grid' ? "// " : "") ?>echo $this->render('_option_form', ['model' => $searchModel, 'gridColumns' => GridView::getActiveDefaultColumns($columns), 'route' => $this->context->route]); ?>
+<?= "<?php " . ($generator->indexWidgetType !== 'grid' ? "//" : "") ?>echo $this->render('_option_form', ['model' => $searchModel, 'gridColumns' => GridView::getActiveDefaultColumns($columns), 'route' => $this->context->route]); ?>
 
 <?php endif; ?>
 <?php if ($generator->indexWidgetType === 'grid'): ?>
@@ -124,7 +124,7 @@ array_push($columnData, [
 	],
 	'template' => '{view}{update}{delete}',
 ]);
-			
+
 echo GridView::widget([
 	'dataProvider' => $dataProvider,
 <?= !empty($generator->searchModelClass) ? "\t'filterModel' => \$searchModel,\n" : ''; ?>
@@ -141,4 +141,4 @@ echo GridView::widget([
 ]); ?>
 <?php endif; ?>
 
-<?= $generator->enablePjax ? "<?php //Pjax::end(); ?>\n" : '' ?>
+<?= $generator->enablePjax ? "<?php Pjax::end(); ?>" : '' ?>

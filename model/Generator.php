@@ -404,10 +404,12 @@ class Generator extends \app\libraries\gii\Generator
 					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['safe'][]=$column->name;
 			}
+			/*
 			if($column->comment == 'trigger') {
 				if(!empty($types['safe']))
 					$types['safe'] = array_diff($types['safe'], array($column->name));
 			}
+			*/
         }
 		foreach($table->columns as $column)
 		{

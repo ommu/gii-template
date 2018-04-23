@@ -38,6 +38,7 @@ $tagCondition = 0;
 $uploadCondition = 0;
 $i18n = 0;
 $useGetFunctionCondition = 0;
+$relationCondition = 0;
 
 $arrayRelations = [];
 $arrayInputPublicVariable = [];
@@ -84,11 +85,15 @@ echo "<?php\n";
 <?php endforeach; */?>
 <?php 
 foreach ($tableSchema->columns as $column):
-if(!($column->name[0] == '_')): ?>
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id']))
+		$relationCondition = 1;
+
+	if(!($column->name[0] == '_')): ?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php endif;
 endforeach; ?>
-<?php if (!empty($relations)): ?>
+<?php if (!empty($relations) || $relationCondition): ?>
  *
  * The followings are the available model relations:
 <?php 
@@ -119,7 +124,7 @@ foreach ($tableSchema->columns as $column):
 		}
 		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 			$userCondition = 1;
-		else if($column->name == 'tag_id') 
+		if($column->name == 'tag_id') 
 			$tagCondition = 1;
 	} else {
 		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && $column->comment == 'file') 
@@ -224,7 +229,8 @@ if($tableType == Generator::TYPE_VIEW):
 	/**
 	 * @return string the primarykey column
 	 */
-	public static function primaryKey() {
+	public static function primaryKey()
+	{
 		return ['<?=$viewPrimaryKey?>'];
 	}
 <?php
@@ -410,7 +416,6 @@ if($queryClassName):
 	$queryClassFullName = ($generator->ns === $generator->queryNs) ? $queryClassName : '\\' . $generator->queryNs . '\\' . $queryClassName;
 	echo "\n";
 ?>
-
 	/**
 	 * @inheritdoc
 	 * @return <?= $queryClassFullName ?> the active query used by this AR class.
@@ -646,7 +651,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->useGetFunction || $useGe
 	/**
 	 * function get<?= $functionName."\n"; ?>
 	 */
-	public static function get<?= $functionName ?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
+	public static function get<?= Inflector::singularize($functionName) ?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
 	{
 		$model = self::find()->alias('t');
 <?php 
@@ -733,8 +738,8 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 		if(parent::beforeValidate()) {
 <?php $creationCondition = 0;
 foreach($tableSchema->columns as $column):
-	if(in_array($column->name, ['creation_id','modified_id','updated_id']) && $column->comment != 'trigger'):
-		if($column->name == 'creation_id') {
+	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && $column->comment != 'trigger'):
+		if(in_array($column->name, array('creation_id','user_id'))) {
 			$creationCondition = 1;
 			echo "\t\t\tif(\$this->isNewRecord)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";

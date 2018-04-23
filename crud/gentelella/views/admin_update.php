@@ -50,7 +50,7 @@ $this->params['breadcrumbs'][] = <?= $generator->generateString('Update') ?>;
 
 $this->params['menu']['content'] = [
 	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['index']), 'icon' => 'table'],
-	['label' => <?= $generator->generateString('View') ?>, 'url' => Url::to(['view', <?= $urlParams ?>]), 'icon' => 'eye'],
+	['label' => <?= $generator->generateString('Detail') ?>, 'url' => Url::to(['view', <?= $urlParams ?>]), 'icon' => 'eye'],
 	['label' => <?= $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?= $urlParams ?>]), 'confirm' => <?= $generator->generateString('Are you sure you want to delete this item?') ?>, 'method' => 'post', 'icon' => 'trash'],
 ];
 ?>

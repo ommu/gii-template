@@ -16,15 +16,19 @@ if (empty($safeAttributes)) {
 	$safeAttributes = $model->attributes();
 }
 $tableSchema = $generator->tableSchema;
-$columns = $tableSchema->columns;
 
-$textareaCondition = 0;
-$datepickerCondition = 0;
-foreach ($columns as $key => $column) {
-	if($column->type === 'text')
-		$textareaCondition = 1;
-	if(in_array($column->dbType, array('timestamp','datetime','date')) && $column->comment != 'trigger')
-		$datepickerCondition = 1;
+$redactorCondition = 0;
+$uploadCondition = 0;
+foreach ($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if(in_array('redactor', $commentArray))
+		$redactorCondition = 1;
+	if($column->type == 'text' && $column->comment == 'redactor')
+		$redactorCondition = 1;
+	if(in_array('file', $commentArray))
+		$uploadCondition = 1;
+	if($column->type == 'text' && $column->comment == 'file') 
+		$uploadCondition = 1;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -51,18 +55,17 @@ echo "<?php\n";
  */
 
 use yii\helpers\Html;
+<?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
 use yii\widgets\ActiveForm;
-<?php if($datepickerCondition && $generator->useJuiDatePicker): ?>
-use yii\jui\DatePicker;
-<?php endif; ?>
-<?php if($textareaCondition): ?>
-use yii\redactor\widgets\Redactor;
+<?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
+<?php echo $uploadCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
+if($redactorCondition): ?>
 
 $redactorOptions = [
 	'imageManagerJson' => ['/redactor/upload/image-json'],
-	'imageUpload'	 => ['/redactor/upload/image'],
-	'fileUpload'	   => ['/redactor/upload/file'],
-	'plugins'		 => ['clips', 'fontcolor','imagemanager']
+	'imageUpload' => ['/redactor/upload/image'],
+	'fileUpload' => ['/redactor/upload/file'],
+	'plugins' => ['clips', 'fontcolor','imagemanager']
 ];
 <?php endif; ?>
 ?>
@@ -70,32 +73,37 @@ $redactorOptions = [
 <?= "<?php "?>$form = ActiveForm::begin([
 	'options' => [
 		'class' => 'form-horizontal form-label-left',
-		//'enctype' => 'multipart/form-data',
+		<?php echo $uploadCondition ? '' : '//';?>'enctype' => 'multipart/form-data',
 	],
-	'enableClientValidation' => true,
-	'enableAjaxValidation'   => false,
-	//'enableClientScript'	 => true,
+	'enableClientValidation' => <?php echo $uploadCondition ? 'false' : 'true';?>,
+	'enableAjaxValidation' => <?php echo $uploadCondition ? 'false' : 'true';?>,
+	//'enableClientScript' => true,
 ]); ?>
 
 <?php echo "<?php "?>//echo $form->errorSummary($model);?>
 
 <?php 
 //echo '<pre>';
-//print_r($columns);
-foreach ($columns as $key => $column) {
-	if($column->autoIncrement || $column->isPrimaryKey)
+//print_r($tableSchema);
+foreach ($tableSchema->columns as $column) {
+	if($column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)')
 		continue;
 		
-	if (in_array($key, $safeAttributes)) {
-		if($column->comment != 'trigger' && !in_array($column->name, ['slug']) && !(in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger')) {
-			if(!in_array($column->name, ['publish','headline']))
-				echo "<?php echo " . $generator->generateActiveField($key) . "; ?>\n\n";
+	if (in_array($column->name, $safeAttributes)) {
+		if($column->comment != 'trigger' && !(in_array($column->name, array('creation_id','modified_id','updated_id','slug'))) && !($column->type == 'text' && $column->comment == 'file')) {
+			echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
+		} else if($column->type == 'text' && $column->comment == 'file') {
+			echo $generator->generateActiveField($column->name)."\n\n";
 		}
 	}
 }
-foreach ($columns as $key => $column) {
-	if(in_array($column->name, ['publish','headline']))
-		echo "<?php echo " . $generator->generateActiveField($key) . "; ?>\n\n";
+foreach ($tableSchema->columns as $column) {
+	if($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline']))
+		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
+}
+foreach ($tableSchema->columns as $column) {
+	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','headline']))
+		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>
 <div class="ln_solid"></div>
 <div class="form-group">
