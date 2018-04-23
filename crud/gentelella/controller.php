@@ -286,7 +286,7 @@ endforeach;?>
 <?php else: ?>
 		$this->findModel(<?= $actionParams ?>)->delete();
 		
-		Yii::$app->session->setFlash('success', <?php echo $generator->generateString($label.' success deleted.');?>);
+		Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
 		return $this->redirect(['index']);
 <?php endif; ?>
 	}
@@ -345,7 +345,7 @@ foreach ($tableSchema->columns as $column):
 		$model-><?php echo $column->name;?> = $replace;
 		
 		if($model->save(false, ['<?php echo $column->name;?>'])) {
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString($label.' success updated.');?>);
+			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
 			return $this->redirect(['index']);
 		}
 	}
