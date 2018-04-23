@@ -38,7 +38,7 @@ foreach ($tableSchema->columns as $column):
 		$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
 		$publicVariable = $generator->setRelationName($column->name).'_i';
 		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayRelations[] = $relationName;
+			$arrayRelations[$relationName] = $relationName;
 			$arrayPublicVariable[] = $publicVariable;
 		}
 	}
@@ -48,17 +48,18 @@ foreach ($tableSchema->columns as $column):
 		$relationName = $generator->setRelationName($column->name);
 		$publicVariable = $relationName.'_i';
 		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayRelations[] = $relationName;
+			$arrayRelations[$relationName] = $relationName;
 			$arrayPublicVariable[] = $publicVariable;
 		}
 	}
 endforeach;
 foreach ($tableSchema->columns as $column):
 if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
+	$relationTableName = trim($foreignKeys[$column->name]);
 	$relationName = $generator->setRelationName($column->name);
 	$publicVariable = $relationName.'_search';
 	if(!in_array($publicVariable, $arrayPublicVariable)) {
-		$arrayRelations[] = $relationName;
+		$arrayRelations[$relationName] = $generator->getName2ndRelation($relationName, $generator->getNameRelationAttribute($relationTableName,'.'));
 		$arrayPublicVariable[] = $publicVariable;
 	}
 endif;
@@ -68,7 +69,7 @@ if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])
 	$relationName = $generator->setRelationName($column->name);
 	$publicVariable = $relationName.'_search';
 	if(!in_array($publicVariable, $arrayPublicVariable)) {
-		$arrayRelations[] = $relationName;
+		$arrayRelations[$relationName] = $relationName;
 		$arrayPublicVariable[] = $publicVariable;
 	}
 endif;
@@ -159,8 +160,8 @@ endforeach;?>
 //echo '<pre>';
 //print_r($arrayRelations);
 if(!empty($arrayRelations)):
-foreach ($arrayRelations as $val):
-	$relations[] = $val.' '.$val;
+foreach ($arrayRelations as $key => $val):
+	$relations[] = $val.' '.$key;
 endforeach;?>
 		$query->joinWith([<?php echo "\n\t\t\t'" .implode("', \n\t\t\t'", $relations). "'\n\t\t";?>]);
 <?php endif;?>
@@ -204,10 +205,10 @@ endforeach;
 foreach ($tableSchema->columns as $column): 
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
 		$relationTableName = trim($foreignKeys[$column->name]);
-		$relationAttributeName = $generator->getNameRelationAttribute($relationTableName, '.');
+		$relationName = $generator->setRelationName($column->name);
+		$relationAttributeName = $generator->getName2ndAttribute($relationName, $generator->getNameRelationAttribute($relationTableName, '.'));
 		if(trim($foreignKeys[$column->name]) == 'ommu_users')
 			$relationAttributeName = 'displayname';
-		$relationName = $generator->setRelationName($column->name);
 		$publicVariable = $relationName.'_search';
 		if(!in_array($publicVariable, $arrayPublicVariable)) {
 			$arrayPublicVariable[] = $publicVariable;?>

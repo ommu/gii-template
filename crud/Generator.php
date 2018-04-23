@@ -312,7 +312,7 @@ class Generator extends \app\libraries\gii\Generator
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
 						$relationColumn[] = $this->setRelationName($column->name);
-						$relationColumn[] = $this->getNameRelationAttribute($relationTableName);
+						$relationColumn[] = $this->getNameRelationAttribute($relationTableName, $separator);
 						$foreignCondition = 1;
 					}
 				}
@@ -323,6 +323,29 @@ class Generator extends \app\libraries\gii\Generator
 		$pk = $tableSchema->primaryKey;
 
 		return $pk[0];
+	}
+
+	public function getName2ndRelation($st, $nd='')
+	{
+		$relations = [];
+		$relations[] = $st;
+		if($nd != '') {
+			$relations = \yii\helpers\ArrayHelper::merge($relations, explode('.', $nd));
+			array_pop($relations);
+		}
+
+		return implode('.', $relations);
+	}
+
+	public function getName2ndAttribute($st, $nd='')
+	{
+		$relations = [];
+		$relations[] = $st;
+		if($nd != '') {
+			$relations = \yii\helpers\ArrayHelper::merge($relations, explode('.', $nd));
+		}
+
+		return array_pop($relations);
 	}
 
 	/**
@@ -718,7 +741,7 @@ class Generator extends \app\libraries\gii\Generator
 			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)):
 				$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
-				$publicVariable = $this->setRelationName($column->name).'_i';
+				$publicVariable = $column->name.'_i';
 				if(!in_array($publicVariable, $arrayPublicVariable)) {
 					$arrayPublicVariable[] = $publicVariable;
 					$likeConditions[] = "->andFilterWhere(['like', '{$relationName}.message', \$this->{$publicVariable}])";
@@ -738,10 +761,10 @@ class Generator extends \app\libraries\gii\Generator
 		foreach ($tableSchema->columns as $column): 
 			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
 				$relationTableName = trim($foreignKeys[$column->name]);
-				$relationAttributeName = $this->getNameAttribute($relationTableName);
+				$relationName = $this->setRelationName($column->name);
+				$relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameRelationAttribute($relationTableName, '.'));
 				if(trim($foreignKeys[$column->name]) == 'ommu_users')
 					$relationAttributeName = 'displayname';
-				$relationName = $this->setRelationName($column->name);
 				$publicVariable = $relationName.'_search';
 				if(!in_array($publicVariable, $arrayPublicVariable)) {
 					$arrayPublicVariable[] = $publicVariable;
