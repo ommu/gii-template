@@ -18,23 +18,74 @@ $modelFullClassName = $modelClassName;
 if ($generator->ns !== $generator->queryNs) {
 	$modelFullClassName = '\\' . $generator->ns . '\\' . $modelFullClassName;
 }
+//echo '<pre>';
+//print_r($tableSchema);
+
+$yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
 ?>
+/**
+ * <?= $className."\n" ?>
+ *
+ * This is the ActiveQuery class for [[<?= $modelFullClassName ?>]].
+ * @see <?= $modelFullClassName . "\n" ?>
+ * 
+ * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
+ * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
+ * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php if($generator->useModified):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
+<?php endif; ?>
+ * @link <?php echo $generator->link."\n";?>
+ *
+ */
 
 namespace <?= $generator->queryNs ?>;
 
-/**
- * This is the ActiveQuery class for [[<?= $modelFullClassName ?>]].
- *
- * @see <?= $modelFullClassName . "\n" ?>
- */
 class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\') . "\n" ?>
 {
-	/*public function active()
+	/*
+	public function active()
 	{
 		return $this->andWhere('[[status]]=1');
-	}*/
+	}
+	*/
+<?php foreach ($tableSchema->columns as $column):
+	if(!($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','headline'])))
+		continue;
+	
+	if($column->name == 'publish'):?>
+
+	/**
+	 * @inheritdoc
+	 */
+	public function published() 
+	{
+		return $this->andWhere(['<?php echo $column->name;?>' => 1]);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function unpublish() 
+	{
+		return $this->andWhere(['<?php echo $column->name;?>' => 0]);
+	}
+<?php elseif($column->name == 'headline'):?>
+
+	/**
+	 * @inheritdoc
+	 */
+	public function published() 
+	{
+		return $this->andWhere(['publish' => 1])->andWhere(['<?php echo $column->name;?>' => 1]);
+	}
+<?php endif;
+endforeach;?>
 
 	/**
 	 * @inheritdoc

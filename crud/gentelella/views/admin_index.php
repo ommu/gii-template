@@ -36,6 +36,7 @@ echo "<?php\n";
 <?php if($generator->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
 <?php endif; ?>
  * @link <?php echo $generator->link."\n";?>
  *
@@ -106,15 +107,15 @@ array_push($columnData, [
 	],
 	'buttons' => [
 		'view' => function ($url, $model, $key) {
-			$url = Url::to(['view', 'id' => $model->primaryKey]);
+			$url = Url::to(['view', 'id'=>$model->primaryKey]);
 			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title' => <?= $generator->generateString('Detail ' . $labelButton) ?>]);
 		},
 		'update' => function ($url, $model, $key) {
-			$url = Url::to(['update', 'id' => $model->primaryKey]);
+			$url = Url::to(['update', 'id'=>$model->primaryKey]);
 			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title' => <?= $generator->generateString('Update ' . $labelButton) ?>]);
 		},
 		'delete' => function ($url, $model, $key) {
-			$url = Url::to(['delete', 'id' => $model->primaryKey]);
+			$url = Url::to(['delete', 'id'=>$model->primaryKey]);
 			return Html::a('<span class="glyphicon glyphicon-trash"></span>', $url, [
 				'title' => <?= $generator->generateString('Delete ' . $labelButton) ?>,
 				'data-confirm' => <?= $generator->generateString('Are you sure you want to delete this item?') ?>,

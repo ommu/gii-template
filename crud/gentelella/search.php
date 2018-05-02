@@ -36,7 +36,7 @@ foreach ($tableSchema->columns as $column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
 		$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
-		$publicVariable = $generator->setRelationName($column->name).'_i';
+		$publicVariable = $column->name.'_i';
 		if(!in_array($publicVariable, $arrayPublicVariable)) {
 			$arrayRelations[$relationName] = $relationName;
 			$arrayPublicVariable[] = $publicVariable;
@@ -93,6 +93,7 @@ echo "<?php\n";
 <?php if($generator->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
 <?php endif; ?>
  * @link <?php echo $generator->link."\n";?>
  *
@@ -179,7 +180,7 @@ foreach ($tableSchema->columns as $column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
 		$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
-		$publicVariable = $generator->setRelationName($column->name).'_i';
+		$publicVariable = $column->name.'_i';
 		if(!in_array($publicVariable, $arrayPublicVariable)) {
 			$arrayPublicVariable[] = $publicVariable;?>
 		$attributes['<?php echo $publicVariable;?>'] = [

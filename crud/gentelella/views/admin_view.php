@@ -20,6 +20,12 @@ $patternLabel = array();
 $patternLabel[0] = '(Core )';
 $patternLabel[1] = '(Zone )';
 
+$uploadCondition = 0;
+foreach ($tableSchema->columns as $column):
+	if($column->type == 'text' && $column->comment == 'file') 
+		$uploadCondition = 1;
+endforeach;
+
 $labelButton = Inflector::pluralize(preg_replace($patternLabel, '', $label));
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -39,6 +45,7 @@ echo "<?php\n";
 <?php if($generator->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
 <?php endif; ?>
  * @link <?php echo $generator->link."\n";?>
  *
@@ -47,6 +54,9 @@ echo "<?php\n";
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
+<?php 
+echo $uploadCondition ? "use ".ltrim($generator->modelClass)."\n" : '';
+?>
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($labelButton) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
@@ -74,7 +84,7 @@ if (($tableSchema = $tableSchema) === false) {
 	}
 } else {
 	foreach ($tableSchema->columns as $column) {
-		if($column->isPrimaryKey || $column->autoIncrement || $column->name[0] == '_')
+		if($column->name[0] == '_')
 			continue;
 
 if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
@@ -103,7 +113,7 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-			'value' => !in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "['0000-00-00','1970-01-01','-0001-11-30']" : "['0000-00-00 00:00:00','1970-01-01 00:00:00','-0001-11-30 00:00:00']";?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-',
+			'value' => !in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "['0000-00-00','1970-01-01','0002-12-02','-0001-11-30']" : "['0000-00-00 00:00:00','1970-01-01 00:00:00','0002-12-02 00:00:00','-0001-11-30 00:00:00']";?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-',
 		],
 <?php } else if($column->dbType == 'tinyint(1)') {?>
 		[
@@ -113,9 +123,16 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 <?php } else if(in_array($column->dbType, array('text'))) {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
+<?php if($column->comment == 'file'):?>
+			'value' => function ($model) {
+				$image = join('/', [Url::Base(), <?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $column->name;?>]);
+				return $model-><?php echo $column->name;?> ? Html::img($image, ['width' => '100%']).'<br/><br/>'.$image : '-';
+			},
+<?php else:?>
 			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
-<?php if(in_array($column->comment, array('redactor','file'))):?>
-			'format' => 'html',
+<?php endif;
+if(in_array($column->comment, array('redactor','file'))):?>
+			'format' => 'raw',
 <?php endif;?>
 		],
 <?php } else {

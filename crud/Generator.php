@@ -507,11 +507,11 @@ class Generator extends \app\libraries\gii\Generator
 
 		else:
 			if($i18n):
-				$attributeName = $this->setRelationName($column->name).'_i';
+				$attributeName = $column->name.'_i';
 				return "\$form->field(\$model, '$attributeName')";
 			else:
 				if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)')
-					return "\$form->field(\$model, '$attribute')->checkbox()";
+					return "\$form->field(\$model, '$attribute')\n\t\t\t->checkbox()";
 				else
 					return "\$form->field(\$model, '$attribute')";
 			endif;

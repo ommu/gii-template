@@ -74,6 +74,7 @@ echo "<?php\n";
 <?php if($generator->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
 <?php endif; ?>
  * @link <?php echo $generator->link."\n";?>
  *
@@ -153,7 +154,7 @@ echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
-echo $userCondition ? "use ".ltrim('app\coremodules\user\models\Users', '\\').";\n" : '';
+echo $userCondition ? "use ".ltrim('app\modules\user\models\Users', '\\').";\n" : '';
 ?>
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
@@ -499,7 +500,7 @@ foreach ($tableSchema->columns as $column):
 			'filter' => Html::input('date', '<?php echo $column->name;?>', Yii::$app->request->get('<?php echo $column->name;?>'), ['class'=>'form-control']),
 <?php endif;?>
 			'value' => function($model, $key, $index, $column) {
-				return !in_array($model-><?php echo $column->name;?>, <?php echo $column->type == 'date' ? '[\'0000-00-00\',\'1970-01-01\',\'-0001-11-30\']' : '[\'0000-00-00 00:00:00\',\'1970-01-01 00:00:00\',\'-0001-11-30 00:00:00\']';?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-';
+				return !in_array($model-><?php echo $column->name;?>, <?php echo $column->type == 'date' ? '[\'0000-00-00\',\'1970-01-01\',\'0002-12-02\',\'-0001-11-30\']' : '[\'0000-00-00 00:00:00\',\'1970-01-01 00:00:00\',\'0002-12-02 00:00:00\',\'-0001-11-30 00:00:00\']';?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-';
 			},
 			'format' => 'html',
 		];
@@ -568,7 +569,7 @@ foreach ($tableSchema->columns as $column):
 			'attribute' => '<?php echo $column->name;?>',
 			'filter' => $this->filterYesNo(),
 			'value' => function($model, $key, $index, $column) {
-				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]);
+				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
 <?php if($column->name == 'headline'):?>
 				return $this->quickAction($url, $model-><?php echo $column->name;?>, 'Headline,No Headline', true);
 <?php else:?>
@@ -588,11 +589,11 @@ foreach ($tableSchema->columns as $column):
 				'attribute' => '<?php echo $column->name;?>',
 				'filter' => $this->filterYesNo(),
 				'value' => function($model, $key, $index, $column) {
-					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]);
+					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
 					return $this->quickAction($url, $model-><?php echo $column->name;?>);
 				},
 				'contentOptions' => ['class'=>'center'],
-				'format'	=> 'raw',
+				'format' => 'raw',
 			];
 		}
 <?php endif;
@@ -657,11 +658,11 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->useGetFunction || $useGe
 <?php 
 $i18nRelation = $i18n && preg_match('/(name|title)/', $attributeName) ? 'title' : '';
 if($i18nRelation)
-	echo "\t\t\$model->with(['$i18nRelation $i18nRelation']);\n";
+	echo "\t\t\$model->leftJoin(sprintf('%s $i18nRelation', SourceMessage::tableName()), 't.$attributeName=$i18nRelation.id');\n";
 	
 if($publishCondition) {?>
 		if($publish != null)
-			$model = $model->andWhere(['t.publish' => $publish]);
+			$model->andWhere(['t.publish' => $publish]);
 
 <?php }?>
 		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : 't.'.$attributeName;?> ASC')->all();
@@ -725,7 +726,12 @@ foreach ($tableSchema->columns as $column) {
 $bsEvents = 0;
 foreach($tableSchema->columns as $column)
 {
+	$nameArray = explode('_', $column->name);
+
 	if($uploadCondition || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
+		$bsEvents = 1;
+		
+	if(in_array('ip', $nameArray))
 		$bsEvents = 1;
 }
 if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
@@ -751,6 +757,14 @@ foreach($tableSchema->columns as $column):
 				echo "\t\t\tif(!\$this->isNewRecord)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		}
+	endif;
+endforeach;
+
+foreach($tableSchema->columns as $column):
+	$nameArray = explode('_', $column->name);
+		
+	if(in_array('ip', $nameArray)):
+		echo "\n\t\t\t\$this->{$column->name} = \$_SERVER['REMOTE_ADDR'];\n";
 	endif;
 endforeach;
 
@@ -851,7 +865,7 @@ endforeach;?>
 <?php 
 foreach($tableSchema->columns as $column):
 	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')
-		echo "\t\t\t\$this->$column->name = date('Y-m-d', strtotime(\$this->$column->name));\n";	//Y-m-d H:i:s
+		echo "\t\t\t\$this->$column->name = Yii::\$app->formatter->asDate(\$this->$column->name, 'php:Y-m-d');\n";	//Y-m-d H:i:s
 
 	else if($column->type == 'text' && $column->comment == 'serialize')
 		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
