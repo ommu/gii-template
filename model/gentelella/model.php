@@ -47,10 +47,14 @@ $arrayAttributeName = [];
 
 if($tableType == Generator::TYPE_VIEW)
 	$primaryKey = $viewPrimaryKey;
-else
-	$primaryKey = $tableSchema->primaryKey['0'];
+else {
+	if(!empty($tableSchema->primaryKey))
+		$primaryKey = $tableSchema->primaryKey['0'];
+	else
+		$primaryKey = key($tableSchema->columns);
+}
 
-$primaryKeyColumn = $tableSchema->columns[$primaryKey];
+$primaryKeyColumn = $tableSchema->columns['consultation_id'];
 if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)'))
 	$useGetFunctionCondition = 1;
 

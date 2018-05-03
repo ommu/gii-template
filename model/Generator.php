@@ -1041,12 +1041,18 @@ class Generator extends \app\libraries\gii\Generator
 
 		} else
 			$tableSchema = $db->getTableSchema($tableNameRelation);
-			
+		
+		$firstKeyCondition = 0;
         foreach ($tableSchema->columns as $key => $column) {
 			if($column->isPrimaryKey || $column->autoIncrement)
 				$primaryKey[] = $key;
+			if(empty($primaryKey) && !$firstKeyCondition) {
+				$primaryKey[] = key($tableSchema->columns);
+				$firstKeyCondition = 1;
+			}
 			if(preg_match('/(name|title)/', $key))
 				return $key;
+			
 		}
 		
         /* @var $class \yii\db\ActiveRecord */
