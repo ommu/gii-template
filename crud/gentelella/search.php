@@ -27,7 +27,6 @@ $patternClass = $patternLabel = array();
 $patternClass[0] = '(Ommu)';
 $patternClass[1] = '(Swt)';
 
-		
 if(!empty($tableSchema->primaryKey))
 	$primaryKey = $tableSchema->primaryKey[0];
 else
