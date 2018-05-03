@@ -54,7 +54,7 @@ else {
 		$primaryKey = key($tableSchema->columns);
 }
 
-$primaryKeyColumn = $tableSchema->columns['consultation_id'];
+$primaryKeyColumn = $tableSchema->columns[$primaryKey];
 if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)'))
 	$useGetFunctionCondition = 1;
 
