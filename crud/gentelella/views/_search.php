@@ -11,6 +11,11 @@ $label = Inflector::camel2words($modelClass);
 
 $tableSchema = $generator->tableSchema;
 
+if(!empty($tableSchema->primaryKey))
+	$primaryKey = $tableSchema->primaryKey[0];
+else
+	$primaryKey = key($tableSchema->columns);
+
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
@@ -49,7 +54,7 @@ $count = 0;
 //echo '<pre>';
 //print_r($generator->getColumnNames());
 foreach ($generator->getColumnNames() as $attribute) {
-	if($attribute == $tableSchema->primaryKey[0] || $attribute[0] == '_')
+	if($attribute == $primaryKey || $attribute[0] == '_')
 		continue;
 		
 	echo "\t\t<?php echo ".$generator->generateActiveSearchField($attribute).";?>\n\n";

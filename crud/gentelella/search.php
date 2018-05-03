@@ -27,6 +27,12 @@ $patternClass = $patternLabel = array();
 $patternClass[0] = '(Ommu)';
 $patternClass[1] = '(Swt)';
 
+		
+if(!empty($tableSchema->primaryKey))
+	$primaryKey = $tableSchema->primaryKey[0];
+else
+	$primaryKey = key($tableSchema->columns);
+
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $arrayRelations = [];
@@ -236,7 +242,7 @@ endforeach;
 endif;?>
 		$dataProvider->setSort([
 			'attributes' => $attributes,
-			'defaultOrder' => ['<?php echo $tableSchema->primaryKey[0]?>' => SORT_DESC],
+			'defaultOrder' => ['<?php echo $primaryKey?>' => SORT_DESC],
 		]);
 
 		$this->load($params);

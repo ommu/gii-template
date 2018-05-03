@@ -662,7 +662,10 @@ class Generator extends \app\libraries\gii\Generator
 			}
 		}
 		
-		$primaryKey = $tableSchema->primaryKey[0];
+		if(!empty($tableSchema->primaryKey))
+			$primaryKey = $tableSchema->primaryKey[0];
+		else
+			$primaryKey = key($tableSchema->columns);
 
 		$likeConditions = [];
 		$hashConditions = [];

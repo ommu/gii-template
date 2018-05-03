@@ -39,6 +39,7 @@ $uploadCondition = 0;
 $i18n = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
+$primaryKeyCondition = 0;
 
 $arrayRelations = [];
 $arrayInputPublicVariable = [];
@@ -50,8 +51,10 @@ if($tableType == Generator::TYPE_VIEW)
 else {
 	if(!empty($tableSchema->primaryKey))
 		$primaryKey = $tableSchema->primaryKey['0'];
-	else
+	else {
+		$primaryKeyCondition = 1;
 		$primaryKey = key($tableSchema->columns);
+	}
 }
 
 $primaryKeyColumn = $tableSchema->columns[$primaryKey];
@@ -228,7 +231,7 @@ endforeach;
 		return '<?= $generator->generateTableName($tableName) ?>';
 	}
 <?php
-if($tableType == Generator::TYPE_VIEW):
+if($tableType == Generator::TYPE_VIEW || $primaryKeyCondition):
 ?>
 
 	/**
