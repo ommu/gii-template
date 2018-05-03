@@ -709,24 +709,28 @@ if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCon
 	 */
 	public function afterFind() 
 	{
-<?php foreach ($tableSchema->columns as $column) {
-	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray)) {
-		$publicAttribute = $column->name.'_i';
-		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
-		echo "\t\t\$this->$publicAttribute = isset(\$this->{$publicAttributeRelation}) ? \$this->{$publicAttributeRelation}->message : '';\n";
-	}
-}
-foreach ($tableSchema->columns as $column) {
+<?php foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['tag_id'])) {
 		$relationName = $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';
 		echo "\t\t\$this->$publicAttribute = isset(\$this->{$relationName}) ? \$this->{$relationName}->body : '';\n";
+
 	} else if($column->type == 'text' && $column->comment == 'file') {
 		$inputPublicVariable = 'old_'.$column->name.'_i';
 		echo "\t\t\$this->$inputPublicVariable = \$this->$column->name;\n";
+
+	} else if($column->type == 'text' && $column->comment == 'serialize') {
+		echo "\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
+
+	} else {
+		$commentArray = explode(',', $column->comment);
+		if(in_array('trigger[delete]', $commentArray)) {
+			$publicAttribute = $column->name.'_i';
+			$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			echo "\t\t\$this->$publicAttribute = isset(\$this->{$publicAttributeRelation}) ? \$this->{$publicAttributeRelation}->message : '';\n";
+		}
 	}
-}?>
+endforeach;?>
 	}
 <?php endif;
 
@@ -741,6 +745,7 @@ foreach($tableSchema->columns as $column)
 	if(in_array('ip', $nameArray))
 		$bsEvents = 1;
 }
+$beforeValidate = 0;
 if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
@@ -749,9 +754,33 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	public function beforeValidate() 
 	{
 		if(parent::beforeValidate()) {
-<?php $creationCondition = 0;
+<?php if($uploadCondition):
+	foreach($tableSchema->columns as $column):
+		if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
+			$beforeValidate = 1;?>
+			$<?php echo $column->name;?>FileType = ['bmp','gif','jpg','png'];
+			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+
+			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
+				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $column->name;?>FileType)) {
+					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
+						'{name}'=>$<?php echo $column->name;?>->name,
+						'{extensions}'=>$this->formatFileType($<?php echo $column->name;?>FileType, false),
+					)));
+				}
+			} /* else {
+				//if($this->isNewRecord)
+					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', array('{attribute}'=>$this->getAttributeLabel('<?php echo $column->name;?>'))));
+			} */
+
+<?php 	}
+	endforeach;
+endif;
+
+$creationCondition = 0;
 foreach($tableSchema->columns as $column):
 	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && $column->comment != 'trigger'):
+		$beforeValidate = 1;
 		if(in_array($column->name, array('creation_id','user_id'))) {
 			$creationCondition = 1;
 			echo "\t\t\tif(\$this->isNewRecord)\n";
@@ -771,31 +800,11 @@ foreach($tableSchema->columns as $column):
 	$nameArray = explode('_', $column->name);
 		
 	if(in_array('ip', $nameArray)):
+		$beforeValidate = 1;
 		echo "\n\t\t\t\$this->{$column->name} = \$_SERVER['REMOTE_ADDR'];\n";
 	endif;
 endforeach;
-
-if($uploadCondition):
-	foreach($tableSchema->columns as $column):
-		if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {?>
-
-			$<?php echo $column->name;?>FileType = ['bmp','gif','jpg','png'];
-			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-
-			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
-				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $column->name;?>FileType)) {
-					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
-						'{name}'=>$<?php echo $column->name;?>->name,
-						'{extensions}'=>$this->formatFileType($<?php echo $column->name;?>FileType, false),
-					)));
-				}
-			} /* else {
-				//if($this->isNewRecord && $controller == 'o/media')
-					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', array('{attribute}'=>$this->getAttributeLabel('<?php echo $column->name;?>'))));
-			} */
-<?php 	}
-	endforeach;
-endif;?>
+echo !$beforeValidate ? "\t\t\t// Create action\n" : '';?>
 		}
 		return true;
 	}
@@ -811,6 +820,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	public function afterValidate()
 	{
 		parent::afterValidate();
+
 		// Create action
 		
 		return true;
@@ -824,6 +834,7 @@ foreach($tableSchema->columns as $column)
 	if($i18n || (in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')  || ($column->type == 'text' && $column->comment == 'serialize')|| in_array($column->name, ['tag_id']))
 		$bsEvents = 1;
 }
+$beforeSave = 0;
 if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
@@ -851,7 +862,8 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 				$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
 <?php foreach($tableSchema->columns as $column):
-	if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {?>
+	if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
+		$beforeSave = 1;?>
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
@@ -871,13 +883,38 @@ endforeach;?>
 <?php endif;?>
 <?php 
 foreach($tableSchema->columns as $column):
-	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)) {
+		$beforeSave = 1;
+		$publicAttribute = $column->name.'_i';
+		$publicAttributeLocation = preg_match('/(name|title)/', $column->name) ? '_title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? '_description' : '_'.$column->name) : '_'.$column->name);?>
+			if($insert || (!$insert && !$this-><?php echo $column->name;?>)) {
+				$<?php echo $column->name;?> = new SourceMessage();
+				$<?php echo $column->name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
+				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
+				if($<?php echo $column->name;?>->save())
+					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
+				
+			} else {
+				$<?php echo $column->name;?> = SourceMessage::findOne($this-><?php echo $column->name;?>);
+				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
+				$<?php echo $column->name;?>->save();
+			}
+
+<?php }
+endforeach;
+
+foreach($tableSchema->columns as $column):
+	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger') {
+		$beforeSave = 1;
 		echo "\t\t\t\$this->$column->name = Yii::\$app->formatter->asDate(\$this->$column->name, 'php:Y-m-d');\n";	//Y-m-d H:i:s
 
-	else if($column->type == 'text' && $column->comment == 'serialize')
+	} else if($column->type == 'text' && $column->comment == 'serialize') {
+		$beforeSave = 1;
 		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
 
-	else if($column->name == 'tag_id') {
+	} else if($column->name == 'tag_id') {
+		$beforeSave = 1;
 		$relationName =  $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';?>
 			if($insert) {
@@ -899,27 +936,7 @@ foreach($tableSchema->columns as $column):
 			}
 <?php }
 endforeach;
-foreach($tableSchema->columns as $column):
-	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray)) {
-		$publicAttribute = $column->name.'_i';
-		$publicAttributeLocation = preg_match('/(name|title)/', $column->name) ? '_title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? '_description' : '_'.$column->name) : '_'.$column->name);?>
-
-			if($insert || (!$insert && !$this-><?php echo $column->name;?>)) {
-				$<?php echo $column->name;?> = new SourceMessage();
-				$<?php echo $column->name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
-				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
-				if($<?php echo $column->name;?>->save())
-					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
-				
-			} else {
-				$<?php echo $column->name;?> = SourceMessage::findOne($this-><?php echo $column->name;?>);
-				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
-				$<?php echo $column->name;?>->save();
-			}
-<?php }
-endforeach;?>
-			// Create action
+echo !$beforeSave ? "\t\t\t// Create action\n" : '';?>
 		}
 		return true;
 	}
@@ -927,6 +944,7 @@ endforeach;?>
 endif;
 
 $bsEvents = 0;
+$afterSave = 0;
 if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
@@ -937,6 +955,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 		parent::afterSave($insert, $changedAttributes);
 
 <?php if($uploadCondition):
+$afterSave = 1;
 if($generator->uploadPath['subfolder']):?>
 		$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
 <?php else:?>
@@ -958,7 +977,8 @@ if($generator->uploadPath['subfolder']):?>
 <?php }
 endforeach;?>
 		}
-<?php endif;?>
+<?php endif;
+echo !$afterSave ? "\t\t// Create action\n" : '';?>
 	}
 <?php 
 endif;
@@ -980,6 +1000,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 endif;
 
 $bsEvents = 0;
+$afterDelete = 0;
 if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
 
 	/**
@@ -990,6 +1011,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 		parent::afterDelete();
 
 <?php if($uploadCondition):
+$afterDelete = 1;
 if($generator->uploadPath['subfolder']):?>
 		$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
 <?php else:?>
@@ -1001,9 +1023,11 @@ if($generator->uploadPath['subfolder']):?>
 	if($column->type == 'text' && $column->comment == 'file') {?>
 		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this-><?php echo $column->name;?>])))
 			rename(join('/', [$uploadPath, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, time().'_deleted_'.$this-><?php echo $column->name;?>]));
+
 <?php }
 endforeach;
-endif;?>
+endif;
+echo !$afterDelete ? "\t\t// Create action\n" : '';?>
 	}
 <?php endif; ?>
 }
