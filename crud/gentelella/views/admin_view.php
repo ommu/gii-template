@@ -118,7 +118,18 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 <?php } else if($column->dbType == 'tinyint(1)') {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
+<?php if(in_array($column->name, ['publish','headline']) || $column->comment != '') {
+	if($column->name == 'publish') {?>
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+<?php } else if($column->name == 'headline') {?>
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, 'Headline,No Headline', true),
+<?php } else {?>
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),
+<?php }?>
+			'format' => 'raw',
+<?php } else {?>
 			'value' => $model-><?php echo $column->name;?> == 1 ? <?php echo $generator->generateString('Yes');?> : <?php echo $generator->generateString('No');?>,
+<?php }?>
 		],
 <?php } else if(in_array($column->dbType, array('text'))) {?>
 		[
