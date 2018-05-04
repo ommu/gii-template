@@ -1,6 +1,6 @@
 {
-	"name": "ommu/yii2-gii",
-	"description": "Yii2 Gii Generator Template from Ommu Platform",
+	"name": "ommu/gii",
+	"description": "Gii Generator Template from Ommu Platform",
 	"keywords": [
 		"yii",
 		"library",
