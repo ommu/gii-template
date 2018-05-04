@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
- namespace app\libraries\gii\form;
+ namespace ommu\gii\form;
 
 use Yii;
 use yii\base\Model;
@@ -19,7 +19,7 @@ use yii\gii\CodeFile;
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
-class Generator extends \app\libraries\gii\Generator
+class Generator extends \ommu\gii\Generator
 {
     public $modelClass;
     public $viewPath = '@app/views';

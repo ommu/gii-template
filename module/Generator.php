@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace app\libraries\gii\module;
+namespace ommu\gii\module;
 
 use yii\gii\CodeFile;
 use yii\helpers\Html;
@@ -21,7 +21,7 @@ use yii\helpers\StringHelper;
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
-class Generator extends \app\libraries\gii\Generator
+class Generator extends \ommu\gii\Generator
 {
     public $moduleClass;
     public $moduleID;

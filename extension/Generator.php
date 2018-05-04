@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
- namespace app\libraries\gii\extension;
+ namespace ommu\gii\extension;
 
 use Yii;
 use yii\gii\CodeFile;
@@ -20,7 +20,7 @@ use yii\gii\CodeFile;
  * @author Tobias Munk <schmunk@usrbin.de>
  * @since 2.0
  */
-class Generator extends \app\libraries\gii\Generator
+class Generator extends \ommu\gii\Generator
 {
     public $vendorName;
     public $packageName = "yii2-";

@@ -4,7 +4,7 @@
  *
  * berguna untuk kolom rules dan tipe rule pada generator crud
  */
-namespace app\libraries\gii\crud;
+namespace ommu\gii\crud;
 
 class SearchRules
 {

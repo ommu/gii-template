@@ -9,7 +9,7 @@
  * @link http://ecc.ft.ugm.ac.id
  */
 
-namespace app\libraries\gii;
+namespace ommu\gii;
 
 use Yii;
 use yii\helpers\VarDumper;

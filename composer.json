@@ -1,6 +1,6 @@
 {
-	"name": "ommu/gii",
-	"description": "Gii Generator Template for Ommu Platform",
+	"name": "ommu/yii2-gii",
+	"description": "Yii2 Gii Generator Template from Ommu Platform",
 	"keywords": [
 		"yii",
 		"library",
@@ -34,8 +34,13 @@
 	"require": {
 		"php": "~7.0",
 		"oomphinc/composer-installers-extender": "^1.0",
-		"yiisoft/yii2": "~2.0.13"
+		"yiisoft/yii2": "~2.0.13",
+		"yiisoft/yii2-gii": "*",
+		"ommu/yii2-traits": "dev-master"
 	},
-	"require-dev": {
+	"autoload": {
+		"psr-4": {
+			"ommu\\gii\\": ""
+		}
 	}
 }

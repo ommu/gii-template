@@ -17,7 +17,7 @@
 /**
  * Variable
  */
-use app\libraries\gii\model\Generator;
+use ommu\gii\model\Generator;
 use yii\helpers\Inflector;
 
 $patternClass = $patternLabel =[];
@@ -166,8 +166,8 @@ echo $userCondition ? "use ".ltrim('app\modules\user\models\Users', '\\').";\n" 
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $tinyCondition ? "\tuse \\".ltrim('\app\components\traits\GridViewSystem', '\\').";\n" : '';?>
-<?php echo $i18n || $tagCondition || $uploadCondition ? "\tuse \\".ltrim('\app\components\traits\FileSystem', '\\').";\n" : '';?>
+<?php echo $tinyCondition ? "\tuse \\".ltrim('\ommu\traits\GridViewTrait', '\\').";\n" : '';?>
+<?php echo $i18n || $tagCondition || $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
 <?php echo $tinyCondition || $i18n || $tagCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
@@ -851,7 +851,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 		$controller = strtolower(Yii::$app->controller->id);
 		$action = strtolower(Yii::$app->controller->action->id);
 
-		$location = $this->getUrlTitle($module.' '.$controller);
+		$location = $this->urlTitle($module.' '.$controller);
 
 <?php }?>
 		if(parent::beforeSave($insert)) {
@@ -922,7 +922,7 @@ foreach($tableSchema->columns as $column):
 		$relationName =  $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';?>
 			if($insert) {
-				$<?php echo $publicAttribute;?> = $this->getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
+				$<?php echo $publicAttribute;?> = $this->urlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
 				if($this-><?php echo $column->name;?> == 0) {
 					$<?php echo $relationName;?> = self::find()
 						->select(['<?php echo $column->name;?>', 'body'])

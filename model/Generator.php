@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
- namespace app\libraries\gii\model;
+ namespace ommu\gii\model;
 
 use Yii;
 use yii\db\ActiveQuery;
@@ -23,7 +23,7 @@ use yii\base\NotSupportedException;
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
-class Generator extends \app\libraries\gii\Generator
+class Generator extends \ommu\gii\Generator
 {
     const RELATIONS_NONE = 'none';
     const RELATIONS_ALL = 'all';

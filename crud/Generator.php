@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace app\libraries\gii\crud;
+namespace ommu\gii\crud;
 
 use Yii;
 use yii\db\ActiveRecord;
@@ -30,7 +30,7 @@ use yii\helpers\StringHelper;
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
-class Generator extends \app\libraries\gii\Generator
+class Generator extends \ommu\gii\Generator
 {
 	public $modelClass;
 	public $controllerClass;

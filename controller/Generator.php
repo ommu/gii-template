@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace app\libraries\gii\controller;
+namespace ommu\gii\controller;
 
 use Yii;
 use yii\gii\CodeFile;
@@ -24,7 +24,7 @@ use yii\helpers\StringHelper;
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
-class Generator extends \app\libraries\gii\Generator
+class Generator extends \ommu\gii\Generator
 {
     /**
      * @var string the controller class name
