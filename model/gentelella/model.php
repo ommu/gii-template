@@ -539,9 +539,13 @@ foreach ($tableSchema->columns as $column):
 			'value' => function($model, $key, $index, $column) {
 <?php if($translateCondition):?>
 				return isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-';
+<?php else:
+	if($column->type == 'text' && $column->comment == 'serialize'):?>
+				return serialize($model-><?php echo $searchPublicVariable;?>);
 <?php else:?>
 				return $model-><?php echo $searchPublicVariable;?>;
-<?php endif;?>
+<?php endif;
+endif;?>
 			},
 <?php if(($translateCondition && in_array('redactor', $commentArray)) || ($column->type == 'text' && $column->comment == 'redactor')):?>
 			'format' => 'html',
@@ -720,7 +724,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCon
 		echo "\t\t\$this->$inputPublicVariable = \$this->$column->name;\n";
 
 	} else if($column->type == 'text' && $column->comment == 'serialize') {
-		echo "\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
+		echo "\t\t\$this->$column->name = unserialize(\$this->$column->name);\n";
 
 	} else {
 		$commentArray = explode(',', $column->comment);

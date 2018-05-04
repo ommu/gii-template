@@ -375,7 +375,10 @@ class Generator extends \app\libraries\gii\Generator
 						if ($column->size > 0) {
 							$lengths[$column->size][] = $column->name;
 						} else {
-							$types['string'][] = $column->name;
+							if($column->comment == 'serialize')
+								$types['serialize'][] = $column->name;
+							else
+								$types['string'][] = $column->name;
 						}
 				}
             }
@@ -423,7 +426,7 @@ class Generator extends \app\libraries\gii\Generator
 			}
 		}
 
-		$typeRules = ['required','integer','string','number','double','boolean','safe'];
+		$typeRules = ['required','integer','string','serialize','number','double','boolean','safe'];
 
         $rules = [];
         $driverName = $this->getDbDriverName();
@@ -433,8 +436,12 @@ class Generator extends \app\libraries\gii\Generator
 		//print_r($typeRules);
 		foreach ($typeRules as $rule) {
 			//echo  $rule."\n";
-			if(!empty($types[$rule]))
-				$rules[] = "[['" . implode("', '", $types[$rule]) . "'], '$rule']";
+			if(!empty($types[$rule])) {
+				if($rule == 'serialize')
+					$rules[] = "//[['" . implode("', '", $types[$rule]) . "'], '$rule']";
+				else
+					$rules[] = "[['" . implode("', '", $types[$rule]) . "'], '$rule']";
+			}
 		}
 		/*
         foreach ($types as $type => $columns) {

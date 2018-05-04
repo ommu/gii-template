@@ -128,6 +128,8 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 				$image = join('/', [Url::Base(), <?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $column->name;?>]);
 				return $model-><?php echo $column->name;?> ? Html::img($image, ['width' => '100%']).'<br/><br/>'.$image : '-';
 			},
+<?php elseif($column->comment == 'serialize'):?>
+			'value' => serialize($model-><?php echo $column->name;?>),
 <?php else:?>
 			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
 <?php endif;
