@@ -113,7 +113,7 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-			'value' => !in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "['0000-00-00','1970-01-01','0002-12-02','-0001-11-30']" : "['0000-00-00 00:00:00','1970-01-01 00:00:00','0002-12-02 00:00:00','-0001-11-30 00:00:00']";?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-',
+			'value' => !in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "['0000-00-00','1970-01-01','0002-12-02','-0001-11-30']" : "['0000-00-00 00:00:00','1970-01-01 00:00:00','0002-12-02 07:07:12','-0001-11-30 00:00:00']";?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-',
 		],
 <?php } else if($column->dbType == 'tinyint(1)') {?>
 		[
