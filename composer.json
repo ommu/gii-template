@@ -39,7 +39,9 @@
 		"oomphinc/composer-installers-extender": "^1.0",
 		"yiisoft/yii2": "~2.0.13",
 		"yiisoft/yii2-gii": "*",
-		"ommu/yii2-traits": "dev-master"
+		"mdmsoft/yii2-admin": "^2.7",
+		"components/jqueryui": "~1.10",
+		"dimd4/yii2-redactor": "^1.0"
 	},
 	"autoload": {
 		"psr-4": {
