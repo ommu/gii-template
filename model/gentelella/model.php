@@ -256,7 +256,7 @@ $getNameAttribute = $generator->getNameAttribute();?>
 	public function behaviors() {
 		return [
 			[
-				'class'	 => SluggableBehavior::className(),
+				'class' => SluggableBehavior::className(),
 				'attribute' => '<?php echo $i18n && preg_match('/(name|title)/', $getNameAttribute) ? 'title.message' : $getNameAttribute;?>',
 				'immutable' => true,
 				'ensureUnique' => true,
