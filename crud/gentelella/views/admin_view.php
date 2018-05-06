@@ -75,8 +75,6 @@ $this->params['menu']['content'] = [
 	],
 	'attributes' => [
 <?php
-//echo '<pre>';
-//print_r($tableSchema);
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 if (($tableSchema = $tableSchema) === false) {
 	foreach ($generator->getColumnNames() as $name) {

@@ -83,9 +83,7 @@ $redactorOptions = [
 
 <?php echo "<?php "?>//echo $form->errorSummary($model);?>
 
-<?php 
-//echo '<pre>';
-//print_r($tableSchema);
+<?php
 foreach ($tableSchema->columns as $column) {
 	if($column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)')
 		continue;

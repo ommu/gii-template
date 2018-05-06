@@ -18,8 +18,6 @@ $modelFullClassName = $modelClassName;
 if ($generator->ns !== $generator->queryNs) {
 	$modelFullClassName = '\\' . $generator->ns . '\\' . $modelFullClassName;
 }
-//echo '<pre>';
-//print_r($tableSchema);
 
 $yaml = $generator->loadYaml('author.yaml');
 

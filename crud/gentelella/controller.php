@@ -55,8 +55,6 @@ echo "<?php\n";
 <?php if(array_key_exists('publish', $tableSchema->columns)): ?>
  *	RunAction
 <?php endif;
-//echo '<pre>';
-//print_r($tableSchema->columns);
 foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::id2camel($column->name, '_');
@@ -292,8 +290,6 @@ endforeach;?>
 <?php endif; ?>
 	}
 <?php 
-//echo '<pre>';
-//print_r($tableSchema->columns);
 foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::id2camel($column->name, '_');?>

@@ -473,15 +473,11 @@ class Generator extends \ommu\gii\Generator
 	{
 		$tableSchema = $this->getTableSchema();
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
-		//echo '<pre>';
-		//print_r($foreignKeys);
-		//print_r($tableSchema);
 		if ($tableSchema === false) {
 			return "\$form->field(\$model, '$attribute')";
 		}
+
 		$column = $tableSchema->columns[$attribute];
-		//echo '<pre>';
-		//print_r($column);
 		$i18n = 0;
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray))
@@ -638,8 +634,6 @@ class Generator extends \ommu\gii\Generator
 	 */
 	public function generateSearchConditions()
 	{
-		//echo '<pre>';
-		//print_r($this->getTableSchema());
 		$patternClass = $patternLabel = array();
 		$patternClass[0] = '(Ommu)';
 		$patternClass[1] = '(Swt)';
@@ -673,8 +667,6 @@ class Generator extends \ommu\gii\Generator
 
 		$arrayHasColumn = [];
 		$arrayLikeColumn = [];
-		//echo '<pre>';
-		//print_r($columns);
 		foreach ($columns as $column => $type) {
 			switch ($type) {
 				case Schema::TYPE_SMALLINT:

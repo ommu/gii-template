@@ -336,9 +336,8 @@ class Generator extends \ommu\gii\Generator
     public function generateRules($table)
     {
         $types = [];
-        $lengths = [];
-		//echo '<pre>';
-		//print_r($this->tableName);
+		$lengths = [];
+		
         foreach ($table->columns as $column) {
             if ($column->autoIncrement || $column->name[0] == '_')
 				continue;
@@ -431,9 +430,6 @@ class Generator extends \ommu\gii\Generator
         $rules = [];
         $driverName = $this->getDbDriverName();
 
-		//echo '<pre>';
-		//print_r($types);
-		//print_r($typeRules);
 		foreach ($typeRules as $rule) {
 			//echo  $rule."\n";
 			if(!empty($types[$rule])) {
@@ -959,8 +955,7 @@ class Generator extends \ommu\gii\Generator
         }
 
 		$db = $this->getDbConnection();
-		//echo '<pre>';
-		//print_r($db);
+
         $patterns = [];
         $patterns[] = "/^{$db->tablePrefix}(.*?)$/";
         $patterns[] = "/^(.*?){$db->tablePrefix}$/";
@@ -1043,8 +1038,6 @@ class Generator extends \ommu\gii\Generator
 			foreach ($this->getTableNames() as $tableName) {
 				$tableSchema = $db->getTableSchema($tableName);
 			}
-			//echo '<pre>';
-			//print_r($tableSchema);
 
 		} else
 			$tableSchema = $db->getTableSchema($tableNameRelation);

@@ -65,8 +65,7 @@ if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint
  * foreignKeys Column
  */
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
-//echo '<pre>';
-//print_r($foreignKeys);
+
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
@@ -105,12 +104,8 @@ endforeach; ?>
  *
  * The followings are the available model relations:
 <?php 
-//echo '<pre>';
-//print_r($relations);
 foreach ($relations as $name => $relation):
 $relationModel = preg_replace($patternClass, '', $relation[1]);
-//echo $name."\n";
-//echo $relation[1]."\n";
 $arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelationName($name, true)) : $generator->setRelationName($name));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php endforeach;
@@ -171,8 +166,6 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 <?php echo $tinyCondition || $i18n || $tagCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
-//echo '<pre>';
-//print_r($tableSchema);
 foreach ($tableSchema->columns as $column): 
 	$commentArray = explode(',', $column->comment);
 	if($tableType != Generator::TYPE_VIEW && in_array('trigger[delete]', $commentArray)) {
@@ -287,8 +280,6 @@ $getNameAttribute = $generator->getNameAttribute();?>
 	{
 		return [
 <?php 
-//echo '<pre>';
-//print_r($labels);
 foreach ($labels as $name => $label):
 if(count(explode(' ', $label)) > 1)
 	$label = Inflector::camel2words(Inflector::id2camel($generator->setRelationName(trim(preg_replace($patternLabel, '', $label)))));
@@ -297,9 +288,7 @@ if(count(explode(' ', $label)) > 1)
 		echo "\t\t\t'$name' => " . $generator->generateString($label) . ",\n";
 	}
 endforeach;
-//echo '<pre>';
-//print_r($foreignKeys);
-//print_r($tableSchema->columns);
+
 foreach ($tableSchema->columns as $column):
 	$commentArray = explode(',', $column->comment);
 	if($tableType != Generator::TYPE_VIEW && in_array('trigger[delete]', $commentArray)) {
@@ -313,6 +302,7 @@ foreach ($tableSchema->columns as $column):
 		}
 	}
 endforeach;
+
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['tag_id'])) {
 		$relationName = $generator->setRelationName($column->name);
@@ -326,6 +316,7 @@ foreach ($tableSchema->columns as $column):
 		}
 	}
 endforeach;
+
 foreach ($tableSchema->columns as $column):
 	if($tableType != Generator::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
 		$attributeName = 'old_'.$column->name.'_i';
@@ -350,6 +341,7 @@ foreach ($tableSchema->columns as $column):
 		}
 	endif;
 endforeach;
+
 foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
 		$attributeName = $generator->setRelationName($column->name).'_search';
@@ -365,12 +357,9 @@ endforeach; ?>
 		];
 	}
 <?php 
-//echo '<pre>';
-//print_r($relations);
 $arrayRelations = [];
 foreach ($relations as $name => $relation):
-	$arrayRelations[] = $relationName = ($relation[2] ? ucfirst($generator->setRelationName($name, true)) : ucfirst($generator->setRelationName($name)));
-	//echo $relationName; ?>
+	$arrayRelations[] = $relationName = ($relation[2] ? ucfirst($generator->setRelationName($name, true)) : ucfirst($generator->setRelationName($name)));?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
@@ -380,8 +369,6 @@ foreach ($relations as $name => $relation):
 		<?= preg_replace($patternClass, '', $relation[0]) . "\n" ?>
 	}
 <?php endforeach;
-//echo '<pre>';
-//print_r($tableSchema->columns);
 if($i18n):
 	foreach ($tableSchema->columns as $column):
 		$commentArray = explode(',', $column->comment);
@@ -447,8 +434,6 @@ if($queryClassName):
 			'contentOptions' => ['class'=>'center'],
 		];
 <?php 
-//echo '<pre>';
-//print_r($tableSchema->columns);
 $arraySearchPublicVariable = [];
 foreach ($tableSchema->columns as $column):
 	if($column->isPrimaryKey || $column->autoIncrement || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
@@ -652,13 +637,9 @@ endforeach;
 		}
 	}
 <?php
-//echo '<pre>';
-//print_r($tableSchema->columns);
 if(($tableType != Generator::TYPE_VIEW) && ($generator->useGetFunction || $useGetFunctionCondition)):
 	$functionName = $generator->setRelationName($className, true);
-	//echo $functionName."\n";
-	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));
-	//echo $attributeName."\n";;?>
+	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));?>
 
 	/**
 	 * function get<?= $functionName."\n"; ?>

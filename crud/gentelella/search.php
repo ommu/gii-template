@@ -20,8 +20,6 @@ $searchAttributes = $generator->getSearchAttributes();
 $searchConditions = $generator->generateSearchConditions();
 
 $tableSchema = $generator->tableSchema;
-//echo '<pre>';
-//print_r($tableSchema);
 
 $patternClass = $patternLabel = array();
 $patternClass[0] = '(Ommu)';
@@ -79,8 +77,6 @@ if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])
 	}
 endif;
 endforeach;
-//echo '<pre>';
-//print_r($arrayPublicVariable);
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -120,8 +116,6 @@ class <?= $searchModelClass ?> extends <?= (isset($modelAlias) ? $modelAlias : $
 	{
 		return [
 <?php
-//echo '<pre>';
-//print_r($rules);
 foreach($rules as $rule):
 if(!empty($rule->columns)):
 	// Jika public var ada merge ke safe rule columns
@@ -163,8 +157,6 @@ endforeach;?>
 	{
 		$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
 <?php 
-//echo '<pre>';
-//print_r($arrayRelations);
 if(!empty($arrayRelations)):
 foreach ($arrayRelations as $key => $val):
 	$relations[] = $val.' '.$key;

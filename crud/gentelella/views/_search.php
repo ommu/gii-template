@@ -51,8 +51,6 @@ use yii\widgets\ActiveForm;
 	]); ?>
 <?php
 $count = 0;
-//echo '<pre>';
-//print_r($generator->getColumnNames());
 foreach ($generator->getColumnNames() as $attribute) {
 	if($attribute == $primaryKey || $attribute[0] == '_')
 		continue;
