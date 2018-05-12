@@ -692,7 +692,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCon
 	/**
 	 * after find attributes
 	 */
-	public function afterFind() 
+	public function afterFind()
 	{
 <?php foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['tag_id'])) {
@@ -736,7 +736,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	/**
 	 * before validate attributes
 	 */
-	public function beforeValidate() 
+	public function beforeValidate()
 	{
 		if(parent::beforeValidate()) {
 <?php if($uploadCondition):
@@ -903,7 +903,7 @@ foreach($tableSchema->columns as $column):
 		$relationName =  $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';?>
 			if($insert) {
-				$<?php echo $publicAttribute;?> = $this->urlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
+				$<?php echo $publicAttribute;?> = $this->urlTitle($this-><?php echo $publicAttribute;?>);
 				if($this-><?php echo $column->name;?> == 0) {
 					$<?php echo $relationName;?> = self::find()
 						->select(['<?php echo $column->name;?>', 'body'])
@@ -935,7 +935,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	/**
 	 * After save attributes
 	 */
-	public function afterSave($insert, $changedAttributes) 
+	public function afterSave($insert, $changedAttributes)
 	{
 		parent::afterSave($insert, $changedAttributes);
 
@@ -974,7 +974,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	/**
 	 * Before delete attributes
 	 */
-	public function beforeDelete() 
+	public function beforeDelete()
 	{
 		if(parent::beforeDelete()) {
 			// Create action
@@ -991,7 +991,7 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	/**
 	 * After delete attributes
 	 */
-	public function afterDelete() 
+	public function afterDelete()
 	{
 		parent::afterDelete();
 
