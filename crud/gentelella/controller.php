@@ -62,7 +62,7 @@ foreach ($tableSchema->columns as $column):
 	endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
-	if(in_array($column->name, ['publish','headline']))
+	if(in_array($column->name, ['publish','headline']) || $column->name[0] == '_')
 		continue;
 		
 	if($column->dbType == 'tinyint(1)' && $column->comment != ''):
@@ -126,7 +126,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 	endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
-	if(in_array($column->name, ['publish','headline']))
+	if(in_array($column->name, ['publish','headline']) || $column->name[0] == '_')
 		continue;
 		
 	if($column->dbType == 'tinyint(1)' && $column->comment != ''):
@@ -323,7 +323,7 @@ foreach ($tableSchema->columns as $column):
 <?php endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
-	if(in_array($column->name, ['publish','headline']))
+	if(in_array($column->name, ['publish','headline']) || $column->name[0] == '_')
 		continue;
 		
 	if($column->dbType == 'tinyint(1)' && $column->comment != ''):

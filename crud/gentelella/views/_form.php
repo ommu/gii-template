@@ -85,7 +85,7 @@ $redactorOptions = [
 
 <?php
 foreach ($tableSchema->columns as $column) {
-	if($column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)')
+	if($column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
 		continue;
 		
 	if (in_array($column->name, $safeAttributes)) {
@@ -97,10 +97,16 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 foreach ($tableSchema->columns as $column) {
+	if($column->name[0] == '_')
+		continue;
+
 	if($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline']))
 		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 }
 foreach ($tableSchema->columns as $column) {
+	if($column->name[0] == '_')
+		continue;
+
 	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','headline']))
 		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>

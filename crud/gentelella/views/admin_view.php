@@ -117,9 +117,13 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 		[
 			'attribute' => '<?php echo $column->name;?>',
 <?php if(in_array($column->name, ['publish','headline']) || $column->comment != '') {
-	if($column->name == 'publish') {?>
+	if($column->name == 'publish') {
+		if($column->comment == '') {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
-<?php } else if($column->name == 'headline') {?>
+		<?php } else {?>
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),
+<?php 	}
+	} else if($column->name == 'headline') {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, 'Headline,No Headline', true),
 <?php } else {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),

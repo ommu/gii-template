@@ -40,6 +40,7 @@ $i18n = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
 $primaryKeyCondition = 0;
+$memberCondition = 0;
 
 $arrayRelations = [];
 $arrayInputPublicVariable = [];
@@ -116,7 +117,7 @@ foreach ($tableSchema->columns as $column):
 			$publishCondition = 1;
 	} elseif($column->name == 'slug') 
 		$slugCondition = 1;
-	elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+	elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 		$relationName = $generator->setRelationName($column->name);
 		if(!in_array($relationName, $arrayRelations)) {
 			$arrayRelations[] = $relationName;
@@ -124,11 +125,15 @@ foreach ($tableSchema->columns as $column):
 				echo " * @property Users \${$relationName}\n";
 			else if($column->name == 'tag_id') 
 				echo " * @property CoreTags \${$relationName}\n";
+			else if($column->name == 'member_id') 
+			echo " * @property Members \${$relationName}\n";
 		}
 		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 			$userCondition = 1;
 		if($column->name == 'tag_id') 
 			$tagCondition = 1;
+		if($column->name == 'member_id') 
+			$memberCondition = 1;
 	} else {
 		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && $column->comment == 'file') 
 			$uploadCondition = 1;
@@ -157,6 +162,7 @@ echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('app\modules\user\models\Users', '\\').";\n" : '';
+echo $memberCondition ? "use ".ltrim('app\modules\member\models\Members', '\\').";\n" : '';
 ?>
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
@@ -587,7 +593,11 @@ foreach ($tableSchema->columns as $column):
 				'filter' => $this->filterYesNo(),
 				'value' => function($model, $key, $index, $column) {
 					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
+<?php if($column->comment == ''):?>
 					return $this->quickAction($url, $model-><?php echo $column->name;?>);
+<?php else:?>
+					return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>');
+<?php endif;?>
 				},
 				'contentOptions' => ['class'=>'center'],
 				'format' => 'raw',
