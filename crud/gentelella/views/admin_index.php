@@ -63,9 +63,9 @@ $this->params['menu']['option'] = [
 <?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n" : ''; ?>
 
 <?php if(!empty($generator->searchModelClass)): ?>
-<?= "<?php " . ($generator->indexWidgetType === 'grid' ? "//" : "") ?>echo $this->render('_search', ['model' => $searchModel]); ?>
+<?= "<?php " . ($generator->indexWidgetType === 'grid' ? "//" : "") ?>echo $this->render('_search', ['model'=>$searchModel]); ?>
 
-<?= "<?php " . ($generator->indexWidgetType !== 'grid' ? "//" : "") ?>echo $this->render('_option_form', ['model' => $searchModel, 'gridColumns' => GridView::getActiveDefaultColumns($columns), 'route' => $this->context->route]); ?>
+<?= "<?php " . ($generator->indexWidgetType !== 'grid' ? "//" : "") ?>echo $this->render('_option_form', ['model'=>$searchModel, 'gridColumns'=>$this->activeDefaultColumns($columns), 'route'=>$this->context->route]); ?>
 
 <?php endif; ?>
 <?php if ($generator->indexWidgetType === 'grid'): ?>

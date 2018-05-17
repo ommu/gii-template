@@ -9,7 +9,7 @@
 		"template",
 		"crud",
 		"ommu",
-		"ommu platform"
+		"ommu-platform"
 	],
 	"homepage": "https://github.com/ommu/gii-template",
 	"type": "ommu-library",
