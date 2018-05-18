@@ -161,8 +161,8 @@ echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
-echo $userCondition ? "use ".ltrim('app\modules\user\models\Users', '\\').";\n" : '';
-echo $memberCondition ? "use ".ltrim('app\modules\member\models\Members', '\\').";\n" : '';
+echo $userCondition ? "use ".ltrim('ommu\users\models\Users', '\\').";\n" : '';
+echo $memberCondition ? "use ".ltrim('ommu\member\models\Members', '\\').";\n" : '';
 ?>
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
