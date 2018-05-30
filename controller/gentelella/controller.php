@@ -16,17 +16,9 @@ $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
 ?>
-namespace <?= $generator->getControllerNamespace() ?>;
-
-use <?= ltrim($generator->baseClass, '\\') ?>;
-<?php if($generator->integrateWithRbac): ?>
-use \mdm\admin\components\AccessControl;
-<?php endif; ?>
-
 /**
  * <?php echo $controllerClass."\n"; ?>
  * @var $this yii\web\View
- * version: 0.0.1
  *
  * Reference start
  * TOC :
@@ -34,16 +26,33 @@ use \mdm\admin\components\AccessControl;
  *	<?= Inflector::id2camel($action)."\n" ?>
 <?php endforeach; ?>
  *
- * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
- * @link <?php echo $yaml['link']."\n";?>
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
- * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @contact <?php echo $yaml['contact']."\n";?>
+ * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
+ * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+<?php if($generator->useModified):?>
+ * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
+ * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
+ * @contact <?php echo $yaml['contact']."\n";?>
+<?php endif; ?>
+ * @link <?php echo $generator->link."\n";?>
  *
  */
+
+namespace <?= $generator->getControllerNamespace() ?>;
+
+use Yii;
+use <?= ltrim($generator->baseClass, '\\') ?>;
+<?php if($generator->attachRBACFilter): ?>
+use mdm\admin\components\AccessControl;
+<?php endif; ?>
+
 class <?= $controllerClass ?> extends <?= $controller. "\n" ?>
 {
-<?php if($generator->integrateWithRbac): ?>
+<?php if($generator->attachRBACFilter): ?>
+	/**
+	 * @inheritdoc
+	 */
 	public function behaviors()
 	{
 		return [

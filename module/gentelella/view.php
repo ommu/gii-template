@@ -22,7 +22,8 @@ echo "<?php\n";
  * @link <?php echo $generator->link."\n";?>
  *
  */
- 
+
+use Yii;
 use yii\helpers\Html;
 <?= "?>\n" ?>
 

@@ -41,8 +41,11 @@ class Generator extends \ommu\gii\Generator
     /**
      * @var string list of action IDs separated by commas or spaces
      */
-    public $actions = 'index';
-    public $integrateWithRbac = false;
+	public $actions = 'index';
+	
+	public $attachRBACFilter = false;
+	public $link='http://opensource.ommu.co';
+	public $useModified = false;
 
     /**
      * @inheritdoc
@@ -67,14 +70,18 @@ class Generator extends \ommu\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['controllerClass', 'actions', 'baseClass'], 'filter', 'filter' => 'trim'],
-            [['controllerClass', 'baseClass'], 'required'],
+            [['controllerClass', 'actions', 'baseClass',
+				'link'], 'filter', 'filter' => 'trim'],
+            [['controllerClass', 'baseClass',
+				'link'], 'required'],
             ['controllerClass', 'match', 'pattern' => '/^[\w\\\\]*Controller$/', 'message' => 'Only word characters and backslashes are allowed, and the class name must end with "Controller".'],
             ['controllerClass', 'validateNewClass'],
             ['baseClass', 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
             ['actions', 'match', 'pattern' => '/^[a-z][a-z0-9\\-,\\s]*$/', 'message' => 'Only a-z, 0-9, dashes (-), spaces and commas are allowed.'],
-            ['viewPath', 'safe'],
-            ['integrateWithRbac', 'boolean'],
+			[['viewPath',
+				'attachRBACFilter'], 'safe'],
+            [[
+				'attachRBACFilter', 'useModified'], 'boolean'],
         ]);
     }
 
@@ -88,7 +95,9 @@ class Generator extends \ommu\gii\Generator
             'controllerClass' => 'Controller Class',
             'viewPath' => 'View Path',
             'actions' => 'Action IDs',
-            'integrateWithRbac' => 'Integrate with RBAC',
+			'attachRBACFilter' => 'Attach RBAC filter',
+			'link'=>'Link Repository',
+			'useModified'=>'Use Modified Info',
         ];
     }
 
@@ -108,7 +117,7 @@ class Generator extends \ommu\gii\Generator
      */
     public function stickyAttributes()
     {
-        return ['baseClass'];
+        return ['baseClass', 'link'];
     }
 
     /**
@@ -131,7 +140,8 @@ class Generator extends \ommu\gii\Generator
                 <code>/var/www/basic/controllers/views/order</code>, <code>@app/views/order</code>. If not set, it will default
                 to <code>@app/views/ControllerID</code>',
             'baseClass' => 'This is the class that the new controller class will extend from. Please make sure the class exists and can be autoloaded.',
-            'integrateWithRbac' => 'Integrate this controller with RBAC using AccessControl class',
+			'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: false</code>',
+			'useModified' => 'Use generate-source modified info. <code>default: false</code>',
         ];
     }
 
