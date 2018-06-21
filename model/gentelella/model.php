@@ -36,6 +36,7 @@ $slugCondition = 0;
 $userCondition = 0;
 $tagCondition = 0;
 $uploadCondition = 0;
+$serializeCondition = 0;
 $i18n = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
@@ -137,6 +138,8 @@ foreach ($tableSchema->columns as $column):
 	} else {
 		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && $column->comment == 'file') 
 			$uploadCondition = 1;
+		else if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && $column->comment == 'serialize') 
+			$serializeCondition = 1;
 		else {
 			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)) {
@@ -698,7 +701,7 @@ if($uploadCondition):
 		return ($returnAlias ? Yii::getAlias('<?php echo $returnAlias;?>') : '<?php echo $directoryPath;?>');
 	}
 <?php endif;
-if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCondition)):?>
+if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCondition || $serializeCondition)):?>
 
 	/**
 	 * after find attributes
