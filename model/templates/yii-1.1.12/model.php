@@ -323,13 +323,13 @@ foreach($columns as $name=>$column)
 	{
 		if($column != null) {
 			$model = self::model()->findByPk($id, array(
-				'select' => $column
+				'select' => $column,
 			));
 			return $model->$column;
 			
 		} else {
 			$model = self::model()->findByPk($id);
-			return $model;			
+			return $model;
 		}
 	}
 

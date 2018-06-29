@@ -66,10 +66,8 @@ $slugCondition = 0;
 $uploadCondition = 0;
 $i18n = 0;
 $primaryKeyColumn = key($columns);
-//echo '<pre>';
-//print_r($columns);
 foreach($columns as $name=>$column):
-	if($column->dbType == 'tinyint(1)' && in_array($column->name, array('publish','headline')))
+	if($column->dbType == 'tinyint(1)' && $column->name == 'publish')
 		$publishCondition = 1;
 	if($column->name == 'slug')
 		$slugCondition = 1;
@@ -167,16 +165,17 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 {
 	public $gridForbiddenColumn = array();
 <?php 
-$publicVariable = array();
+$publicAttributes = array();
+$publicVariables = array();
 //echo '<pre>';
 //print_r($columns);
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
 		$publicAttribute = $name.'_i';
-		if(!in_array($publicAttribute, $publicVariable)) {
+		if(!in_array($publicAttribute, $publicAttributes)) {
 			echo "\tpublic \${$publicAttribute};\n";
-			$publicVariable[] = $publicAttribute;
+			$publicAttributes[] = $publicAttribute;
 		}
 		$i18n = 1;
 	}
@@ -189,17 +188,18 @@ foreach($labels as $name=>$label):
 		$relationName = $relationArray[0];
 
 		$publicAttribute = $relationName.'_i';
-		if(!in_array($publicAttribute, $publicVariable)) {
+		if(!in_array($publicAttribute, $publicAttributes)) {
 			echo "\tpublic \${$publicAttribute};\n";
-			$publicVariable[] = $publicAttribute;
+			$publicAttributes[] = $publicAttribute;
 		}
 	}
 endforeach;
 foreach($columns as $name=>$column):
 	if(!(in_array($name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) && $column->dbType == 'text' && $column->comment == 'file') {
 		$publicAttribute = 'old_'.$name.'_i';
-		if(!in_array($publicAttribute, $publicVariable)) {
+		if(!in_array($publicAttribute, $publicAttributes)) {
 			echo "\tpublic \${$publicAttribute};\n";
+			$publicAttributes[] = $publicAttribute;
 		}
 	}
 endforeach; ?>
@@ -215,9 +215,9 @@ foreach($columns as $name=>$column):
 			$relationName = 'category';
 
 		$publicAttribute = $relationName.'_search';
-		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicVariable)) {
+		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicVariables)) {
 			echo "\tpublic \${$publicAttribute};\n";
-			$publicVariable[] = $publicAttribute;
+			$publicVariables[] = $publicAttribute;
 		}
 	}
 endforeach;
@@ -227,9 +227,9 @@ foreach($labels as $name=>$label):
 		$relationName = $relationArray[0];
 
 		$publicAttribute = $relationName.'_search';
-		if(!in_array($publicAttribute, $publicVariable)) {
+		if(!in_array($publicAttribute, $publicVariables)) {
 			echo "\tpublic \${$publicAttribute};\n";
-			$publicVariable[] = $publicAttribute;
+			$publicVariables[] = $publicAttribute;
 		}
 	}
 endforeach; ?>
@@ -318,7 +318,7 @@ if($i18n):
 endif;?>
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('<?php echo implode(', ', array_merge(array_keys($columns), $publicVariable)); ?>', 'safe', 'on'=>'search'),
+			array('<?php echo implode(', ', array_merge(array_keys($columns), $publicVariables)); ?>', 'safe', 'on'=>'search'),
 		);
 	}
 
@@ -608,11 +608,11 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\$criteria->compare('t.$name', Yii::app()->getRequest()->getParam('$relationName') ? Yii::app()->getRequest()->getParam('$relationName') : \$this->$name);\n";
 
 	} else if(in_array($column->dbType, array('timestamp','datetime'))) {
-		echo "\t\tif(\$this->$name != null && !in_array(\$this->$name, array('0000-00-00 00:00:00', '1970-01-01 00:00:00')))\n";
+		echo "\t\tif(\$this->$name != null && !in_array(\$this->$name, array('0000-00-00 00:00:00','1970-01-01 00:00:00','0002-12-02 07:07:12','-0001-11-30 00:00:00')))\n";
 		echo "\t\t\t\$criteria->compare('date(t.$name)', date('Y-m-d', strtotime(\$this->$name)));\n";
 
 	} else if(in_array($column->dbType, array('date'))) {
-		echo "\t\tif(\$this->$name != null && !in_array(\$this->$name, array('0000-00-00', '1970-01-01')))\n";
+		echo "\t\tif(\$this->$name != null && !in_array(\$this->$name, array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')))\n";
 		echo "\t\t\t\$criteria->compare('date(t.$name)', date('Y-m-d', strtotime(\$this->$name)));\n";
 
 	} else if(in_array($column->dbType, array('int','smallint')) || ($column->type==='string' && $column->isPrimaryKey == '1'))
@@ -769,7 +769,7 @@ if($column->name == 'tag_id') {
 			echo "\t\t\t\$this->templateColumns['$name'] = array(\n";
 			echo "\t\t\t\t'name' => '$name',\n";
 			if(in_array($column->dbType, array('timestamp','datetime')))
-				echo "\t\t\t\t'value' => '!in_array(\$data->$name, array(\'0000-00-00 00:00:00\', \'1970-01-01 00:00:00\')) ? Utility::dateFormat(\$data->$name) : \'-\'',\n";
+				echo "\t\t\t\t'value' => '!in_array(\$data->$name, array(\'0000-00-00 00:00:00\', \'1970-01-01 00:00:00\', \'0002-12-02 07:07:12\', \'-0001-11-30 00:00:00\')) ? Utility::dateFormat(\$data->$name) : \'-\'',\n";
 			else
 				echo "\t\t\t\t'value' => '!in_array(\$data->$name, array(\'0000-00-00\', \'1970-01-01\')) ? Utility::dateFormat(\$data->$name) : \'-\'',\n";
 			echo "\t\t\t\t'htmlOptions' => array(\n";
@@ -874,9 +874,12 @@ foreach($columns as $name=>$column)
 	{
 		if($column != null) {
 			$model = self::model()->findByPk($id, array(
-				'select' => $column
+				'select' => $column,
 			));
-			return $model->$column;
+			if(count(explode(',', $column)) == 1)
+				return $model->$column;
+			else
+				return $model;
 			
 		} else {
 			$model = self::model()->findByPk($id);

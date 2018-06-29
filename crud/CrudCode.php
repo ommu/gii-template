@@ -335,7 +335,7 @@ if($form == true) {
 	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {		// 03
 			if($form == true)
-				$return = "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
+				$return = "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
 if($this->datepickerStatus) {
 			$return .= "\$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(";
 } else {
