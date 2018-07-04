@@ -1,4 +1,5 @@
 <?php
+Yii::import('application.libraries.gii.Inflector');
 
 class ModelCode extends CCodeModel
 {
@@ -11,13 +12,13 @@ class ModelCode extends CCodeModel
 	public $buildRelations=true;
 	public $commentsAsLabels=false;
 	public $uploadPath=array(
-		'name' => 'article_path',
-		'directory' => 'public/module-name',
+		'directory' => 'public/main',
 	);
-	public $getFunction;
-	public $datepicker;
+	public $useEvent=false;
+	public $useGetFunction=false;
+	public $useJuiDatepicker=false;
+	public $useModified=false;
 	public $link='http://opensource.ommu.co';
-	public $modified;
 
 	/**
 	 * @var array list of candidate relation code. The array are indexed by AR class names and relation names.
@@ -29,7 +30,7 @@ class ModelCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId, link', 'filter', 'filter'=>'trim'),
-			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, datepicker, getFunction, link, modified', 'required'),
+			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, useEvent, useGetFunction, useJuiDatepicker, useModified, link', 'required'),
 			array('tablePrefix, tableName, modelPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('connectionId', 'validateConnectionId', 'skipOnError'=>true),
 			array('tableName', 'validateTableName', 'skipOnError'=>true),
@@ -53,13 +54,13 @@ class ModelCode extends CCodeModel
 			'buildRelations'=>'Build Relations',
 			'commentsAsLabels'=>'Use Column Comments as Attribute Labels',
 			'connectionId'=>'Database Connection',
-			'uploadPath[name]'=>'Upload Path (variable name)',
 			'uploadPath[directory]'=>'Upload Path (path location)',
-			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
-			'getFunction'=>'Create GetFunction',
-			'datepicker'=>'Datepicker',
+			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
+			'useEvent'=>'Generate Events',
+			'useGetFunction'=>'Generate GetFunction',
+			'useJuiDatepicker'=>'jQuery Datepicker',
+			'useModified'=>'Modified',
 			'link'=>'Link Repository',
-			'modified'=>'Modified',
 		));
 	}
 
@@ -97,7 +98,7 @@ class ModelCode extends CCodeModel
 			{
 				foreach($tables as $i=>$table)
 				{
-					if(strpos($table->name,$this->tablePrefix)!==0)
+					if(strpos($table->name, $this->tablePrefix)!==0)
 						unset($tables[$i]);
 				}
 			}
@@ -121,6 +122,7 @@ class ModelCode extends CCodeModel
 				'rules'=>$this->generateRules($table),
 				'relations'=>isset($this->relations[$className]) ? $this->relations[$className] : array(),
 				'connectionId'=>$this->connectionId,
+				'table'=>$table,
 			);
 			$this->files[]=new CCodeFile(
 				Yii::getPathOfAlias($this->modelPath).'/'.$className.'.php',
@@ -148,7 +150,7 @@ class ModelCode extends CCodeModel
 			$tables=Yii::app()->{$this->connectionId}->schema->getTables($schema);
 			foreach($tables as $table)
 			{
-				if($this->tablePrefix=='' || strpos($table->name,$this->tablePrefix)===0)
+				if($this->tablePrefix=='' || strpos($table->name, $this->tablePrefix)===0)
 				{
 					if(in_array(strtolower($table->name),self::$keywords))
 						$invalidTables[]=$table->name;
@@ -204,39 +206,39 @@ class ModelCode extends CCodeModel
 			$this->addError('baseClass', "'{$this->baseClass}' must extend from CActiveRecord.");
 	}
 
-	public function getUploadPathNameSource()
-	{
-		return $this->uploadPath['name'];
-	}
-
-	public function getUploadPathDirectorySource()
+	public function getUploadPathDirectory()
 	{
 		return $this->uploadPath['directory'];
 	}
 
-	public function getUploadPathSubfolderStatus()
+	public function getUploadPathSubfolder()
 	{
 		return $this->uploadPath['subfolder'];
 	}
 
-	public function getDatepickerStatus()
+	public function getUseEvent()
 	{
-		return $this->datepicker;
+		return $this->useEvent;
 	}
 
-	public function getCreateFunctionStatus()
+	public function getUseGetFunction()
 	{
-		return $this->getFunction;
+		return $this->useGetFunction;
+	}
+
+	public function getUseJuiDatepicker()
+	{
+		return $this->useJuiDatepicker;
+	}
+
+	public function getUseModified()
+	{
+		return $this->useModified;
 	}
 
 	public function getLinkSource()
 	{
 		return $this->link;
-	}
-
-	public function getModifiedStatus()
-	{
-		return $this->modified;
 	}
 
 	public function getTableSchema($tableName)
@@ -275,6 +277,8 @@ class ModelCode extends CCodeModel
 		$numerical=array();
 		$length=array();
 		$safe=array();
+		$trigger=array();
+		$serialize=array();
 		foreach($table->columns as $column)
 		{
 			if($column->autoIncrement)
@@ -286,29 +290,52 @@ class ModelCode extends CCodeModel
 				$integers[]=$column->name;
 			elseif($column->type==='double')
 				$numerical[]=$column->name;
-			elseif($column->type==='string' && $column->size>0)
-				$length[$column->size][]=$column->name;
-			elseif(!$column->isPrimaryKey && !$r)
+			elseif($column->type==='string') {
+				if(preg_match('/(int)/', $column->dbType))
+					$integers[]=$column->name;
+				if($column->size>0)
+					$length[$column->size][]=$column->name;
+			} elseif(!$column->isPrimaryKey && !$r)
 				$safe[]=$column->name;
 
 			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)) {
-				$required = array_diff($required, array($column->name));
-				$required[]=$column->name.'_i';
+				$columnName = $column->name.'_i';
+				if(!empty($required))
+					$required = array_diff($required, array($column->name));
+				$required[] = $columnName;
+
+				$lengthSize = in_array('redactor', $commentArray) ? '~' : (in_array('text', $commentArray) ? '128' : '64');
+				if($lengthSize != '~')
+					$length[$lengthSize][] = $columnName;
 			}
-			if($column->dbType == 'text' && $column->comment == 'file') {
-				$required = array_diff($required, array($column->name));
+			if($column->name == 'tag_id') {
+				$columnName = $this->setRelation($column->name, true).'_i';
+				if(!empty($required))
+					$required = array_diff($required, array($column->name));
+				$required[] = $columnName;
+				$safe[] = $column->name;
+			}
+			if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->dbType == 'text' && $column->comment == 'file') {
+				if(!empty($required))
+					$required = array_diff($required, array($column->name));
+				$trigger[]=$column->name;
+			}
+			if($column->comment == 'serialize') {
+				if(!empty($required))
+					$required = array_diff($required, array($column->name));
+				$serialize[]=$column->name;
 				$safe[]=$column->name;
 			}
-			if($column->comment == 'trigger') {
-				$safe = array_diff($safe, array($column->name));
-			}
+			if($column->comment == 'trigger')
+				$trigger[]=$column->name;
 		}
 		foreach($table->columns as $column)
 		{
 			if($column->autoIncrement)
 				continue;
-			if($column->dbType == 'text' && $column->comment == 'file')
+				
+			if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->dbType == 'text' && $column->comment == 'file')
 				$safe[]='old_'.$column->name.'_i';
 		}
 		if($required!==array())
@@ -317,13 +344,18 @@ class ModelCode extends CCodeModel
 			$rules[]="array('".implode(', ',$integers)."', 'numerical', 'integerOnly'=>true)";
 		if($numerical!==array())
 			$rules[]="array('".implode(', ',$numerical)."', 'numerical')";
+		if($safe!==array())
+			$rules[]="array('".implode(', ',$safe)."', 'safe')";
+		ksort($length);
 		if($length!==array())
 		{
 			foreach($length as $len=>$cols)
 				$rules[]="array('".implode(', ',$cols)."', 'length', 'max'=>$len)";
 		}
-		if($safe!==array())
-			$rules[]="array('".implode(', ',$safe)."', 'safe')";
+		if($serialize!==array())
+			$rules[]="//array('".implode(', ',$serialize)."', 'serialize')";
+		if($trigger!==array())
+			$rules[]="//array('".implode(', ',$trigger)."', 'trigger')";
 
 		return $rules;
 	}
@@ -373,7 +405,7 @@ class ModelCode extends CCodeModel
 		$relations=array();
 		foreach(Yii::app()->{$this->connectionId}->schema->getTables($schemaName) as $table)
 		{
-			if($this->tablePrefix!='' && strpos($table->name,$this->tablePrefix)!==0)
+			if($this->tablePrefix!='' && strpos($table->name, $this->tablePrefix)!==0)
 				continue;
 			$tableName=$table->name;
 
@@ -497,5 +529,153 @@ class ModelCode extends CCodeModel
 	{
 		if(Yii::app()->hasComponent($this->connectionId)===false || !(Yii::app()->getComponent($this->connectionId) instanceof CDbConnection))
 			$this->addError('connectionId','A valid database connection is required to run this generator.');
+	}
+
+	/* 
+	* set name relation with underscore
+	*/
+	function setRelation($names, $column=false) 
+	{
+		$inflector = new Inflector;
+		if($column == false) {
+			$names = $inflector->camel2id($names, '_');
+			$relation = explode('_', $names);
+			$relation = array_diff($relation, array('ommu','core'));
+	
+			if(count($relation) != 1)
+				return end($relation);
+			else {
+				if(is_array($relation))
+					return implode('', $relation);
+				else
+					return $relation;
+			}
+	
+		} else {
+			$key = $names;
+			if (!empty($key) && strcasecmp($key, 'id')) {
+				if (substr_compare($key, 'id', -2, 2, true) === 0)
+					$key = rtrim(substr($key, 0, -2), '_');
+				elseif (substr_compare($key, 'id', 0, 2, true) === 0)
+					$key = ltrim(substr($key, 2, strlen($key)), '_');
+			}
+			if(strtolower($key) == 'cat')
+				$key = 'category';
+		
+			$key = $inflector->singularize($inflector->id2camel($key, '_'));
+	
+			return lcfirst($key);
+		}
+	}
+	
+	function getTableAttribute($columns)
+	{
+		$primaryKey = array();
+		foreach($columns as $name=>$column):
+			if($column->isPrimaryKey || $column->autoIncrement)
+				$primaryKey[] = $column->name;
+			if(preg_match('/(name|title)/', $column->name))
+				return $column->name;
+		endforeach;
+		$pk = $primaryKey;
+	
+		if(!empty($primaryKey))
+			return $pk[0];
+		else
+			return 'id';
+	}
+	
+	function getForeignKeys($foreignKeys)
+	{
+		$column = [];
+		if(!empty($foreignKeys)) {
+			foreach($foreignKeys as $val) {
+				// Only variables should be passed by reference
+				$arrVal = array_values($val);
+				$column[array_pop($arrVal)] = array_shift($arrVal);
+			}
+		}
+	
+		return $column;
+	}
+
+	public function getTableRelationAttribute($tableName, $separator='->')
+	{
+		$tables=array($this->getTableSchema($tableName));
+		$table = $tables[0];
+
+		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
+		$titleCondition = 0;
+		$foreignCondition = 0;
+
+		foreach ($table->columns as $column) {
+			$relationColumn = [];
+			if(preg_match('/(name|title)/', $column->name)) {
+				$commentArray = explode(',', $column->comment);
+				if(in_array('trigger[delete]', $commentArray)) {
+					$relationColumn[$column->name] = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+					$relationColumn[] = 'message';
+				} else {
+					if($column->name == 'username')
+						$relationColumn[$column->name] = 'displayname';
+					else
+						$relationColumn[$column->name] = $column->name;
+
+				}
+				$titleCondition = 1;
+			}
+			if(!empty($relationColumn))
+				return implode($separator, $relationColumn);
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $column) {
+				$relationColumn = [];
+				if($column->name == 'tag_id') {
+					$relationColumn[$column->name] = $this->setRelation($column->name, true);
+					$relationColumn[] = 'body';
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $column) {
+				$relationColumn = [];
+				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+					$relationTableName = trim($foreignKeys[$column->name]);
+					if(!$foreignCondition) {
+						$relationColumn[$column->name] = $this->setRelation($column->name, true);
+						$relationColumn[] = $this->getTableRelationAttribute($relationTableName, $separator);
+						$foreignCondition = 1;
+					}
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		$pk = $table->primaryKey;
+
+		return $pk;
+	}
+
+	public function getTable2ndRelation($attr='', $separator='.')
+	{
+		$relations = [];
+		if($attr != '') {
+			$relations = explode($separator, $attr);
+			array_pop($relations);
+		}
+
+		return implode($separator, $relations);
+	}
+
+	public function getTable2ndAttribute($attr='', $separator='.')
+	{
+		if($attr != '') {
+			$relations = explode($separator, $attr);
+			return array_pop($relations);
+		}
+
+		return $attr;
 	}
 }
