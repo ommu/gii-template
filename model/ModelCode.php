@@ -353,9 +353,9 @@ class ModelCode extends CCodeModel
 				$rules[]="array('".implode(', ',$cols)."', 'length', 'max'=>$len)";
 		}
 		if($serialize!==array())
-			$rules[]="//array('".implode(', ',$serialize)."', 'serialize')";
+			$rules[]="// array('".implode(', ',$serialize)."', 'serialize')";
 		if($trigger!==array())
-			$rules[]="//array('".implode(', ',$trigger)."', 'trigger')";
+			$rules[]="// array('".implode(', ',$trigger)."', 'trigger')";
 
 		return $rules;
 	}
