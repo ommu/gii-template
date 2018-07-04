@@ -853,7 +853,8 @@ foreach($columns as $name=>$column) {
 		}
 	}
 }
-echo !$afterFind ? "\t\t// Create action\n" : '';?>
+echo !$afterFind ? "\t\t// Create action\n\n" : '';?>
+		return true;
 	}
 <?php }
 
