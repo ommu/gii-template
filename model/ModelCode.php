@@ -150,7 +150,7 @@ class ModelCode extends CCodeModel
 			$tables=Yii::app()->{$this->connectionId}->schema->getTables($schema);
 			foreach($tables as $table)
 			{
-				if($this->tablePrefix=='' || strpos($table->name, $this->tablePrefix)===0)
+				if($this->tablePrefix=='' || strpos($table->name,$this->tablePrefix)===0)
 				{
 					if(in_array(strtolower($table->name),self::$keywords))
 						$invalidTables[]=$table->name;
@@ -405,7 +405,7 @@ class ModelCode extends CCodeModel
 		$relations=array();
 		foreach(Yii::app()->{$this->connectionId}->schema->getTables($schemaName) as $table)
 		{
-			if($this->tablePrefix!='' && strpos($table->name, $this->tablePrefix)!==0)
+			if($this->tablePrefix!='' && strpos($table->name,$this->tablePrefix)!==0)
 				continue;
 			$tableName=$table->name;
 
