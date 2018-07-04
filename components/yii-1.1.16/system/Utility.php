@@ -36,7 +36,7 @@
  * @contact (+62)856-299-4114
  * @create date November 27, 2013 15:02 WIB
  * @update date April 3, 2014 15:02 WIB
- * @copyright Copyright (c) 2013 Ommu Platform (opensource.ommu.co)
+ * @copyright Copyright (c) 2013 Ommu Platform (www.ommu.co)
  * @link http://opensource.ommu.co
  *
  */
@@ -412,7 +412,7 @@ class Utility
 		if(is_numeric($date) && (int)$date == $date)
 			$date = date('Y-m-d H:i:s', $date);
 		
-		$setting = OmmuSettings::model()->findByPk(1,array(
+		$setting = OmmuSettings::model()->findByPk(1, array(
 			'select' => 'site_dateformat, site_timeformat',
 		));
 		

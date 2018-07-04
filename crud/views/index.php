@@ -108,46 +108,40 @@ $('#{$class}_model').bind('keyup change', function(){
 		<?php echo $form->error($model,'uploadPath[subfolder]'); ?>
 	</div>
 
-	<div class="row sticky">
-		<?php echo $form->labelEx($model,'link'); ?>
-		<?php echo $form->textField($model,'link',array('size'=>64)); ?>
+	<div class="row">
+		<?php echo $form->labelEx($model,'forBackendController'); ?>
+		<?php echo $form->checkBox($model,'forBackendController'); ?>
 		<div class="tooltip">
-		It can be either a hyperlink (e.g. <code>http://opensource.ommu.co</code>)
+			Default value is <code>true</code>. Digunakan untuk menentukan peruntukan penggunaan controller
 		</div>
-		<?php echo $form->error($model,'link'); ?>
+		<?php echo $form->error($model,'forBackendController'); ?>
 	</div>
 
 	<div class="row">
-		<?php echo $form->labelEx($model,'datepicker'); ?>
-		<?php echo $form->dropDownList($model,'datepicker', array(
-			'0' => 'Native',
-			'1' => 'jQuery UI',
-		), array('prompt'=>'')); ?>
+		<?php echo $form->labelEx($model,'useJuiDatepicker'); ?>
+		<?php echo $form->checkBox($model,'useJuiDatepicker'); ?>
 		<div class="tooltip">
-			Default value is <code>native</code>. Digunakan untuk menentukan datepicker yang akan ditampilkan pada aplikasi
+			Default value is <code>false</code>. Digunakan untuk menentukan datepicker yang akan ditampilkan pada aplikasi
 		</div>
-		<?php echo $form->error($model,'datepicker'); ?>
+		<?php echo $form->error($model,'useJuiDatepicker'); ?>
 	</div>
 
 	<div class="row">
-		<?php echo $form->labelEx($model,'controllerFor'); ?>
-		<?php echo $form->dropDownList($model,'controllerFor', array(
-			'backend' => 'Backend',
-			'frontend' => 'Frontend',
-		), array('prompt'=>'')); ?>
-		<div class="tooltip">
-			Default value is <code>backend</code>. Digunakan untuk menentukan peruntukan penggunaan controller
-		</div>
-		<?php echo $form->error($model,'controllerFor'); ?>
-	</div>
-
-	<div class="row">
-		<?php echo $form->labelEx($model,'modified'); ?>
-		<?php echo $form->checkBox($model,'modified'); ?>
+		<?php echo $form->labelEx($model,'useModified'); ?>
+		<?php echo $form->checkBox($model,'useModified'); ?>
 		<div class="tooltip">
 			Default value is <code>false</code>. Digunakan untuk menampilkan tanggal perubahan generate pada source code
 		</div>
-		<?php echo $form->error($model,'modified'); ?>
+		<?php echo $form->error($model,'useModified'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'link'); ?>
+		<?php echo $form->textField($model,'link', array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a hyperlink (e.g. <code>https://github.com/ommu</code>)
+		</div>
+		<?php echo $form->error($model,'link'); ?>
 	</div>
 
 <?php $this->endWidget(); ?>

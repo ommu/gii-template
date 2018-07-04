@@ -11,10 +11,10 @@ class CrudCode extends CCodeModel
 		'name' => 'article_path',
 		'directory' => 'public/module-name',
 	);
-	public $datepicker;
-	public $controllerFor;
-	public $link='http://opensource.ommu.co';
-	public $modified;
+	public $forBackendController=true;
+	public $useJuiDatepicker=false;
+	public $useModified=false;
+	public $link='https://github.com/ommu';
 
 	private $_modelClass;
 	private $_table;
@@ -24,7 +24,7 @@ class CrudCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('model, controller, controllerPath, viewPath', 'filter', 'filter'=>'trim'),
-			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, datepicker, controllerFor, link, modified', 'required'),
+			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, forBackendController, useJuiDatepicker, useModified, link', 'required'),
 			array('model', 'match', 'pattern'=>'/^\w+[\w+\\.]*$/', 'message'=>'{attribute} should only contain word characters and dots.'),
 			array('controller', 'match', 'pattern'=>'/^\w+[\w+\\/]*$/', 'message'=>'{attribute} should only contain word characters and slashes.'),
 			array('baseControllerClass', 'match', 'pattern'=>'/^[a-zA-Z_\\\\][\w\\\\]*$/', 'message'=>'{attribute} should only contain word characters and backslashes.'),
@@ -48,10 +48,10 @@ class CrudCode extends CCodeModel
 			'uploadPath[name]'=>'Upload Path (variable name)',
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
-			'datepicker'=>'Datepicker',
-			'controllerFor'=>'Controller For',
+			'forBackendController'=>'Backend Controller',
+			'useJuiDatepicker'=>'jQuery Datepicker',
+			'useModified'=>'Modified',
 			'link'=>'Link Repository',
-			'modified'=>'Modified',
 		));
 	}
 
@@ -152,24 +152,24 @@ class CrudCode extends CCodeModel
 		return $this->uploadPath['subfolder'];
 	}
 
-	public function getDatepickerStatus()
+	public function getForBackendController()
 	{
-		return $this->datepicker;
+		return $this->forBackendController;
 	}
 
-	public function getControllerStatus()
+	public function getUseJuiDatepicker()
 	{
-		return $this->controllerFor;
+		return $this->useJuiDatepicker;
+	}
+
+	public function getUseModified()
+	{
+		return $this->useModified;
 	}
 
 	public function getLinkSource()
 	{
 		return $this->link;
-	}
-
-	public function getModifiedStatus()
-	{
-		return $this->modified;
 	}
 
 	public function getModule()
@@ -336,10 +336,10 @@ if($form == true) {
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {		// 03
 			if($form == true)
 				$return = "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
-if($this->datepickerStatus) {
-			$return .= "\$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(";
+if($this->useJuiDatepicker) {
+			$return .= "\$this->widget('application.libraries.core.components.system.CJuiDatePicker', array(";
 } else {
-			$return .= "/* \$this->widget('application.libraries.core.components.system.CJuiDatePicker',array(";
+			$return .= "/* \$this->widget('application.libraries.core.components.system.CJuiDatePicker', array(";
 }
 			$return .= "'model'=>\$model,
 				'attribute'=>'{$column->name}',
@@ -350,7 +350,7 @@ if($this->datepickerStatus) {
 				'htmlOptions'=>array(
 					'class' => 'form-control',
 				 ),\n\t\t\t";
-if($this->datepickerStatus) {
+if($this->useJuiDatepicker) {
 			$return .= "));
 			//echo \$form->dateField(\$model, '{$column->name}', array('class'=>'form-control'))";
 } else {
@@ -373,7 +373,7 @@ if($this->datepickerStatus) {
 			}
 if($form == false) {
 			if($column->isForeignKey == '1') {
-				$relationName = $this->setRelationName($column->name, true);
+				$relationName = $this->setRelation($column->name, true);
 				if($relationName == 'cat')
 					$relationName = 'category';
 				$columnName = $relationName.'_search';
@@ -445,27 +445,28 @@ if($i18n) {
 
 	public function guessNameColumn($columns)
 	{
-		//echo '<pre>';
-		//print_r($columns);
-		$primaryKey = array();
-		foreach ($columns as $key => $column) {
-			if($column->isPrimaryKey || $column->autoIncrement)
-				$primaryKey[] = $key;
-			if(preg_match('/(name|title)/', $key))
-				return $key;
+		foreach($columns as $column)
+		{
+			if(!strcasecmp($column->name,'name'))
+				return $column->name;
 		}
-		$pk = $primaryKey;
-	
-		if(!empty($primaryKey))
-			return $pk[0];
-		else
-			return 'id';
+		foreach($columns as $column)
+		{
+			if(!strcasecmp($column->name,'title'))
+				return $column->name;
+		}
+		foreach($columns as $column)
+		{
+			if($column->isPrimaryKey)
+				return $column->name;
+		}
+		return 'id';
 	}
 
 	/* 
 	* set name relation with underscore
 	*/
-	public function setRelationName($names, $column=false) {
+	public function setRelation($names, $column=false) {
 		$patterns = array();
 		$patterns[0] = '(_ommu)';
 		$patterns[1] = '(_core)';
@@ -492,6 +493,23 @@ if($i18n) {
 			else
 				return $return;
 		}
+	}
+
+	public function getTableAttribute($columns)
+	{
+		$primaryKey = array();
+		foreach ($columns as $key => $column) {
+			if($column->isPrimaryKey || $column->autoIncrement)
+				$primaryKey[] = $key;
+			if(preg_match('/(name|title)/', $key))
+				return $key;
+		}
+		$pk = $primaryKey;
+	
+		if(!empty($primaryKey))
+			return $pk[0];
+		else
+			return 'id';
 	}
 
 	/**

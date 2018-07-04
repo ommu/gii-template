@@ -13,7 +13,7 @@ if(preg_match('/Core/', $modelClass))
 else
 	$modelClass = preg_replace('(Ommu)', '', $modelClass);
 $label = $this->class2name($modelClass);
-$nameColumn=$this->guessNameColumn($this->tableSchema->columns)
+$nameColumn=$this->getTableAttribute($this->tableSchema->columns)
 ?>
 <?php echo "<?php\n"; ?>
 /**
@@ -25,13 +25,13 @@ $nameColumn=$this->guessNameColumn($this->tableSchema->columns)
  * Reference start
  * TOC :
  *	Index
-<?php if($this->controllerStatus == 'frontend'):?>
+<?php if(!$this->forBackendController):?>
  *	View
 <?php endif; ?>
  *	Manage
  *	Add
  *	Edit
-<?php if($this->controllerStatus == 'backend'):?>
+<?php if($this->forBackendController):?>
  *	View
 <?php endif; ?>
 <?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
@@ -50,9 +50,9 @@ $nameColumn=$this->guessNameColumn($this->tableSchema->columns)
  *
  * @author Putra Sudaryanto <putra@sudaryanto.id>
  * @contact (+62)856-299-4114
- * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
+ * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (www.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($this->modifiedStatus):?>
+<?php if($this->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
 <?php endif; ?>
  * @link <?php echo $this->linkSource."\n";?>
@@ -74,7 +74,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function init() 
 	{
-<?php if($this->controllerStatus == 'backend'):?>
+<?php if($this->forBackendController):?>
 		if(!Yii::app()->user->isGuest) {
 			if(Yii::app()->user->level == 1) {
 			//if(in_array(Yii::app()->user->level, array(1,2))) {
@@ -141,7 +141,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionIndex() 
 	{
-<?php if($this->controllerStatus == 'backend'):?>
+<?php if($this->forBackendController):?>
 		$this->redirect(array('manage'));
 <?php else:?>
 		$arrThemes = Utility::getCurrentTemplate('public');
@@ -174,7 +174,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 <?php endif; ?>
 	}
 	
-<?php if($this->controllerStatus == 'frontend'):?>
+<?php if(!$this->forBackendController):?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
@@ -376,7 +376,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		));
 	}
 
-<?php if($this->controllerStatus == 'backend'):?>
+<?php if($this->forBackendController):?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
@@ -431,7 +431,7 @@ if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 		}
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!(Yii::app()->getRequest()->getParam('ajax'))) {
+		if(!Yii::app()->getRequest()->getParam('ajax')) {
 			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('manage'));
 		}
 	}

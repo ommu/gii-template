@@ -72,7 +72,7 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 	</div>
 	<div class="row">
 		<?php echo $form->labelEx($model,'tableName'); ?>
-		<?php $this->widget('zii.widgets.jui.CJuiAutoComplete',array(
+		<?php $this->widget('zii.widgets.jui.CJuiAutoComplete', array(
 			'model'=>$model,
 			'attribute'=>'tableName',
 			'name'=>'tableName',
@@ -99,7 +99,7 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		<?php echo $form->error($model,'tableName'); ?>
 	</div>
 	<div class="row model-class">
-		<?php echo $form->label($model,'modelClass',array('required'=>true)); ?>
+		<?php echo $form->label($model,'modelClass', array('required'=>true)); ?>
 		<?php echo $form->textField($model,'modelClass', array('size'=>65)); ?>
 		<div class="tooltip">
 		This is the name of the model class to be generated (e.g. <code>Post</code>, <code>Comment</code>).
@@ -109,7 +109,7 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 	</div>
 	<div class="row sticky">
 		<?php echo $form->labelEx($model,'baseClass'); ?>
-		<?php echo $form->textField($model,'baseClass',array('size'=>65)); ?>
+		<?php echo $form->textField($model,'baseClass', array('size'=>65)); ?>
 		<div class="tooltip">
 			This is the class that the new model class will extend from.
 			Please make sure the class exists and can be autoloaded.
@@ -137,17 +137,8 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 	</div>
 
 	<div class="row sticky">
-		<?php echo $form->labelEx($model,'uploadPath[name]'); ?>
-		<?php echo $form->textField($model,'uploadPath[name]',array('size'=>64)); ?>
-		<div class="tooltip">
-		It can be either a upload path variable name in source (e.g. <code>article_path, banner_path</code>)
-		</div>
-		<?php echo $form->error($model,'uploadPath[name]'); ?>
-	</div>
-
-	<div class="row sticky">
 		<?php echo $form->labelEx($model,'uploadPath[directory]'); ?>
-		<?php echo $form->textField($model,'uploadPath[directory]',array('size'=>64)); ?>
+		<?php echo $form->textField($model,'uploadPath[directory]', array('size'=>64)); ?>
 		<div class="tooltip">
 		It can be either a upload path directory (e.g. <code>public/module-name</code>)
 		</div>
@@ -163,43 +154,40 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		<?php echo $form->error($model,'uploadPath[subfolder]'); ?>
 	</div>
 
-	<div class="row sticky">
-		<?php echo $form->labelEx($model,'link'); ?>
-		<?php echo $form->textField($model,'link',array('size'=>64)); ?>
+	<div class="row">
+		<?php echo $form->labelEx($model,'useEvent'); ?>
+		<?php echo $form->checkBox($model,'useEvent'); ?>
 		<div class="tooltip">
-		It can be either a hyperlink (e.g. <code>http://opensource.ommu.co</code>)
+			Default value is <code>false</code>. Should we generate event afterSave, before/afterDelete, afterValidate etc.
 		</div>
-		<?php echo $form->error($model,'link'); ?>
+		<?php echo $form->error($model,'useEvent'); ?>
 	</div>
 
 	<div class="row">
-		<?php echo $form->labelEx($model,'datepicker'); ?>
-		<?php echo $form->dropDownList($model,'datepicker', array(
-			'0' => 'Native',
-			'1' => 'jQuery UI',
-		), array('prompt'=>'')); ?>
+		<?php echo $form->labelEx($model,'useGetFunction'); ?>
+		<?php echo $form->checkBox($model,'useGetFunction'); ?>
+		<div class="tooltip">
+			Default value is <code>false</code>. Used to display modification date in source code
+		</div>
+		<?php echo $form->error($model,'useGetFunction'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'useJuiDatepicker'); ?>
+		<?php echo $form->checkBox($model,'useJuiDatepicker'); ?>
 		<div class="tooltip">
 			Default value is <code>native</code>. Used to display datepicker in application
 		</div>
-		<?php echo $form->error($model,'datepicker'); ?>
+		<?php echo $form->error($model,'useJuiDatepicker'); ?>
 	</div>
 
 	<div class="row">
-		<?php echo $form->labelEx($model,'getFunction'); ?>
-		<?php echo $form->checkBox($model,'getFunction'); ?>
+		<?php echo $form->labelEx($model,'useModified'); ?>
+		<?php echo $form->checkBox($model,'useModified'); ?>
 		<div class="tooltip">
 			Default value is <code>false</code>. Used to display modification date in source code
 		</div>
-		<?php echo $form->error($model,'getFunction'); ?>
-	</div>
-
-	<div class="row">
-		<?php echo $form->labelEx($model,'modified'); ?>
-		<?php echo $form->checkBox($model,'modified'); ?>
-		<div class="tooltip">
-			Default value is <code>false</code>. Used to display modification date in source code
-		</div>
-		<?php echo $form->error($model,'modified'); ?>
+		<?php echo $form->error($model,'useModified'); ?>
 	</div>
 
 	<div class="row">
@@ -211,6 +199,15 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 			column name would be used as the attribute name base.
 		</div>
 		<?php echo $form->error($model,'commentsAsLabels'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'link'); ?>
+		<?php echo $form->textField($model,'link', array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a hyperlink (e.g. <code>https://github.com/ommu</code>)
+		</div>
+		<?php echo $form->error($model,'link'); ?>
 	</div>
 
 <?php $this->endWidget(); ?>

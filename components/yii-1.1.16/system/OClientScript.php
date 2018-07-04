@@ -6,7 +6,7 @@
  * @contact (+62)856-299-4114
  * @create date Maret 1, 2014 14:02 WIB
  * @updated date Maret 1, 2014 15:50 WIB
- * @copyright Copyright (c) 2014 Ommu Platform (opensource.ommu.co)
+ * @copyright Copyright (c) 2014 Ommu Platform (www.ommu.co)
  * @link http://opensource.ommu.co
  *
  */

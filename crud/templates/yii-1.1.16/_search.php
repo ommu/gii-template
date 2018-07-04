@@ -6,37 +6,6 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
-/* 
-* set name relation with underscore
-*/
-function setRelationName($names, $column=false) {
-	$patterns = array();
-	$patterns[0] = '(_ommu)';
-	$patterns[1] = '(_core)';
-	
-	if($column == false) {
-		$char=range("A","Z");
-		foreach($char as $val) {
-			if(strpos($names, $val) !== false) {
-				$names = str_replace($val, '_'.strtolower($val), $names);
-			}
-		}
-	} else
-		$names = rtrim($names, 'id');
-
-	$return = trim(preg_replace($patterns, '', $names), '_');
-	$return = array_map('strtolower', explode('_', $return));
-	//print_r($return);
-
-	if(count($return) != 1)
-		return end($return);
-	else {
-		if(is_array($return))
-			return implode('', $return);
-		else
-			return $return;
-	}
-}
 ?>
 <?php echo "<?php\n"; ?>
 /**
@@ -47,9 +16,9 @@ function setRelationName($names, $column=false) {
  *
  * @author Putra Sudaryanto <putra@sudaryanto.id>
  * @contact (+62)856-299-4114
- * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
+ * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (www.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($this->modifiedStatus):?>
+<?php if($this->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
 <?php endif; ?>
  * @link <?php echo $this->linkSource."\n";?>
@@ -72,7 +41,7 @@ function setRelationName($names, $column=false) {
 	if(in_array('trigger[delete]', $commentArray))
 		$columnName = $columnName.'_i';
 	if($column->isForeignKey == '1') {
-		$relationName = setRelationName($column->name, true);
+		$relationName = $this->setRelation($column->name, true);
 		if($relationName == 'cat')
 			$relationName = 'category';
 		$columnName = $relationName.'_search';

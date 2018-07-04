@@ -18,7 +18,7 @@ class ModelCode extends CCodeModel
 	public $useGetFunction=false;
 	public $useJuiDatepicker=false;
 	public $useModified=false;
-	public $link='http://opensource.ommu.co';
+	public $link='https://github.com/ommu';
 
 	/**
 	 * @var array list of candidate relation code. The array are indexed by AR class names and relation names.

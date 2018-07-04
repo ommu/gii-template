@@ -16,9 +16,9 @@ $inflector = new Inflector;
  *
  * @author Putra Sudaryanto <putra@sudaryanto.id>
  * @contact (+62)856-299-4114
- * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (opensource.ommu.co)
+ * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (www.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($this->modifiedStatus):?>
+<?php if($this->useModified):?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
 <?php endif; ?>
  * @link <?php echo $this->linkSource."\n";?>
