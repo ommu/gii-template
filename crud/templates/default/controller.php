@@ -58,7 +58,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionView($id)
 	{
-		$this->render('view', array(
+		$this->render('view',array(
 			'model'=>$this->loadModel($id),
 		));
 	}
@@ -81,7 +81,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
 		}
 
-		$this->render('create', array(
+		$this->render('create',array(
 			'model'=>$model,
 		));
 	}
@@ -105,7 +105,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 				$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
 		}
 
-		$this->render('update', array(
+		$this->render('update',array(
 			'model'=>$model,
 		));
 	}
@@ -130,7 +130,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	public function actionIndex()
 	{
 		$dataProvider=new CActiveDataProvider('<?php echo $this->modelClass; ?>');
-		$this->render('index', array(
+		$this->render('index',array(
 			'dataProvider'=>$dataProvider,
 		));
 	}
@@ -145,7 +145,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		if(isset($_GET['<?php echo $this->modelClass; ?>']))
 			$model->attributes=$_GET['<?php echo $this->modelClass; ?>'];
 
-		$this->render('admin', array(
+		$this->render('admin',array(
 			'model'=>$model,
 		));
 	}
