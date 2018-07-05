@@ -745,7 +745,7 @@ foreach($tableSchema->columns as $column)
 		$bsEvents = 1;
 }
 $beforeValidate = 0;
-if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
+if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents)): ?>
 
 	/**
 	 * before validate attributes
@@ -830,7 +830,7 @@ endif;
 $bsEvents = 0;
 foreach($tableSchema->columns as $column)
 {
-	if($i18n || (in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')  || ($column->type == 'text' && $column->comment == 'serialize')|| in_array($column->name, ['tag_id']))
+	if($i18n || $uploadCondition || (in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')  || ($column->type == 'text' && $column->comment == 'serialize')|| in_array($column->name, ['tag_id']))
 		$bsEvents = 1;
 }
 $beforeSave = 0;
