@@ -42,7 +42,7 @@ echo "\t\$this->breadcrumbs=array(
 <?php echo "<?php ";?>//begin.Messages ?>
 <?php echo "<?php \n";?>
 if(Yii::app()->user->hasFlash('success')) 
-	echo Utility::flashSuccess(Yii::app()->user->getFlash('success')); 
+	echo $this->flashMessage(Yii::app()->user->getFlash('success'), 'success'); 
 ?>
 <?php echo "<?php ";?>//end.Messages ?>
 
