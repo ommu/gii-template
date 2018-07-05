@@ -142,6 +142,14 @@ endif; ?>
 
 class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 {
+<?php 
+$traitCondition = 0;
+if($i18n || $tagCondition) {
+	echo "\tuse UtilityTrait;\n";
+	$traitCondition = 1;
+}
+if($traitCondition)
+	echo "\n";?>
 	public $gridForbiddenColumn = array();
 <?php 
 $inputPublicVariables = array();
@@ -967,7 +975,7 @@ if(!$tableViewCondition && ($this->useEvent || $bsEvents)) {?>
 		$controller = strtolower(Yii::app()->controller->id);
 		$action = strtolower(Yii::app()->controller->action->id);
 
-		$location = Utility::getUrlTitle($module.' '.$controller);
+		$location = $this->urlTitle($module.' '.$controller);
 		
 <?php }?>
 		if(parent::beforeSave()) {
@@ -1034,7 +1042,7 @@ foreach($columns as $name=>$column) {
 		$relationName = $this->setRelation($column->name, true);
 		$publicAttribute = $relationName.'_i';?>
 			if($this->isNewRecord) {
-				$<?php echo $publicAttribute;?> = Utility::getUrlTitle(strtolower(trim($this-><?php echo $publicAttribute;?>)));
+				$<?php echo $publicAttribute;?> = $this->urlTitle($this-><?php echo $publicAttribute;?>);
 				if($this-><?php echo $column->name;?> == 0) {
 					$<?php echo $relationName;?> = OmmuTags::model()->find(array(
 						'select' => '<?php echo $column->name;?>, body',
@@ -1066,7 +1074,7 @@ foreach($columns as $name=>$column) {
 					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
 <?php if($slugCondition && $i18n && preg_match('/(name|title)/', $column->name)) {?>
 
-				$this->slug = Utility::getUrlTitle($this-><?php echo $publicAttribute;?>);
+				$this->slug = $this->urlTitle($this-><?php echo $publicAttribute;?>);
 <?php }?>
 
 			} else {
