@@ -19,6 +19,7 @@ if(!$primaryKey)
 	$primaryKey = key($columns);
 $tableViewCondition = 0;
 $generateFunctionCondition = 0;
+$tinyCondition = 0;
 $publishCondition = 0;
 $slugCondition = 0;
 $tagCondition = 0;
@@ -36,8 +37,11 @@ foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(!$tableViewCondition && $column->name == $primaryKey && preg_match('/(smallint)/', $column->dbType))
 		$generateFunctionCondition = 1;
-	if($column->dbType == 'tinyint(1)' && in_array($column->name, array('publish','headline')))
-		$publishCondition = 1;
+	if($column->dbType == 'tinyint(1)') {
+		$tinyCondition = 1;
+		if($column->name == 'publish')
+			$publishCondition = 1;
+	}
 	if(!$tableViewCondition && $column->name == 'slug')
 		$slugCondition = 1;
 	if(!$tableViewCondition && $column->name == 'tag_id')
@@ -146,6 +150,10 @@ class <?php echo $modelClass; ?> extends <?php echo $this->baseClass."\n"; ?>
 $traitCondition = 0;
 if($i18n || $tagCondition) {
 	echo "\tuse UtilityTrait;\n";
+	$traitCondition = 1;
+}
+if($tinyCondition) {
+	echo "\tuse GridViewTrait;\n";
 	$traitCondition = 1;
 }
 if($traitCondition)
@@ -697,10 +705,7 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
-		echo "\t\t\t\t'filter'=>array(\n";
-		echo "\t\t\t\t\t1=>Yii::t('phrase', 'Yes'),\n";
-		echo "\t\t\t\t\t0=>Yii::t('phrase', 'No'),\n";
-		echo "\t\t\t\t),\n";
+		echo "\t\t\t\t'filter'=>\$this->filterYesNo(),\n";
 		echo "\t\t\t\t'type' => 'raw',\n";
 		echo "\t\t\t);\n";
 	}
@@ -720,10 +725,7 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
-		echo "\t\t\t\t'filter'=>array(\n";
-		echo "\t\t\t\t\t1=>Yii::t('phrase', 'Yes'),\n";
-		echo "\t\t\t\t\t0=>Yii::t('phrase', 'No'),\n";
-		echo "\t\t\t\t),\n";
+		echo "\t\t\t\t'filter'=>\$this->filterYesNo(),\n";
 		echo "\t\t\t\t'type' => 'raw',\n";
 		echo "\t\t\t);\n";
 	}
@@ -741,10 +743,7 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t\t),\n";
-		echo "\t\t\t\t\t'filter'=>array(\n";
-		echo "\t\t\t\t\t\t1=>Yii::t('phrase', 'Yes'),\n";
-		echo "\t\t\t\t\t\t0=>Yii::t('phrase', 'No'),\n";
-		echo "\t\t\t\t\t),\n";
+		echo "\t\t\t\t\t'filter'=>\$this->filterYesNo(),\n";
 		echo "\t\t\t\t\t'type' => 'raw',\n";
 		echo "\t\t\t\t);\n";
 		echo "\t\t\t}\n";

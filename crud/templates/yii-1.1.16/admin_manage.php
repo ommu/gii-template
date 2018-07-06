@@ -65,7 +65,7 @@ echo "\t\$this->breadcrumbs=array(
 <div class="grid-form">
 <?php echo "<?php ";?>$this->renderPartial('_option_form', array(
 	'model'=>$model,
-	'gridColumns'=>Utility::getActiveDefaultColumns($columns),
+	'gridColumns'=>$this->activeDefaultColumns($columns),
 )); ?>
 </div>
 <?php echo "<?php ";?>//end.Grid Option ?>
