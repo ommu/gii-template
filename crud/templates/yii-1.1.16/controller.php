@@ -78,15 +78,15 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		if(!Yii::app()->user->isGuest) {
 			if(Yii::app()->user->level == 1) {
 			//if(in_array(Yii::app()->user->level, array(1,2))) {
-				$arrThemes = Utility::getCurrentTemplate('admin');
+				$arrThemes = $this->currentTemplate('admin');
 				Yii::app()->theme = $arrThemes['folder'];
 				$this->layout = $arrThemes['layout'];
-				//Utility::applyViewPath(__dir__);
+				//$this->applyViewPath(__dir__);
 			}
 		} else
 			$this->redirect(Yii::app()->createUrl('site/login'));
 <?php else:?>
-		$arrThemes = Utility::getCurrentTemplate('public');
+		$arrThemes = $this->currentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
 <?php endif; ?>
@@ -144,10 +144,10 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 <?php if($this->forBackendController):?>
 		$this->redirect(array('manage'));
 <?php else:?>
-		$arrThemes = Utility::getCurrentTemplate('public');
+		$arrThemes = $this->currentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
-		Utility::applyCurrentTheme($this->module);
+		$this->applyCurrentTheme($this->module);
 		
 		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
 			'select' => 'meta_description, meta_keyword',
@@ -181,10 +181,10 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionView($id) 
 	{
-		$arrThemes = Utility::getCurrentTemplate('public');
+		$arrThemes = $this->currentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
-		Utility::applyCurrentTheme($this->module);
+		$this->applyCurrentTheme($this->module);
 		
 		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
 			'select' => 'meta_keyword',
