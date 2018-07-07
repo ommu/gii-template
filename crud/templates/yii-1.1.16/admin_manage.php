@@ -92,21 +92,21 @@ echo "\t\$this->breadcrumbs=array(
 				'buttons' => array(
 					'view' => array(
 						'label' => Yii::t('phrase', 'Detail <?php echo $inflector->singularize($label);?>'),
-						'imageUrl' => false,
+						'imageUrl' => Yii::app()->params['grid-view']['buttonImageUrl'],
 						'options' => array(
 							'class' => 'view',
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'view\', array(\'id\'=>$data->primaryKey))'),
 					'update' => array(
 						'label' => Yii::t('phrase', 'Update <?php echo $inflector->singularize($label);?>'),
-						'imageUrl' => false,
+						'imageUrl' => Yii::app()->params['grid-view']['buttonImageUrl'],
 						'options' => array(
 							'class' => 'update',
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'edit\', array(\'id\'=>$data->primaryKey))'),
 					'delete' => array(
 						'label' => Yii::t('phrase', 'Delete <?php echo $inflector->singularize($label);?>'),
-						'imageUrl' => false,
+						'imageUrl' => Yii::app()->params['grid-view']['buttonImageUrl'],
 						'options' => array(
 							'class' => 'delete',
 						),
@@ -119,8 +119,9 @@ echo "\t\$this->breadcrumbs=array(
 				'id'=>'<?php echo $this->class2id($this->modelClass); ?>-grid',
 				'dataProvider'=>$model->search(),
 				'filter'=>$model,
-				'columns' => $columnData,
-				'pager' => array('header' => ''),
+				'columns'=>$columnData,
+				'template'=>Yii::app()->params['grid-view']['gridTemplate'],
+				'pager'=>array('header'=>''),
 			));
 		?>
 		<?php echo "<?php ";?>//end.Grid Item ?>

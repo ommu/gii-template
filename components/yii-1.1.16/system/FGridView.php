@@ -15,7 +15,7 @@
 Yii::import('application.libraries.core.components.system.CBaseListView');
 Yii::import('application.libraries.core.components.system.CDataColumn');
 Yii::import('zii.widgets.grid.CLinkColumn');
-Yii::import('application.libraries.core.components.system.CButtonColumn');
+Yii::import('application.libraries.yii-traits.system.CButtonColumn');
 Yii::import('zii.widgets.grid.CCheckBoxColumn');
 
 /**
