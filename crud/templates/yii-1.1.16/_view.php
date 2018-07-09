@@ -47,9 +47,9 @@ $inflector = new Inflector;
 			echo "\t<?php echo CHtml::encode(\$data->{$cRelation}->{$cName}); ?>\n\t<br />\n\n";
 		} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if(in_array($column->dbType, array('timestamp','datetime')))
-				echo "\t<?php echo CHtml::encode(Utility::dateFormat(\$data->{$column->name}, true)); ?>\n\t<br />\n\n";
+				echo "\t<?php echo CHtml::encode(\$this->dateFormat(\$data->{$column->name}, true)); ?>\n\t<br />\n\n";
 			else
-				echo "\t<?php echo CHtml::encode(Utility::dateFormat(\$data->{$column->name})); ?>\n\t<br />\n\n";	
+				echo "\t<?php echo CHtml::encode(\$this->dateFormat(\$data->{$column->name})); ?>\n\t<br />\n\n";	
 		} else 
 			echo "\t<?php echo CHtml::encode(\$data->{$column->name}); ?>\n\t<br />\n\n";
 	}
