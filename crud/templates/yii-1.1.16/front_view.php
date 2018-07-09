@@ -40,7 +40,7 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 
 <div class="box">
-<?php echo "<?php"; ?> $this->widget('application.libraries.core.components.system.FDetailView', array(
+<?php echo "<?php"; ?> $this->widget('zii.widgets.CDetailView', array(
 	'data'=>$model,
 	'attributes'=>array(
 <?php

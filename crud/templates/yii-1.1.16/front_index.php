@@ -38,7 +38,7 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php echo "<?php"; ?> $this->widget('application.libraries.core.components.system.FListView', array(
+<?php echo "<?php"; ?> $this->widget('zii.widgets.CListView', array(
 	'dataProvider'=>$dataProvider,
 	'itemView'=>'_view',
 	'pager' => array(
