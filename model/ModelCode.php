@@ -651,6 +651,11 @@ class ModelCode extends CCodeModel
 		return $pk;
 	}
 
+	public function geti18nAttribute($column, $relation=true)
+	{
+		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
+	}
+
 	public function getTable2ndRelation($attr='', $separator='.')
 	{
 		$relations = [];

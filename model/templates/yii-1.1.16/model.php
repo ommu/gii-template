@@ -138,7 +138,7 @@ foreach($columns as $name=>$column):
 	} else {
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)) {
-			$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			$relationName = $this->geti18nAttribute($column->name);
 			echo " * @property SourceMessage \${$relationName}\n";
 			$i18n = 1;
 		}
@@ -170,7 +170,7 @@ foreach($columns as $name=>$column):
 	if(!$tableViewCondition && in_array('trigger[delete]', $commentArray)) {
 		$inputPublicVariable = $column->name.'_i';
 		if(!in_array($inputPublicVariable, $inputPublicVariables))
-			$inputPublicVariables[$inputPublicVariable] = ucwords(strtolower($column->name));
+			$inputPublicVariables[$inputPublicVariable] = ucwords(strtolower($this->geti18nAttribute($column->name, false)));
 	}
 endforeach;
 foreach($columns as $name=>$column):
@@ -324,7 +324,7 @@ if($i18n):
 	foreach($columns as $name=>$column):
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)):
-			$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			$relationName = $this->geti18nAttribute($column->name);
 			if(!in_array($relationName, $availableRelations)) {
 				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'SourceMessage', '$name'),\n";
 				$availableRelations[] = $relationName;
@@ -425,7 +425,7 @@ if($i18n):
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
-		$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+		$relationName = $this->geti18nAttribute($column->name);
 		if(!in_array($relationName, $availableRelations)) {
 			echo "\t\t\t'$relationName' => array(\n";
 			echo "\t\t\t\t'alias'=>'$relationName',\n";
@@ -527,7 +527,7 @@ foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
 		$publicAttribute = $column->name.'_i';
-		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+		$publicAttributeRelation = $this->geti18nAttribute($column->name);
 
 		if(!in_array($publicAttribute, $publicAttributes)) {
 			echo "\t\t\$criteria->compare('$publicAttributeRelation.message', strtolower(\$this->$publicAttribute), true);\n";
@@ -643,7 +643,7 @@ foreach($columns as $name=>$column)
 		$publicAttribute = $column->name;
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
-			$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			$relationName = $this->geti18nAttribute($column->name);
 			$translateCondition = 1;
 		}
 		echo "\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
@@ -661,7 +661,7 @@ if($translateCondition) {
 	} else
 		echo "\t\t\t\t'value' => '\$data->$column->name',\n";
 }
-if(in_array($column->dbType, array('text')) || in_array('file', $commentArray) || in_array('redactor', $commentArray)) {
+if((in_array($column->dbType, array('text')) || in_array('file', $commentArray) || in_array('redactor', $commentArray)) && $column->name != 'slug') {
 	echo "\t\t\t\t'type' => 'raw',\n";
 }
 		echo "\t\t\t);\n";
@@ -717,7 +717,7 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t\t),\n";
-		echo "\t\t\t\t\t'filter'=>\$this->filterYesNo(),\n";
+		echo "\t\t\t\t\t'filter' => \$this->filterYesNo(),\n";
 		echo "\t\t\t\t\t'type' => 'raw',\n";
 		echo "\t\t\t\t);\n";
 		echo "\t\t\t}\n";
@@ -828,7 +828,7 @@ foreach($columns as $name=>$column) {
 	} else {
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
-			$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			$relationName = $this->geti18nAttribute($column->name);
 			echo "\t\t\$this->$publicAttribute = \$this->{$relationName}->message;\n";
 			$afterFind = 1;
 		}
