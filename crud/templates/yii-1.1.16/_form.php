@@ -25,7 +25,7 @@ $inflector = new Inflector;
  */
 ?>
 
-<?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.core.components.system.OActiveForm', array(
+<?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.yii-traits.system.OActiveForm', array(
 	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
 	'enableAjaxValidation'=>true,
 	/*
