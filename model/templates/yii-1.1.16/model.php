@@ -20,6 +20,7 @@ if(!$primaryKey)
 $tableViewCondition = 0;
 $generateFunctionCondition = 0;
 $tinyCondition = 0;
+$dateCondition = 0;
 $publishCondition = 0;
 $slugCondition = 0;
 $tagCondition = 0;
@@ -42,6 +43,8 @@ foreach($columns as $name=>$column):
 		if($column->name == 'publish')
 			$publishCondition = 1;
 	}
+	if(in_array($column->dbType, array('timestamp','datetime','date')))
+		$dateCondition = 1;
 	if(!$tableViewCondition && $column->name == 'slug')
 		$slugCondition = 1;
 	if(!$tableViewCondition && $column->name == 'tag_id')
@@ -152,7 +155,7 @@ if($i18n || $tagCondition) {
 	echo "\tuse UtilityTrait;\n";
 	$traitCondition = 1;
 }
-if($tinyCondition) {
+if($tinyCondition || $dateCondition) {
 	echo "\tuse GridViewTrait;\n";
 	$traitCondition = 1;
 }
