@@ -12,7 +12,6 @@ class CrudCode extends CCodeModel
 		'directory' => 'public/module-name',
 	);
 	public $forBackendController=true;
-	public $useJuiDatepicker=false;
 	public $useModified=false;
 	public $link='https://github.com/ommu';
 
@@ -24,7 +23,7 @@ class CrudCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('model, controller, controllerPath, viewPath', 'filter', 'filter'=>'trim'),
-			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, forBackendController, useJuiDatepicker, useModified, link', 'required'),
+			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, forBackendController, useModified, link', 'required'),
 			array('model', 'match', 'pattern'=>'/^\w+[\w+\\.]*$/', 'message'=>'{attribute} should only contain word characters and dots.'),
 			array('controller', 'match', 'pattern'=>'/^\w+[\w+\\/]*$/', 'message'=>'{attribute} should only contain word characters and slashes.'),
 			array('baseControllerClass', 'match', 'pattern'=>'/^[a-zA-Z_\\\\][\w\\\\]*$/', 'message'=>'{attribute} should only contain word characters and backslashes.'),
@@ -49,7 +48,6 @@ class CrudCode extends CCodeModel
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
 			'forBackendController'=>'Backend Controller',
-			'useJuiDatepicker'=>'jQuery Datepicker',
 			'useModified'=>'Modified',
 			'link'=>'Link Repository',
 		));
@@ -155,11 +153,6 @@ class CrudCode extends CCodeModel
 	public function getForBackendController()
 	{
 		return $this->forBackendController;
-	}
-
-	public function getUseJuiDatepicker()
-	{
-		return $this->useJuiDatepicker;
 	}
 
 	public function getUseModified()
@@ -284,7 +277,7 @@ if($form == true) {
 	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
 		return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 	else
-		return "echo \$form->dropDownList(\$model, '{$column->name}', array('0'=>Yii::t('phrase', 'No'), '1'=>Yii::t('phrase', 'Yes')), array('class'=>'form-control'))";
+		return "echo \$form->dropDownList(\$model, '{$column->name}', \$this->filterYesNo(), array('prompt'=>'', 'class'=>'form-control'))";
 }
 		} elseif(stripos($column->dbType,'text')!==false) {		// 02
 if($form == true) {
@@ -336,27 +329,7 @@ if($form == true) {
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {		// 03
 			if($form == true)
 				$return = "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
-if($this->useJuiDatepicker) {
-			$return .= "\$this->widget('zii.widgets.jui.CJuiDatePicker', array(";
-} else {
-			$return .= "/* \$this->widget('zii.widgets.jui.CJuiDatePicker', array(";
-}
-			$return .= "'model'=>\$model,
-				'attribute'=>'{$column->name}',
-				//'mode'=>'datetime',
-				'options'=>array(
-					'dateFormat' => 'yy-mm-dd',
-				),
-				'htmlOptions'=>array(
-					'class' => 'form-control',
-				 ),\n\t\t\t";
-if($this->useJuiDatepicker) {
-			$return .= "));
-			//echo \$form->dateField(\$model, '{$column->name}', array('class'=>'form-control'))";
-} else {
-			$return .= ")); */
-			echo \$form->dateField(\$model, '{$column->name}', array('class'=>'form-control'))";
-}
+			$return .= "echo \$this->filterDatepicker(\$model, '{$column->name}', false)";
 			return $return;
 		} else {		// 03
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))

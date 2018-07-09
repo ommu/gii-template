@@ -173,15 +173,6 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 	</div>
 
 	<div class="row">
-		<?php echo $form->labelEx($model,'useJuiDatepicker'); ?>
-		<?php echo $form->checkBox($model,'useJuiDatepicker'); ?>
-		<div class="tooltip">
-			Default value is <code>native</code>. Used to display datepicker in application
-		</div>
-		<?php echo $form->error($model,'useJuiDatepicker'); ?>
-	</div>
-
-	<div class="row">
 		<?php echo $form->labelEx($model,'useModified'); ?>
 		<?php echo $form->checkBox($model,'useModified'); ?>
 		<div class="tooltip">

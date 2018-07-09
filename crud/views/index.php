@@ -118,15 +118,6 @@ $('#{$class}_model').bind('keyup change', function(){
 	</div>
 
 	<div class="row">
-		<?php echo $form->labelEx($model,'useJuiDatepicker'); ?>
-		<?php echo $form->checkBox($model,'useJuiDatepicker'); ?>
-		<div class="tooltip">
-			Default value is <code>false</code>. Digunakan untuk menentukan datepicker yang akan ditampilkan pada aplikasi
-		</div>
-		<?php echo $form->error($model,'useJuiDatepicker'); ?>
-	</div>
-
-	<div class="row">
 		<?php echo $form->labelEx($model,'useModified'); ?>
 		<?php echo $form->checkBox($model,'useModified'); ?>
 		<div class="tooltip">

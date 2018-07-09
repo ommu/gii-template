@@ -16,7 +16,6 @@ class ModelCode extends CCodeModel
 	);
 	public $useEvent=false;
 	public $useGetFunction=false;
-	public $useJuiDatepicker=false;
 	public $useModified=false;
 	public $link='https://github.com/ommu';
 
@@ -30,7 +29,7 @@ class ModelCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId, link', 'filter', 'filter'=>'trim'),
-			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, useEvent, useGetFunction, useJuiDatepicker, useModified, link', 'required'),
+			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, useEvent, useGetFunction, useModified, link', 'required'),
 			array('tablePrefix, tableName, modelPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('connectionId', 'validateConnectionId', 'skipOnError'=>true),
 			array('tableName', 'validateTableName', 'skipOnError'=>true),
@@ -58,7 +57,6 @@ class ModelCode extends CCodeModel
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
 			'useEvent'=>'Generate Events',
 			'useGetFunction'=>'Generate GetFunction',
-			'useJuiDatepicker'=>'jQuery Datepicker',
 			'useModified'=>'Modified',
 			'link'=>'Link Repository',
 		));
@@ -224,11 +222,6 @@ class ModelCode extends CCodeModel
 	public function getUseGetFunction()
 	{
 		return $this->useGetFunction;
-	}
-
-	public function getUseJuiDatepicker()
-	{
-		return $this->useJuiDatepicker;
 	}
 
 	public function getUseModified()
