@@ -31,7 +31,7 @@ if(preg_match('/Core/', $modelClass))
 else
 	$modelClass = preg_replace('(Ommu)', '', $modelClass);
 $label=$inflector->pluralize($this->class2name($modelClass));
-$nameColumn=$this->getTableAttribute($this->tableSchema->columns);
+$nameColumn=$this->getTableRelationAttribute($this->tableSchema->name, '->');
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
 	\t\$model->$nameColumn,

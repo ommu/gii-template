@@ -630,4 +630,77 @@ if($i18n) {
 		if(Yii::getPathOfAlias($this->viewPath)===false)
 			$this->addError('viewPath','Model Path must be a valid path alias.');
 	}
+	
+	function getForeignKeys($foreignKeys)
+	{
+		$column = [];
+		if(!empty($foreignKeys)) {
+			foreach($foreignKeys as $val) {
+				// Only variables should be passed by reference
+				$arrVal = array_values($val);
+				$column[array_pop($arrVal)] = array_shift($arrVal);
+			}
+		}
+	
+		return $column;
+	}
+
+	public function getTableRelationAttribute($tableName, $separator='->')
+	{
+		$tables=array($this->getTableSchema($tableName));
+		$table = $tables[0];
+
+		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
+		$titleCondition = 0;
+		$foreignCondition = 0;
+
+		foreach ($table->columns as $column) {
+			$relationColumn = [];
+			if(preg_match('/(name|title)/', $column->name)) {
+				$commentArray = explode(',', $column->comment);
+				if(in_array('trigger[delete]', $commentArray)) {
+					$relationColumn[$column->name] = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+					$relationColumn[] = 'message';
+				} else {
+					if($column->name == 'username')
+						$relationColumn[$column->name] = 'displayname';
+					else
+						$relationColumn[$column->name] = $column->name;
+
+				}
+				$titleCondition = 1;
+			}
+			if(!empty($relationColumn))
+				return implode($separator, $relationColumn);
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $column) {
+				$relationColumn = [];
+				if($column->name == 'tag_id') {
+					$relationColumn[$column->name] = $this->setRelation($column->name, true);
+					$relationColumn[] = 'body';
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $column) {
+				$relationColumn = [];
+				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+					$relationTableName = trim($foreignKeys[$column->name]);
+					if(!$foreignCondition) {
+						$relationColumn[$column->name] = $this->setRelation($column->name, true);
+						$relationColumn[] = $this->getTableRelationAttribute($relationTableName, $separator);
+						$foreignCondition = 1;
+					}
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		$pk = $table->primaryKey;
+
+		return $pk;
+	}
 }

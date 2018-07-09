@@ -32,8 +32,10 @@ if(preg_match('/Core/', $modelClass))
 else
 	$modelClass = preg_replace('(Ommu)', '', $modelClass);
 $label=$inflector->pluralize($this->class2name($modelClass));
+$nameColumn=$this->getTableRelationAttribute($this->tableSchema->name, '->');
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
+	\t\$model->{$nameColumn}=>array('view','id'=>\$model->{$this->tableSchema->primaryKey}),
 	\t'Headline',
 \t);\n";
 ?>
@@ -42,7 +44,6 @@ echo "\t\$this->breadcrumbs=array(
 <?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.yii-traits.system.OActiveForm', array(
 	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
 	'enableAjaxValidation'=>true,
-	//'htmlOptions' => array('enctype' => 'multipart/form-data')
 )); ?>
 
 	<div class="dialog-content">
