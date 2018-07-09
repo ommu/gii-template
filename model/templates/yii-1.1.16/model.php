@@ -631,36 +631,7 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
-if(!$this->useJuiDatepicker) {
-	echo "\t\t\t\t'filter' => 'native-datepicker',\n";
-	echo "\t\t\t\t/*\n";
-} else {
-	echo "\t\t\t\t//'filter' => 'native-datepicker',\n";
-}
-		echo "\t\t\t\t'filter' => Yii::app()->controller->widget('application.libraries.core.components.system.CJuiDatePicker', array(\n";
-		echo "\t\t\t\t\t'model'=>\$this,\n";
-		echo "\t\t\t\t\t'attribute'=>'$column->name',\n";
-		echo "\t\t\t\t\t'language' => 'en',\n";
-		echo "\t\t\t\t\t'i18nScriptFile' => 'jquery-ui-i18n.min.js',\n";
-		echo "\t\t\t\t\t//'mode'=>'datetime',\n";
-		echo "\t\t\t\t\t'htmlOptions' => array(\n";
-		echo "\t\t\t\t\t\t'id' => '$column->name";echo "_filter',\n";
-		echo "\t\t\t\t\t\t'on_datepicker' => 'on',\n";
-		echo "\t\t\t\t\t\t'placeholder' => Yii::t('phrase', 'filter'),\n";
-		echo "\t\t\t\t\t),\n";
-		echo "\t\t\t\t\t'options'=>array(\n";
-		echo "\t\t\t\t\t\t'showOn' => 'focus',\n";
-		echo "\t\t\t\t\t\t'dateFormat' => 'yy-mm-dd',\n";
-		echo "\t\t\t\t\t\t'showOtherMonths' => true,\n";
-		echo "\t\t\t\t\t\t'selectOtherMonths' => true,\n";
-		echo "\t\t\t\t\t\t'changeMonth' => true,\n";
-		echo "\t\t\t\t\t\t'changeYear' => true,\n";
-		echo "\t\t\t\t\t\t'showButtonPanel' => true,\n";
-		echo "\t\t\t\t\t),\n";
-		echo "\t\t\t\t), true),\n";
-if(!$this->useJuiDatepicker) {
-	echo "\t\t\t\t*/\n";
-}
+		echo "\t\t\t\t'filter' => \$this->filterDatepicker(\$this, '$column->name'),\n";
 		echo "\t\t\t);\n";
 		
 	} else {
