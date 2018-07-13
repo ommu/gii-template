@@ -3,6 +3,9 @@ Yii::import('application.libraries.gii.Inflector');
 
 class ModelCode extends CCodeModel
 {
+    const TYPE_TABLE = 1;
+	const TYPE_VIEW  = 2;
+	
 	public $connectionId='db';
 	public $tablePrefix;
 	public $tableName;
@@ -24,6 +27,7 @@ class ModelCode extends CCodeModel
 	 * Each element represents the code of the one relation in one AR class.
 	 */
 	protected $relations;
+	protected $tableViews;
 
 	public function rules()
 	{
@@ -96,7 +100,7 @@ class ModelCode extends CCodeModel
 			{
 				foreach($tables as $i=>$table)
 				{
-					if(strpos($table->name, $this->tablePrefix)!==0)
+					if(strpos($table->name,$this->tablePrefix)!==0)
 						unset($tables[$i]);
 				}
 			}
@@ -107,6 +111,7 @@ class ModelCode extends CCodeModel
 		$this->files=array();
 		$templatePath=$this->templatePath;
 		$this->relations=$this->generateRelations();
+		$this->tableViews=$this->getAllTableViews();
 
 		foreach($tables as $table)
 		{
@@ -121,6 +126,7 @@ class ModelCode extends CCodeModel
 				'relations'=>isset($this->relations[$className]) ? $this->relations[$className] : array(),
 				'connectionId'=>$this->connectionId,
 				'table'=>$table,
+				'tableViews'=>$this->tableViews,
 			);
 			$this->files[]=new CCodeFile(
 				Yii::getPathOfAlias($this->modelPath).'/'.$className.'.php',
@@ -204,36 +210,6 @@ class ModelCode extends CCodeModel
 			$this->addError('baseClass', "'{$this->baseClass}' must extend from CActiveRecord.");
 	}
 
-	public function getUploadPathDirectory()
-	{
-		return $this->uploadPath['directory'];
-	}
-
-	public function getUploadPathSubfolder()
-	{
-		return $this->uploadPath['subfolder'];
-	}
-
-	public function getUseEvent()
-	{
-		return $this->useEvent;
-	}
-
-	public function getUseGetFunction()
-	{
-		return $this->useGetFunction;
-	}
-
-	public function getUseModified()
-	{
-		return $this->useModified;
-	}
-
-	public function getLinkSource()
-	{
-		return $this->link;
-	}
-
 	public function getTableSchema($tableName)
 	{
 		$connection=Yii::app()->{$this->connectionId};
@@ -245,10 +221,10 @@ class ModelCode extends CCodeModel
 		$labels=array();
 		foreach($table->columns as $column)
 		{
-			/* if($this->commentsAsLabels && $column->comment)
-				$labels[$column->name]=$column->comment;
-			else
-			{ */
+			//if($this->commentsAsLabels && $column->comment)
+			//	$labels[$column->name]=$column->comment;
+			//else
+			//{
 				$label=ucwords(trim(strtolower(str_replace(array('-','_'),' ',preg_replace('/(?<![A-Z])[A-Z]/', ' \0', $column->name)))));
 				$label=preg_replace('/\s+/',' ',$label);
 				if(strcasecmp(substr($label,-3),' id')===0)
@@ -274,8 +250,10 @@ class ModelCode extends CCodeModel
 		$serialize=array();
 		foreach($table->columns as $column)
 		{
+			$commentArray = explode(',', $column->comment);
 			if($column->autoIncrement)
 				continue;
+
 			$r=!$column->allowNull && $column->defaultValue===null;
 			if($r && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug')))
 				$required[]=$column->name;
@@ -291,7 +269,6 @@ class ModelCode extends CCodeModel
 			} elseif(!$column->isPrimaryKey && !$r)
 				$safe[]=$column->name;
 
-			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)) {
 				$columnName = $column->name.'_i';
 				if(!empty($required))
@@ -309,12 +286,12 @@ class ModelCode extends CCodeModel
 				$required[] = $columnName;
 				$safe[] = $column->name;
 			}
-			if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->dbType == 'text' && $column->comment == 'file') {
+			if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->dbType == 'text' && in_array('file', $commentArray)) {
 				if(!empty($required))
 					$required = array_diff($required, array($column->name));
-				$trigger[]=$column->name;
+				$safe[]=$column->name;
 			}
-			if($column->comment == 'serialize') {
+			if($column->dbType == 'text' && in_array('serialize', $commentArray)) {
 				if(!empty($required))
 					$required = array_diff($required, array($column->name));
 				$serialize[]=$column->name;
@@ -325,10 +302,11 @@ class ModelCode extends CCodeModel
 		}
 		foreach($table->columns as $column)
 		{
+			$commentArray = explode(',', $column->comment);
 			if($column->autoIncrement)
 				continue;
-				
-			if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->dbType == 'text' && $column->comment == 'file')
+
+			if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->dbType == 'text' && in_array('file', $commentArray))
 				$safe[]='old_'.$column->name.'_i';
 		}
 		if($required!==array())
@@ -388,15 +366,14 @@ class ModelCode extends CCodeModel
 
 	protected function generateRelations()
 	{
+		$inflector = new Inflector;
 		if(!$this->buildRelations)
 			return array();
 
-		$schemaName='';
-		if(($pos=strpos($this->tableName,'.'))!==false)
-			$schemaName=substr($this->tableName,0,$pos);
-
+		$tableViews=$this->getAllTableViews();
 		$relations=array();
-		foreach(Yii::app()->{$this->connectionId}->schema->getTables($schemaName) as $table)
+		
+		foreach($this->getAllTableNames() as $table)
 		{
 			if($this->tablePrefix!='' && strpos($table->name,$this->tablePrefix)!==0)
 				continue;
@@ -429,6 +406,15 @@ class ModelCode extends CCodeModel
 			else
 			{
 				$className=$this->generateClassName($tableName);
+				$publishCondition = 0;
+				if(array_key_exists('publish', $table->columns))
+					$publishCondition = 1;
+
+				$viewTable1 = $this->getTableView($tableName);
+				$viewTable2 = $this->getTableView($tableName, true);
+				if(in_array($viewTable1, $tableViews) || in_array($viewTable2, $tableViews))
+					$relations[$className]['view']="array(self::BELONGS_TO, 'View$className', '$table->primaryKey')";
+					
 				foreach ($table->foreignKeys as $fkName => $fkEntry)
 				{
 					// Put table and key name in variables for easier reading
@@ -447,7 +433,14 @@ class ModelCode extends CCodeModel
 					$rawName=$relationName;
 					while(isset($relations[$refClassName][$relationName]))
 						$relationName=$rawName.($i++);
-					$relations[$refClassName][$relationName]="array(self::$relationType, '$className', '$fkName')";
+					if($relationType == 'HAS_MANY') {
+						if($publishCondition) {
+							$relations[$refClassName][$relationName]="array(self::$relationType, '$className', '$fkName', 'on'=>'$relationName.publish=1')";
+							$relations[$refClassName][$inflector->singularize($relationName).'All']="array(self::$relationType, '$className', '$fkName')";
+						} else
+							$relations[$refClassName][$relationName]="array(self::$relationType, '$className', '$fkName')";
+					} else
+						$relations[$refClassName][$relationName]="array(self::$relationType, '$className', '$fkName')";
 				}
 			}
 		}
@@ -483,6 +476,10 @@ class ModelCode extends CCodeModel
 			if($name!=='')
 				$className.=ucfirst($name);
 		}
+		if(preg_match('/Core/', $className))
+			$className = preg_replace('(Core)', '', $className);
+		else
+			$className = preg_replace('(Ommu)', '', $className);
 		return $className;
 	}
 
@@ -515,7 +512,7 @@ class ModelCode extends CCodeModel
 		while(isset($table->columns[$name]))
 			$name=$rawName.($i++);
 
-		return $name;
+		return $this->setRelation($name);
 	}
 
 	public function validateConnectionId($attribute, $params)
@@ -524,25 +521,135 @@ class ModelCode extends CCodeModel
 			$this->addError('connectionId','A valid database connection is required to run this generator.');
 	}
 
-	/* 
-	* set name relation with underscore
-	*/
-	function setRelation($names, $column=false) 
+	public function getUploadPathDirectory()
+	{
+		return $this->uploadPath['directory'];
+	}
+
+	public function getUploadPathSubfolder()
+	{
+		return $this->uploadPath['subfolder'];
+	}
+
+	public function getUseEvent()
+	{
+		return $this->useEvent;
+	}
+
+	public function getUseGetFunction()
+	{
+		return $this->useGetFunction;
+	}
+
+	public function getUseModified()
+	{
+		return $this->useModified;
+	}
+
+	public function getLinkSource()
+	{
+		return $this->link;
+	}
+
+	public function getAllTableNames()
+	{
+		$schemaName='';
+		if(($pos=strpos($this->tableName,'.'))!==false)
+			$schemaName=substr($this->tableName,0,$pos);
+
+		return Yii::app()->{$this->connectionId}->schema->getTables($schemaName);
+	}
+	
+	public function getTableType($tableName) 
+	{
+		if($tableName == '')
+			throw new \Exception('Parameter $tableName wajib ada!.');
+
+		$_tblType = null;
+		$allTables = $this->getAllTableNames();
+		foreach($allTables as $item) {
+			$vars = get_object_vars($item);
+			foreach($vars as $key => $val) {
+				if($key != 'Table_type' && $val == $tableName) {
+					if($vars['Table_type'] == 'VIEW')
+						$_tblType = self::TYPE_VIEW;
+					break;
+				}
+			}
+
+			if($_tblType != null)
+				break;
+		}
+
+		if($_tblType == self::TYPE_VIEW)
+			return self::TYPE_VIEW;
+		else
+			return self::TYPE_TABLE;
+	}
+
+	public function getAllTableViews()
+	{
+		$tableViews=array();
+		
+		foreach($this->getAllTableNames() as $table) {
+			if($table->name[0] == '_')
+				$tableViews[] = $table->name;
+		}
+
+		return $tableViews;
+	}
+
+	public function getTableView($table, $type2=false)
+	{
+		if($table[0] == '_')
+			return false;
+
+		if($type2 == false) {
+			$arrayTable = explode('_', $table);
+			$arrayTable = array_diff($arrayTable, array('ommu'));
+			return '_'.implode('_', $arrayTable);
+		} else
+			return '_'.join('', array('view', $this->getTableView($table)));
+	}
+	
+	public function getForeignKeys($foreignKeys)
+	{
+		$column = [];
+		if(!empty($foreignKeys)) {
+			foreach($foreignKeys as $key=>$val) {
+				// Only variables should be passed by reference
+				$arrayValue = array_values($val);
+				//$column[array_pop($arrVal)] = array_shift($arrVal);
+				$column[$key] = array_shift($arrayValue);
+			}
+		}
+	
+		return $column;
+	}
+
+	public function getRelationIndex($key) 
+	{
+		$relation = explode('_', $key);
+		$relation = array_diff($relation, array('ommu','core'));
+
+		if(count($relation) != 1)
+			return end($relation);
+		else {
+			if(is_array($relation))
+				return implode('', $relation);
+			else
+				return $relation;
+		}
+	}
+
+	public function setRelation($names, $column=false) 
 	{
 		$inflector = new Inflector;
 		if($column == false) {
 			$names = $inflector->camel2id($names, '_');
-			$relation = explode('_', $names);
-			$relation = array_diff($relation, array('ommu','core'));
-	
-			if(count($relation) != 1)
-				return end($relation);
-			else {
-				if(is_array($relation))
-					return implode('', $relation);
-				else
-					return $relation;
-			}
+			$return = $this->getRelationIndex($names);
+
+			return $return != 'cat' ? $return : 'category';
 	
 		} else {
 			$key = $names;
@@ -552,6 +659,7 @@ class ModelCode extends CCodeModel
 				elseif (substr_compare($key, 'id', 0, 2, true) === 0)
 					$key = ltrim(substr($key, 2, strlen($key)), '_');
 			}
+			$key = $this->getRelationIndex($key);
 			if(strtolower($key) == 'cat')
 				$key = 'category';
 		
@@ -561,7 +669,7 @@ class ModelCode extends CCodeModel
 		}
 	}
 	
-	function getTableAttribute($columns)
+	public function getTableAttribute($columns)
 	{
 		$primaryKey = array();
 		foreach($columns as $name=>$column):
@@ -576,20 +684,6 @@ class ModelCode extends CCodeModel
 			return $pk[0];
 		else
 			return 'id';
-	}
-	
-	function getForeignKeys($foreignKeys)
-	{
-		$column = [];
-		if(!empty($foreignKeys)) {
-			foreach($foreignKeys as $val) {
-				// Only variables should be passed by reference
-				$arrVal = array_values($val);
-				$column[array_pop($arrVal)] = array_shift($arrVal);
-			}
-		}
-	
-		return $column;
 	}
 
 	public function getTableRelationAttribute($tableName, $separator='->')
@@ -651,7 +745,7 @@ class ModelCode extends CCodeModel
 		return $pk;
 	}
 
-	public function geti18nAttribute($column, $relation=true)
+	public function geti18nRelation($column, $relation=true)
 	{
 		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
