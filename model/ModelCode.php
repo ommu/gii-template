@@ -115,6 +115,16 @@ class ModelCode extends CCodeModel
 
 		foreach($tables as $table)
 		{
+			$tableView = '';
+			$tableView1 = $this->getTableView($table->name);
+			$tableView2 = $this->getTableView($table->name, true);
+			if(in_array($tableView1, $this->tableViews))
+				$tableView = $tableView1;
+			else {
+				if(in_array($tableView2, $this->tableViews))
+					$tableView = $tableView2;
+			}
+
 			$tableName=$this->removePrefix($table->name);
 			$className=$this->generateClassName($table->name);
 			$params=array(
@@ -132,6 +142,26 @@ class ModelCode extends CCodeModel
 				Yii::getPathOfAlias($this->modelPath).'/'.$className.'.php',
 				$this->render($templatePath.'/model.php', $params)
 			);
+			if($tableView) {
+				$table = $this->getTableSchema($tableView);
+				$tableName=$this->removePrefix($tableView);
+				$className=$this->generateClassName($tableView);
+				$params=array(
+					'tableName'=>$schema==='' ? $tableName : $schema.'.'.$tableName,
+					'modelClass'=>$className,
+					'columns'=>$table->columns,
+					'labels'=>$this->generateLabels($table),
+					'rules'=>$this->generateRules($table),
+					'relations'=>isset($this->relations[$className]) ? $this->relations[$className] : array(),
+					'connectionId'=>$this->connectionId,
+					'table'=>$table,
+					'tableViews'=>$this->tableViews,
+				);
+				$this->files[]=new CCodeFile(
+					Yii::getPathOfAlias($this->modelPath).'/'.$className.'.php',
+					$this->render($templatePath.'/model.php', $params)
+				);
+			}
 		}
 	}
 
@@ -410,9 +440,9 @@ class ModelCode extends CCodeModel
 				if(array_key_exists('publish', $table->columns))
 					$publishCondition = 1;
 
-				$viewTable1 = $this->getTableView($tableName);
-				$viewTable2 = $this->getTableView($tableName, true);
-				if(in_array($viewTable1, $tableViews) || in_array($viewTable2, $tableViews))
+				$tableView1 = $this->getTableView($tableName);
+				$tableView2 = $this->getTableView($tableName, true);
+				if(in_array($tableView1, $tableViews) || in_array($tableView2, $tableViews))
 					$relations[$className]['view']="array(self::BELONGS_TO, 'View$className', '$table->primaryKey')";
 					
 				foreach ($table->foreignKeys as $fkName => $fkEntry)
@@ -480,7 +510,8 @@ class ModelCode extends CCodeModel
 			$className = preg_replace('(Core)', '', $className);
 		else
 			$className = preg_replace('(Ommu)', '', $className);
-		return $className;
+
+		return $tableName[0] == '_' ? join('', array('View', $className)) : $className;
 	}
 
 	/**
