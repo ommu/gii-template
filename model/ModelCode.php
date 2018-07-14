@@ -116,8 +116,8 @@ class ModelCode extends CCodeModel
 		foreach($tables as $table)
 		{
 			$tableView = '';
-			$tableView1 = $this->getTableView($table->name);
-			$tableView2 = $this->getTableView($table->name, true);
+			$tableView1 = $this->tableView($table->name);
+			$tableView2 = $this->tableView($table->name, true);
 			if(in_array($tableView1, $this->tableViews))
 				$tableView = $tableView1;
 			else {
@@ -403,7 +403,7 @@ class ModelCode extends CCodeModel
 		$tableViews=$this->getAllTableViews();
 		$relations=array();
 		
-		foreach($this->getAllTableNames() as $table)
+		foreach($this->getAllTables() as $table)
 		{
 			if($this->tablePrefix!='' && strpos($table->name,$this->tablePrefix)!==0)
 				continue;
@@ -440,8 +440,8 @@ class ModelCode extends CCodeModel
 				if(array_key_exists('publish', $table->columns))
 					$publishCondition = 1;
 
-				$tableView1 = $this->getTableView($tableName);
-				$tableView2 = $this->getTableView($tableName, true);
+				$tableView1 = $this->tableView($tableName);
+				$tableView2 = $this->tableView($tableName, true);
 				if(in_array($tableView1, $tableViews) || in_array($tableView2, $tableViews))
 					$relations[$className]['view']="array(self::BELONGS_TO, 'View$className', '$table->primaryKey')";
 					
@@ -582,7 +582,7 @@ class ModelCode extends CCodeModel
 		return $this->link;
 	}
 
-	public function getAllTableNames()
+	public function getAllTables()
 	{
 		$schemaName='';
 		if(($pos=strpos($this->tableName,'.'))!==false)
@@ -590,14 +590,26 @@ class ModelCode extends CCodeModel
 
 		return Yii::app()->{$this->connectionId}->schema->getTables($schemaName);
 	}
+
+	public function getAllTableViews()
+	{
+		$tableViews=array();
+		
+		foreach($this->getAllTables() as $table) {
+			if($table->name[0] == '_')
+				$tableViews[] = $table->name;
+		}
+
+		return $tableViews;
+	}
 	
-	public function getTableType($tableName) 
+	public function tableType($tableName) 
 	{
 		if($tableName == '')
 			throw new \Exception('Parameter $tableName wajib ada!.');
 
 		$_tblType = null;
-		$allTables = $this->getAllTableNames();
+		$allTables = $this->getAllTables();
 		foreach($allTables as $item) {
 			$vars = get_object_vars($item);
 			foreach($vars as $key => $val) {
@@ -618,32 +630,20 @@ class ModelCode extends CCodeModel
 			return self::TYPE_TABLE;
 	}
 
-	public function getAllTableViews()
+	public function tableView($tableName, $type2=false)
 	{
-		$tableViews=array();
-		
-		foreach($this->getAllTableNames() as $table) {
-			if($table->name[0] == '_')
-				$tableViews[] = $table->name;
-		}
-
-		return $tableViews;
-	}
-
-	public function getTableView($table, $type2=false)
-	{
-		if($table[0] == '_')
+		if($tableName[0] == '_')
 			return false;
 
 		if($type2 == false) {
-			$arrayTable = explode('_', $table);
+			$arrayTable = explode('_', $tableName);
 			$arrayTable = array_diff($arrayTable, array('ommu'));
 			return '_'.implode('_', $arrayTable);
 		} else
-			return '_'.join('', array('view', $this->getTableView($table)));
+			return '_'.join('', array('view', $this->tableView($tableName)));
 	}
 	
-	public function getForeignKeys($foreignKeys)
+	public function foreignKeys($foreignKeys)
 	{
 		$column = [];
 		if(!empty($foreignKeys)) {
@@ -658,7 +658,7 @@ class ModelCode extends CCodeModel
 		return $column;
 	}
 
-	public function getRelationIndex($key) 
+	public function relationIndex($key) 
 	{
 		$relation = explode('_', $key);
 		$relation = array_diff($relation, array('ommu','core'));
@@ -678,7 +678,7 @@ class ModelCode extends CCodeModel
 		$inflector = new Inflector;
 		if($column == false) {
 			$names = $inflector->camel2id($names, '_');
-			$return = $this->getRelationIndex($names);
+			$return = $this->relationIndex($names);
 
 			return $return != 'cat' ? $return : 'category';
 	
@@ -690,7 +690,7 @@ class ModelCode extends CCodeModel
 				elseif (substr_compare($key, 'id', 0, 2, true) === 0)
 					$key = ltrim(substr($key, 2, strlen($key)), '_');
 			}
-			$key = $this->getRelationIndex($key);
+			$key = $this->relationIndex($key);
 			if(strtolower($key) == 'cat')
 				$key = 'category';
 		
@@ -700,7 +700,7 @@ class ModelCode extends CCodeModel
 		}
 	}
 	
-	public function getTableAttribute($columns)
+	public function tableAttribute($columns)
 	{
 		$primaryKey = array();
 		foreach($columns as $name=>$column):
@@ -717,12 +717,12 @@ class ModelCode extends CCodeModel
 			return 'id';
 	}
 
-	public function getTableRelationAttribute($tableName, $separator='->')
+	public function tableRelationAttribute($tableName, $separator='->')
 	{
 		$tables=array($this->getTableSchema($tableName));
 		$table = $tables[0];
 
-		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
+		$foreignKeys = $this->foreignKeys($table->foreignKeys);
 		$titleCondition = 0;
 		$foreignCondition = 0;
 
@@ -763,7 +763,7 @@ class ModelCode extends CCodeModel
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
 						$relationColumn[$column->name] = $this->setRelation($column->name, true);
-						$relationColumn[] = $this->getTableRelationAttribute($relationTableName, $separator);
+						$relationColumn[] = $this->tableRelationAttribute($relationTableName, $separator);
 						$foreignCondition = 1;
 					}
 				}
@@ -776,12 +776,7 @@ class ModelCode extends CCodeModel
 		return $pk;
 	}
 
-	public function geti18nRelation($column, $relation=true)
-	{
-		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
-	}
-
-	public function getTable2ndRelation($attr='', $separator='.')
+	public function table2ndRelation($attr='', $separator='.')
 	{
 		$relations = [];
 		if($attr != '') {
@@ -792,7 +787,7 @@ class ModelCode extends CCodeModel
 		return implode($separator, $relations);
 	}
 
-	public function getTable2ndAttribute($attr='', $separator='.')
+	public function table2ndAttribute($attr='', $separator='.')
 	{
 		if($attr != '') {
 			$relations = explode($separator, $attr);
@@ -800,5 +795,10 @@ class ModelCode extends CCodeModel
 		}
 
 		return $attr;
+	}
+
+	public function i18nRelation($column, $relation=true)
+	{
+		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 }

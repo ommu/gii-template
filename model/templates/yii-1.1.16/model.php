@@ -32,14 +32,14 @@ $searchVariableCondition = 0;
 $manyRelationCondition = 0;
 $i18n = 0;
 
-$foreignKeys = $this->getForeignKeys($table->foreignKeys);
+$foreignKeys = $this->foreignKeys($table->foreignKeys);
 
 if($tableName[0] == '_')
 	$tableViewCondition = 1;
 	
-$viewTable1 = $this->getTableView($tableName);
-$viewTable2 = $this->getTableView($tableName, true);
-if(in_array($viewTable1, $tableViews) || in_array($viewTable2, $tableViews)) {
+$tableView1 = $this->tableView($tableName);
+$tableView2 = $this->tableView($tableName, true);
+if(in_array($tableView1, $tableViews) || in_array($tableView2, $tableViews)) {
 	$otherRelationCondition = 1;
 	$viewRelationCondition = 1;
 }
@@ -168,7 +168,7 @@ foreach($columns as $name=>$column):
 	} else {
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)) {
-			$relationName = $this->geti18nRelation($column->name);
+			$relationName = $this->i18nRelation($column->name);
 			echo " * @property SourceMessage \${$relationName}\n";
 		}
 	}
@@ -201,7 +201,7 @@ foreach($columns as $name=>$column):
 	if(!$tableViewCondition && in_array('trigger[delete]', $commentArray)) {
 		$inputPublicVariable = $column->name.'_i';
 		if(!in_array($inputPublicVariable, $inputPublicVariables))
-			$inputPublicVariables[$inputPublicVariable] = ucwords(strtolower($this->geti18nRelation($column->name, false)));
+			$inputPublicVariables[$inputPublicVariable] = ucwords(strtolower($this->i18nRelation($column->name, false)));
 	}
 endforeach;
 foreach($columns as $name=>$column):
@@ -255,7 +255,7 @@ foreach ($searchPublicVariables as $key=>$val):
 endforeach;
 }
 if($slugCondition):
-	$getTableAttribute = $this->getTableAttribute($columns);?>
+	$tableAttribute = $this->tableAttribute($columns);?>
 
 	/**
 	 * Behaviors for this model
@@ -265,7 +265,7 @@ if($slugCondition):
 		return array(
 			'sluggable' => array(
 				'class'=>'ext.yii-sluggable.SluggableBehavior',
-				'columns' => array('<?php echo $i18n && preg_match('/(name|title)/', $getTableAttribute) ? 'title.message' : $getTableAttribute;?>'),
+				'columns' => array('<?php echo $i18n && preg_match('/(name|title)/', $tableAttribute) ? 'title.message' : $tableAttribute;?>'),
 				'unique' => true,
 				'update' => true,
 			),
@@ -359,7 +359,7 @@ if($i18n):
 	foreach($columns as $name=>$column):
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)):
-			$relationName = $this->geti18nRelation($column->name);
+			$relationName = $this->i18nRelation($column->name);
 			if(!in_array($relationName, $availableRelations)) {
 				echo "\t\t\t'$relationName' => array(self::BELONGS_TO, 'SourceMessage', '$name'),\n";
 				$availableRelations[] = $relationName;
@@ -449,11 +449,11 @@ foreach($columns as $name=>$column) {
 	if($column->isForeignKey == '1') {
 		$relationName = $this->setRelation($column->name, true);
 		$relationTableName = trim($foreignKeys[$column->name]);
-		$relationAttribute = $this->getTableRelationAttribute($relationTableName, '.');
+		$relationAttribute = $this->tableRelationAttribute($relationTableName, '.');
 		
 		if($relationName != 'category' && !in_array($relationName, $availableRelations)) {
-			$table2ndRelation = count(explode('.', $relationAttribute)) == 1 ? $relationName : join('.', array($relationName, $this->getTable2ndRelation($relationAttribute)));
-			$table2ndAttribute = $this->getTable2ndAttribute($relationAttribute);
+			$table2ndRelation = count(explode('.', $relationAttribute)) == 1 ? $relationName : join('.', array($relationName, $this->table2ndRelation($relationAttribute)));
+			$table2ndAttribute = $this->table2ndAttribute($relationAttribute);
 			echo "\t\t\t'$table2ndRelation' => array(\n";
 			echo "\t\t\t\t'alias' => '$relationName',\n";
 			echo "\t\t\t\t'select' => '$table2ndAttribute',\n";
@@ -466,7 +466,7 @@ if($i18n):
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
-		$relationName = $this->geti18nRelation($column->name);
+		$relationName = $this->i18nRelation($column->name);
 		if(!in_array($relationName, $availableRelations)) {
 			echo "\t\t\t'$relationName' => array(\n";
 			echo "\t\t\t\t'alias' => '$relationName',\n";
@@ -545,12 +545,12 @@ foreach($columns as $name=>$column) {
 	if($column->isForeignKey == '1') {
 		$relationName = $this->setRelation($column->name, true);
 		$relationTableName = trim($foreignKeys[$column->name]);
-		$relationAttribute = $this->getTableRelationAttribute($relationTableName, '.');
+		$relationAttribute = $this->tableRelationAttribute($relationTableName, '.');
 		$publicAttribute = $relationName.'_search';
 
 		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicAttributes)) {
 			$relationPlusAttribute = join('.', array($relationName, $relationAttribute));
-			$table2ndAttribute = join('.', array($relationName, $this->getTable2ndAttribute($relationAttribute)));
+			$table2ndAttribute = join('.', array($relationName, $this->table2ndAttribute($relationAttribute)));
 			echo "\t\t\$criteria->compare('$table2ndAttribute', strtolower(\$this->$publicAttribute), true);\t\t\t//$relationPlusAttribute\n";
 			$publicAttributes[] = $publicAttribute;
 		}
@@ -561,7 +561,7 @@ foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)):
 		$publicAttribute = $column->name.'_i';
-		$publicAttributeRelation = $this->geti18nRelation($column->name);
+		$publicAttributeRelation = $this->i18nRelation($column->name);
 
 		if(!in_array($publicAttribute, $publicAttributes)) {
 			echo "\t\t\$criteria->compare('$publicAttributeRelation.message', strtolower(\$this->$publicAttribute), true);\n";
@@ -640,7 +640,7 @@ foreach($columns as $name=>$column)
 			$relationAttribute = 'member_name';
 		if($column->isForeignKey == '1') {
 			$relationTableName = trim($foreignKeys[$column->name]);
-			$relationAttribute = $this->getTableRelationAttribute($relationTableName, '->');
+			$relationAttribute = $this->tableRelationAttribute($relationTableName, '->');
 		}
 
 		$publicAttribute = $relationName.'_search';
@@ -676,7 +676,7 @@ foreach($columns as $name=>$column)
 		$publicAttribute = $column->name;
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
-			$relationName = $this->geti18nRelation($column->name);
+			$relationName = $this->i18nRelation($column->name);
 			$translateCondition = 1;
 		}
 		echo "\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
@@ -818,12 +818,12 @@ if(!$tableViewCondition && ($this->useGetFunction || $generateFunctionCondition)
 			if($model != null) {
 				foreach($model as $key => $val) {
 <?php 
-$attribute = $this->getTableAttribute($columns);
+$tableAttribute = $this->tableAttribute($columns);
 if($i18n):
-	$i18nRelation = preg_match('/(name|title)/', $attribute) ? 'title' : '';?>
-					$items[$val-><?php echo $isPrimaryKey;?>] = $val-><?php echo $i18nRelation ? $i18nRelation.'->message' : $attribute;?>;
+	$i18nRelation = preg_match('/(name|title)/', $tableAttribute) ? 'title' : '';?>
+					$items[$val-><?php echo $isPrimaryKey;?>] = $val-><?php echo $i18nRelation ? $i18nRelation.'->message' : $tableAttribute;?>;
 <?php else:?>
-					$items[$val-><?php echo $isPrimaryKey;?>] = $val-><?php echo $attribute;?>;
+					$items[$val-><?php echo $isPrimaryKey;?>] = $val-><?php echo $tableAttribute;?>;
 <?php endif;?>
 				}
 				return $items;
@@ -878,7 +878,7 @@ foreach($columns as $name=>$column) {
 	} else {
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
-			$relationName = $this->geti18nRelation($column->name);
+			$relationName = $this->i18nRelation($column->name);
 			echo "\t\t\$this->$publicAttribute = \$this->{$relationName}->message;\n";
 			$afterFind = 1;
 		}
