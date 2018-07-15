@@ -699,7 +699,7 @@ class ModelCode extends CCodeModel
 			return lcfirst($key);
 		}
 	}
-	
+
 	public function tableAttribute($columns)
 	{
 		$primaryKey = array();
@@ -731,7 +731,7 @@ class ModelCode extends CCodeModel
 			if(preg_match('/(name|title)/', $column->name)) {
 				$commentArray = explode(',', $column->comment);
 				if(in_array('trigger[delete]', $commentArray)) {
-					$relationColumn[$column->name] = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+					$relationColumn[$column->name] = $this->i18nRelation($column->name);
 					$relationColumn[] = 'message';
 				} else {
 					if($column->name == 'username')

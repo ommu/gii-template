@@ -511,7 +511,7 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
 		echo "\t\t}\n";
 
-	} else if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
+	} else if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 		$relationName = $this->setRelation($column->name, true);
 		echo "\t\t\$criteria->compare('t.$column->name', Yii::app()->getRequest()->getParam('$relationName') ? Yii::app()->getRequest()->getParam('$relationName') : \$this->$column->name);\n";
 
@@ -633,19 +633,18 @@ foreach($columns as $name=>$column)
 		
 	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 		$relationName = $this->setRelation($column->name, true);
+		$publicAttribute = $relationName.'_search';
 		$relationAttribute = 'displayname';
-		if($column->name == 'tag_id')
-			$relationAttribute = 'body';
 		if($column->name == 'member_id')
 			$relationAttribute = 'member_name';
-		if($column->isForeignKey == '1') {
+		else if($column->name == 'tag_id') {
+			$publicAttribute = $relationName.'_i';
+			$relationAttribute = 'body';
+		}
+		if($column->isForeignKey) {
 			$relationTableName = trim($foreignKeys[$column->name]);
 			$relationAttribute = $this->tableRelationAttribute($relationTableName, '->');
 		}
-
-		$publicAttribute = $relationName.'_search';
-		if($column->name == 'tag_id')
-			$publicAttribute = $relationName.'_i';
 		if($relationName == 'category')
 			$publicAttribute = $column->name;
 
@@ -696,9 +695,8 @@ if($translateCondition) {
 			echo "\t\t\t\t'value' => '\$data->$column->name',\n";
 	}
 }
-if((in_array($column->dbType, array('text')) || in_array('file', $commentArray) || in_array('redactor', $commentArray)) && $column->name != 'slug') {
+if((in_array($column->dbType, array('text')) && (in_array('file', $commentArray) || in_array('redactor', $commentArray))) && $column->name != 'slug')
 	echo "\t\t\t\t'type' => 'raw',\n";
-}
 		echo "\t\t\t);\n";
 	}
 }
