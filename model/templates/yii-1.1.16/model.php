@@ -61,7 +61,7 @@ foreach($columns as $name=>$column):
 		$uploadCondition = 1;
 	if(!$tableViewCondition && $column->dbType == 'text' && in_array('serialize', $commentArray))
 		$serializeCondition = 1;
-	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
+	if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 		if(!$tableViewCondition && $column->name == 'tag_id')
 			$tagCondition = 1;
 		$searchVariableCondition = 1;
@@ -222,10 +222,13 @@ foreach($columns as $name=>$column):
 endforeach;
 
 foreach($columns as $name=>$column):
+	$smallintCondition = 0;
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id'])) {
+		if(preg_match('/(smallint)/', $column->dbType))
+			$smallintCondition = 1;
 		$relationName = $this->setRelation($column->name, true);
 		$searchPublicVariable = $relationName.'_search';
-		if($relationName != 'category' && !in_array($searchPublicVariable, $searchPublicVariables))
+		if(!$smallintCondition && !in_array($searchPublicVariable, $searchPublicVariables))
 			$searchPublicVariables[$searchPublicVariable] = ucwords(strtolower($relationName));
 	}
 endforeach;
@@ -446,12 +449,15 @@ if($viewRelationCondition) {
 	echo "\t\t\t),\n";
 }
 foreach($columns as $name=>$column) {
-	if($column->isForeignKey == '1') {
+	if($column->isForeignKey) {
+		$smallintCondition = 0;
 		$relationName = $this->setRelation($column->name, true);
 		$relationTableName = trim($foreignKeys[$column->name]);
 		$relationAttribute = $this->tableRelationAttribute($relationTableName, '.');
+		if(preg_match('/(smallint)/', $column->dbType))
+			$smallintCondition = 1;
 		
-		if($relationName != 'category' && !in_array($relationName, $availableRelations)) {
+		if(!$smallintCondition && !in_array($relationName, $availableRelations)) {
 			$table2ndRelation = count(explode('.', $relationAttribute)) == 1 ? $relationName : join('.', array($relationName, $this->table2ndRelation($relationAttribute)));
 			$table2ndAttribute = $this->table2ndAttribute($relationAttribute);
 			echo "\t\t\t'$table2ndRelation' => array(\n";
@@ -542,13 +548,16 @@ if($searchVariableCondition)
 	echo "\n";
 $publicAttributes = array();
 foreach($columns as $name=>$column) {	
-	if($column->isForeignKey == '1') {
+	if($column->isForeignKey) {
+		$smallintCondition = 0;
 		$relationName = $this->setRelation($column->name, true);
 		$relationTableName = trim($foreignKeys[$column->name]);
 		$relationAttribute = $this->tableRelationAttribute($relationTableName, '.');
 		$publicAttribute = $relationName.'_search';
+		if(preg_match('/(smallint)/', $column->dbType))
+			$smallintCondition = 1;
 
-		if($publicAttribute != 'category_search' && !in_array($publicAttribute, $publicAttributes)) {
+		if(!$smallintCondition && !in_array($publicAttribute, $publicAttributes)) {
 			$relationPlusAttribute = join('.', array($relationName, $relationAttribute));
 			$table2ndAttribute = join('.', array($relationName, $this->table2ndAttribute($relationAttribute)));
 			echo "\t\t\$criteria->compare('$table2ndAttribute', strtolower(\$this->$publicAttribute), true);\t\t\t//$relationPlusAttribute\n";
@@ -631,7 +640,10 @@ foreach($columns as $name=>$column)
 	if($column->isPrimaryKey || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
 		
-	if($column->isForeignKey == '1' || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
+	if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
+		$smallintCondition = 0;
+		if(preg_match('/(smallint)/', $column->dbType))
+			$smallintCondition = 1;
 		$relationName = $this->setRelation($column->name, true);
 		$publicAttribute = $relationName.'_search';
 		$relationAttribute = 'displayname';
@@ -645,7 +657,7 @@ foreach($columns as $name=>$column)
 			$relationTableName = trim($foreignKeys[$column->name]);
 			$relationAttribute = $this->tableRelationAttribute($relationTableName, '->');
 		}
-		if($relationName == 'category')
+		if($smallintCondition)
 			$publicAttribute = $column->name;
 
 		$relationAttribute = join('->', array($relationName, $relationAttribute));
@@ -654,6 +666,11 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\t\$this->templateColumns['$publicAttribute'] = array(\n";
 		echo "\t\t\t\t\t'name' => '$publicAttribute',\n";
 		echo "\t\t\t\t\t'value' => '\$data->$relationAttribute ? \$data->$relationAttribute : \'-\'',\n";
+		if($column->isForeignKey && $smallintCondition) {
+			$relationClassName = $this->generateClassName($relationTableName);
+			$relationFunction = ucfirst($this->setRelation($relationClassName));
+			echo "\t\t\t\t\t'filter' => $relationClassName::get{$relationFunction}(),\n";
+		}
 		echo "\t\t\t\t);\n";
 		echo "\t\t\t}\n";
 		
