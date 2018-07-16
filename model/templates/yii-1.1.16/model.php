@@ -678,9 +678,9 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\$this->templateColumns['$column->name'] = array(\n";
 		echo "\t\t\t\t'name' => '$column->name',\n";
 		if(in_array($column->dbType, array('timestamp','datetime')))
-			echo "\t\t\t\t'value' => '!in_array(\$data->$column->name, array(\'0000-00-00 00:00:00\', \'1970-01-01 00:00:00\', \'0002-12-02 07:07:12\', \'-0001-11-30 00:00:00\')) ? Utility::dateFormat(\$data->$column->name) : \'-\'',\n";
+			echo "\t\t\t\t'value' => '!in_array(\$data->$column->name, array(\'0000-00-00 00:00:00\', \'1970-01-01 00:00:00\', \'0002-12-02 07:07:12\', \'-0001-11-30 00:00:00\')) ? Yii::app()->dateFormatter->formatDateTime(\$data->$column->name, \'medium\', false) : \'-\'',\n";
 		else
-			echo "\t\t\t\t'value' => '!in_array(\$data->$column->name, array(\'0000-00-00\', \'1970-01-01\', \'0002-12-02\', \'-0001-11-30\')) ? Utility::dateFormat(\$data->$column->name) : \'-\'',\n";
+			echo "\t\t\t\t'value' => '!in_array(\$data->$column->name, array(\'0000-00-00\', \'1970-01-01\', \'0002-12-02\', \'-0001-11-30\')) ? Yii::app()->dateFormatter->formatDateTime(\$data->$column->name, \'medium\', false) : \'-\'',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
