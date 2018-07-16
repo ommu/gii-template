@@ -9,7 +9,7 @@ class CrudCode extends CCodeModel
 	public $controllerPath='application.controllers';
 	public $viewPath='application.views';
 	public $uploadPath=array(
-		'directory' => 'public/module-name',
+		'directory' => 'public/main',
 	);
 	public $forBackendController=true;
 	public $useModified=false;
