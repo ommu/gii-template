@@ -7,19 +7,14 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
-$modelClass = $this->modelClass;
-if(preg_match('/Core/', $modelClass))
-	$modelClass = preg_replace('(Core)', '', $modelClass);
-else
-	$modelClass = preg_replace('(Ommu)', '', $modelClass);
 $label = $this->class2name($modelClass);
-$nameColumn=$this->getTableAttribute($this->tableSchema->columns)
+$nameColumn=$this->tableAttribute($columns)
 ?>
 <?php echo "<?php\n"; ?>
 /**
  * <?php echo $this->controllerClass."\n"; ?>
  * @var $this <?php echo $this->controllerClass."\n"; ?>
- * @var $model <?php echo $this->modelClass."\n"; ?>
+ * @var $model <?php echo $modelClass."\n"; ?>
  * @var $form CActiveForm
  *
  * Reference start
@@ -28,21 +23,21 @@ $nameColumn=$this->getTableAttribute($this->tableSchema->columns)
 <?php if(!$this->forBackendController):?>
  *	View
 <?php endif; ?>
+<?php if($this->forBackendController):?>
  *	Manage
  *	Add
  *	Edit
-<?php if($this->forBackendController):?>
  *	View
-<?php endif; ?>
-<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
+<?php if(array_key_exists('publish', $columns)): ?>
  *	RunAction
 <?php endif; ?>
  *	Delete
-<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
+<?php if(array_key_exists('publish', $columns)): ?>
  *	Publish
 <?php endif; ?>
-<?php if(array_key_exists('headline', $this->tableSchema->columns)): ?>
+<?php if(array_key_exists('headline', $columns)): ?>
  *	Headline
+<?php endif; ?>
 <?php endif; ?>
  *
  *	LoadModel
@@ -149,7 +144,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->layout = $arrThemes['layout'];
 		$this->applyCurrentTheme($this->module);
 		
-		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
+		$setting = <?php echo $modelClass; ?>::model()->findByPk(1, array(
 			'select' => 'meta_description, meta_keyword',
 		));
 
@@ -158,7 +153,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$criteria->params = array(':publish'=>1);
 		$criteria->order = 'creation_date DESC';
 
-		$dataProvider = new CActiveDataProvider('<?php echo $this->modelClass; ?>', array(
+		$dataProvider = new CActiveDataProvider('<?php echo $modelClass; ?>', array(
 			'criteria'=>$criteria,
 			'pagination'=>array(
 				'pageSize'=>10,
@@ -186,7 +181,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->layout = $arrThemes['layout'];
 		$this->applyCurrentTheme($this->module);
 		
-		$setting = <?php echo $this->modelClass; ?>::model()->findByPk(1, array(
+		$setting = <?php echo $modelClass; ?>::model()->findByPk(1, array(
 			'select' => 'meta_keyword',
 		));
 
@@ -206,10 +201,10 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionManage() 
 	{
-		$model=new <?php echo $this->modelClass; ?>('search');
+		$model=new <?php echo $modelClass; ?>('search');
 		$model->unsetAttributes();  // clear any default values
-		if(Yii::app()->getRequest()->getParam('<?php echo $this->modelClass; ?>')) {
-			$model->attributes=Yii::app()->getRequest()->getParam('<?php echo $this->modelClass; ?>');
+		if(Yii::app()->getRequest()->getParam('<?php echo $modelClass; ?>')) {
+			$model->attributes=Yii::app()->getRequest()->getParam('<?php echo $modelClass; ?>');
 		}
 
 		$columns = $model->getGridColumn($this->gridColumnTemp());
@@ -229,13 +224,13 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function actionAdd() 
 	{
-		$model=new <?php echo $this->modelClass; ?>;
+		$model=new <?php echo $modelClass; ?>;
 
 		// Uncomment the following line if AJAX validation is needed
 		$this->performAjaxValidation($model);
 
-		if(isset($_POST['<?php echo $this->modelClass; ?>'])) {
-			$model->attributes=$_POST['<?php echo $this->modelClass; ?>'];
+		if(isset($_POST['<?php echo $modelClass; ?>'])) {
+			$model->attributes=$_POST['<?php echo $modelClass; ?>'];
 
 			$jsonError = CActiveForm::validate($model);
 			if(strlen($jsonError) > 2) {
@@ -261,7 +256,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 						echo CJSON::encode(array(
 							'type' => 5,
 							'get' => Yii::app()->controller->createUrl('manage'),
-							'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
+							'id' => 'partial-<?php echo $this->class2id($modelClass); ?>',
 							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success created.').'</strong></div>',
 						));
 						/*
@@ -277,7 +272,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			/* 
 			if($model->save()) {
 				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success created.'));
-				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
+				//$this->redirect(array('view','id'=>$model-><?php echo $table->primaryKey; ?>));
 				$this->redirect(array('manage'));
 			}
 			*/
@@ -307,8 +302,8 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		// Uncomment the following line if AJAX validation is needed
 		$this->performAjaxValidation($model);
 
-		if(isset($_POST['<?php echo $this->modelClass; ?>'])) {
-			$model->attributes=$_POST['<?php echo $this->modelClass; ?>'];
+		if(isset($_POST['<?php echo $modelClass; ?>'])) {
+			$model->attributes=$_POST['<?php echo $modelClass; ?>'];
 
 			$jsonError = CActiveForm::validate($model);
 			if(strlen($jsonError) > 2) {
@@ -334,7 +329,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 						echo CJSON::encode(array(
 							'type' => 5,
 							'get' => Yii::app()->controller->createUrl('manage'),
-							'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
+							'id' => 'partial-<?php echo $this->class2id($modelClass); ?>',
 							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.').'</strong></div>',
 						));
 						/*
@@ -350,7 +345,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			/* 
 			if($model->save()) {
 				Yii::app()->user->setFlash('success', Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.'));
-				//$this->redirect(array('view','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>));
+				//$this->redirect(array('view','id'=>$model-><?php echo $table->primaryKey; ?>));
 				$this->redirect(array('manage'));
 			}
 			*/
@@ -390,7 +385,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	}
 
 <?php endif;
-if(array_key_exists('publish', $this->tableSchema->columns)): ?>
+if(array_key_exists('publish', $columns)): ?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
@@ -403,22 +398,22 @@ if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 
 		if(count($id) > 0) {
 			$criteria = new CDbCriteria;
-			$criteria->addInCondition('<?php echo $this->tableSchema->primaryKey; ?>', $id);
+			$criteria->addInCondition('<?php echo $table->primaryKey; ?>', $id);
 
 			if($actions == 'publish') {
-				<?php echo $this->modelClass; ?>::model()->updateAll(array(
+				<?php echo $modelClass; ?>::model()->updateAll(array(
 					'publish' => 1,
 				),$criteria);
 			} elseif($actions == 'unpublish') {
-				<?php echo $this->modelClass; ?>::model()->updateAll(array(
+				<?php echo $modelClass; ?>::model()->updateAll(array(
 					'publish' => 0,
 				),$criteria);
 			} elseif($actions == 'trash') {
-				<?php echo $this->modelClass; ?>::model()->updateAll(array(
+				<?php echo $modelClass; ?>::model()->updateAll(array(
 					'publish' => 2,
 				),$criteria);
 			} elseif($actions == 'delete') {
-				<?php echo $this->modelClass; ?>::model()->deleteAll($criteria);
+				<?php echo $modelClass; ?>::model()->deleteAll($criteria);
 			}
 		}
 
@@ -440,9 +435,9 @@ if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 		
 		if(Yii::app()->request->isPostRequest) {
 			// we only allow deletion via POST request
-<?php if(array_key_exists('publish', $this->tableSchema->columns)): ?>
+<?php if(array_key_exists('publish', $columns)): ?>
 			$model->publish = 2;
-<?php if(array_key_exists('modified_id', $this->tableSchema->columns)): ?>
+<?php if(array_key_exists('modified_id', $columns)): ?>
 			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;
 <?php endif; ?>
 			
@@ -453,7 +448,7 @@ if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 				echo CJSON::encode(array(
 					'type' => 5,
 					'get' => Yii::app()->controller->createUrl('manage'),
-					'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
+					'id' => 'partial-<?php echo $this->class2id($modelClass); ?>',
 					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success deleted.').'</strong></div>',
 				));
 				/*
@@ -476,9 +471,9 @@ if(array_key_exists('publish', $this->tableSchema->columns)): ?>
 
 <?php 
 //echo '<pre>';
-//print_r($this->tableSchema->columns);
-if(array_key_exists('publish', $this->tableSchema->columns)):
-$publishComment = $this->tableSchema->columns['publish']->comment;?>
+//print_r($columns);
+if(array_key_exists('publish', $columns)):
+$publishComment = $columns['publish']->comment;?>
 	/**
 	 * Deletes a particular model.
 	 * If deletion is successful, the browser will be redirected to the 'admin' page.
@@ -499,7 +494,7 @@ $commentArray = explode(',', $publishComment); ?>
 			// we only allow deletion via POST request
 			//change value active or publish
 			$model->publish = $replace;
-<?php if(array_key_exists('modified_id', $this->tableSchema->columns)): ?>
+<?php if(array_key_exists('modified_id', $columns)): ?>
 			$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;
 <?php endif; ?>
 
@@ -507,7 +502,7 @@ $commentArray = explode(',', $publishComment); ?>
 				echo CJSON::encode(array(
 					'type' => 5,
 					'get' => Yii::app()->controller->createUrl('manage'),
-					'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
+					'id' => 'partial-<?php echo $this->class2id($modelClass); ?>',
 					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.').'</strong></div>',
 				));
 				/*
@@ -532,7 +527,7 @@ $commentArray = explode(',', $publishComment); ?>
 	}
 
 <?php endif;
-if(array_key_exists('headline', $this->tableSchema->columns)): ?>
+if(array_key_exists('headline', $columns)): ?>
 	/**
 	 * Deletes a particular model.
 	 * If deletion is successful, the browser will be redirected to the 'admin' page.
@@ -548,7 +543,7 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 				//change value active or publish
 				$model->headline = 1;
 				$model->publish = 1;
-<?php if(array_key_exists('modified_id', $this->tableSchema->columns)): ?>
+<?php if(array_key_exists('modified_id', $columns)): ?>
 				$model->modified_id = !Yii::app()->user->isGuest ? Yii::app()->user->id : null;
 <?php endif; ?>
 
@@ -556,7 +551,7 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 					echo CJSON::encode(array(
 						'type' => 5,
 						'get' => Yii::app()->controller->createUrl('manage'),
-						'id' => 'partial-<?php echo $this->class2id($this->modelClass); ?>',
+						'id' => 'partial-<?php echo $this->class2id($modelClass); ?>',
 						'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.').'</strong></div>',
 					));
 					/*
@@ -586,7 +581,7 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 	 */
 	public function loadModel($id) 
 	{
-		$model = <?php echo $this->modelClass; ?>::model()->findByPk($id);
+		$model = <?php echo $modelClass; ?>::model()->findByPk($id);
 		if($model===null)
 			throw new CHttpException(404, Yii::t('phrase', 'The requested page does not exist.'));
 		return $model;
@@ -598,7 +593,7 @@ if(array_key_exists('headline', $this->tableSchema->columns)): ?>
 	 */
 	protected function performAjaxValidation($model) 
 	{
-		if(isset($_POST['ajax']) && $_POST['ajax']==='<?php echo $this->class2id($this->modelClass); ?>-form') {
+		if(isset($_POST['ajax']) && $_POST['ajax']==='<?php echo $this->class2id($modelClass); ?>-form') {
 			echo CActiveForm::validate($model);
 			Yii::app()->end();
 		}

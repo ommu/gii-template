@@ -5,10 +5,10 @@
  */
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
-?>
-<?php echo "<?php\n"; ?>
+
+echo "<?php\n"; ?>
 /**
- * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($modelClass)); ?> (<?php echo $this->class2id($modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  * @var $form CActiveForm
@@ -26,7 +26,7 @@ $inflector = new Inflector;
 ?>
 
 <?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.yii-traits.system.OActiveForm', array(
-	'id'=>'<?php echo $this->class2id($this->modelClass);?>-form',
+	'id'=>'<?php echo $this->class2id($modelClass);?>-form',
 	'enableAjaxValidation'=>true,
 	/*
 	'enableClientValidation'=>true,
@@ -48,8 +48,8 @@ $inflector = new Inflector;
 <fieldset>
 
 <?php
-//print_r($this->tableSchema->columns);
-foreach($this->tableSchema->columns as $column)
+//print_r($columns);
+foreach($columns as $column)
 {
 	if($column->autoIncrement || $column->comment == 'trigger' || $column->name == 'slug' || $column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null) || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
 		continue;
@@ -59,9 +59,9 @@ foreach($this->tableSchema->columns as $column)
 		$columnName = $columnName.'_i';
 ?>
 	<div class="form-group row">
-		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column, true)."; ?>\n"; ?>
+		<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
 		<div class="col-lg-8 col-md-9 col-sm-12">
-			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
+			<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
 			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $columnName;?>'); ?>
 			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
 		</div>
@@ -69,15 +69,15 @@ foreach($this->tableSchema->columns as $column)
 
 <?php
 }
-//print_r($this->tableSchema->columns);
-foreach($this->tableSchema->columns as $column)
+//print_r($columns);
+foreach($columns as $column)
 {
 if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
 	<div class="form-group row publish">
-		<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column, true)."; ?>\n"; ?>
+		<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
 		<div class="col-lg-8 col-md-9 col-sm-12">
-			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php echo ".$this->generateActiveLabel($this->modelClass,$column)."; ?>\n"; ?>
+			<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
+			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column)."; ?>\n"; ?>
 			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
 		</div>
 	</div>

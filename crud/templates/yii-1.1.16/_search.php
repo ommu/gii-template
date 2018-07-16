@@ -6,10 +6,9 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
-?>
-<?php echo "<?php\n"; ?>
+echo "<?php\n"; ?>
 /**
- * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($modelClass)); ?> (<?php echo $this->class2id($modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $model <?php echo $this->getModelClass()."\n"; ?>
  * @var $form CActiveForm
@@ -31,8 +30,8 @@ $inflector = new Inflector;
 	'method'=>'get',
 )); ?>
 	<ul>
-<?php foreach($this->tableSchema->columns as $column):
-	$field=$this->generateInputField($this->modelClass,$column);
+<?php foreach($columns as $column):
+	$field=$this->generateInputField($modelClass,$column);
 	if(strpos($field,'password')!==false || $column->isPrimaryKey || $column->autoIncrement || $column->type==='boolean' || $column->dbType == 'tinyint(1)')
 		continue;
 		
@@ -55,15 +54,15 @@ $inflector = new Inflector;
 ?>
 		<li>
 			<?php echo "<?php echo \$model->getAttributeLabel('{$columnName}'); ?>\n"; ?>
-			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column,false)."; ?>\n"; ?>
+			<?php echo "<?php ".$this->generateActiveField($modelClass,$column,false)."; ?>\n"; ?>
 		</li>
 
 <?php endforeach;
-foreach($this->tableSchema->columns as $column):
+foreach($columns as $column):
 	if($column->type==='boolean' || $column->dbType == 'tinyint(1)'): ?>
 		<li>
 			<?php echo "<?php echo \$model->getAttributeLabel('{$column->name}'); ?>\n"; ?>
-			<?php echo "<?php ".$this->generateActiveField($this->modelClass,$column,false)."; ?>\n"; ?>
+			<?php echo "<?php ".$this->generateActiveField($modelClass,$column,false)."; ?>\n"; ?>
 		</li>
 
 <?php endif;

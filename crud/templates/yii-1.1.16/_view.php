@@ -6,10 +6,9 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
-?>
-<?php echo "<?php\n"; ?>
+echo "<?php\n"; ?>
 /**
- * <?php echo $inflector->pluralize($this->class2name($this->modelClass)); ?> (<?php echo $this->class2id($this->modelClass); ?>)
+ * <?php echo $inflector->pluralize($this->class2name($modelClass)); ?> (<?php echo $this->class2id($modelClass); ?>)
  * @var $this <?php echo $this->getControllerClass()."\n"; ?>
  * @var $data <?php echo $this->getModelClass()."\n"; ?>
  *
@@ -27,10 +26,10 @@ $inflector = new Inflector;
 
 <div class="view">
 <?php
-	echo "\t<b><?php echo CHtml::encode(\$data->getAttributeLabel('{$this->tableSchema->primaryKey}')); ?>:</b>\n";
-	echo "\t<?php echo CHtml::link(CHtml::encode(\$data->{$this->tableSchema->primaryKey}), array('view', 'id'=>\$data->{$this->tableSchema->primaryKey})); ?>\n\t<br />\n\n";
+	echo "\t<b><?php echo CHtml::encode(\$data->getAttributeLabel('{$table->primaryKey}')); ?>:</b>\n";
+	echo "\t<?php echo CHtml::link(CHtml::encode(\$data->{$table->primaryKey}), array('view', 'id'=>\$data->{$table->primaryKey})); ?>\n\t<br />\n\n";
 	$count=0;
-	foreach($this->tableSchema->columns as $column)
+	foreach($columns as $column)
 	{
 		if($column->isPrimaryKey)
 			continue;
@@ -47,9 +46,9 @@ $inflector = new Inflector;
 			echo "\t<?php echo CHtml::encode(\$data->{$cRelation}->{$cName}); ?>\n\t<br />\n\n";
 		} else if(in_array($column->dbType, array('timestamp','datetime','date'))) {
 			if(in_array($column->dbType, array('timestamp','datetime')))
-				echo "\t<?php echo CHtml::encode(\$this->dateFormat(\$data->{$column->name}, true)); ?>\n\t<br />\n\n";
+				echo "\t<?php echo CHtml::encode(\$this->dateFormat(\$data->{$column->name})); ?>\n\t<br />\n\n";
 			else
-				echo "\t<?php echo CHtml::encode(\$this->dateFormat(\$data->{$column->name})); ?>\n\t<br />\n\n";	
+				echo "\t<?php echo CHtml::encode(\$this->dateFormat(\$data->{$column->name}, 'full', false)); ?>\n\t<br />\n\n";	
 		} else 
 			echo "\t<?php echo CHtml::encode(\$data->{$column->name}); ?>\n\t<br />\n\n";
 	}

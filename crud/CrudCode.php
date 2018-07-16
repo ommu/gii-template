@@ -1,4 +1,5 @@
 <?php
+Yii::import('application.libraries.gii.Inflector');
 
 class CrudCode extends CCodeModel
 {
@@ -8,7 +9,6 @@ class CrudCode extends CCodeModel
 	public $controllerPath='application.controllers';
 	public $viewPath='application.views';
 	public $uploadPath=array(
-		'name' => 'article_path',
 		'directory' => 'public/module-name',
 	);
 	public $forBackendController=true;
@@ -44,9 +44,8 @@ class CrudCode extends CCodeModel
 			'baseControllerClass'=>'Base Controller Class',
 			'controllerPath'=>'Controller Path',
 			'viewPath'=>'View Path',
-			'uploadPath[name]'=>'Upload Path (variable name)',
 			'uploadPath[directory]'=>'Upload Path (path location)',
-			'uploadPath[subfolder]'=>'Upload Path (subfolder with primaryKey)',
+			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
 			'forBackendController'=>'Backend Controller',
 			'useModified'=>'Modified',
 			'link'=>'Link Repository',
@@ -77,6 +76,7 @@ class CrudCode extends CCodeModel
 	{
 		if($this->hasErrors('model'))
 			return;
+
 		$class=@Yii::import($this->model,true);
 		if(!is_string($class) || !$this->classExists($class))
 			$this->addError('model', "Class '{$this->model}' does not exist or has syntax error.");
@@ -103,9 +103,28 @@ class CrudCode extends CCodeModel
 		$templatePath=$this->templatePath;
 		$controllerTemplateFile=$templatePath.DIRECTORY_SEPARATOR.'controller.php';
 
+		$generatorTemp = array('admin_manage','_option_form','_search','admin_add','admin_edit','_form','admin_view','admin_delete','admin_publish','admin_headline','front_index','_view','front_view');
+		if(!$this->forBackendController)
+			$generatorTemp = array('front_index','_view','front_view');
+		
+		$table=$this->getTableSchema();
+		$relationAttribute = $this->tableRelationAttribute($table->name, '->');
+
+		$primaryKey = $table->primaryKey;
+		if(!$primaryKey)
+			$primaryKey = key($table->$columns);
+
+		$params=array(
+			'modelClass'=>$this->getModelClass(),
+			'columns'=>$table->columns,
+			'relationAttribute'=>$relationAttribute,
+			'primaryKey'=>$primaryKey,
+			'table'=>$table,
+		);
+
 		$this->files[]=new CCodeFile(
 			$this->controllerFile,
-			$this->render($controllerTemplateFile)
+			$this->render($controllerTemplateFile, $params)
 		);
 
 		$files=scandir($templatePath);
@@ -113,11 +132,13 @@ class CrudCode extends CCodeModel
 		{
 			if(is_file($templatePath.'/'.$file) && CFileHelper::getExtension($file)==='php' && $file!=='controller.php')
 			{
-				$this->files[]=new CCodeFile(
-					//$this->viewPath.DIRECTORY_SEPARATOR.$file,
-					Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
-					$this->render($templatePath.'/'.$file)
-				);
+				if(in_array(strstr($file, '.' ,true), $generatorTemp)) {
+					$this->files[]=new CCodeFile(
+						//$this->viewPath.DIRECTORY_SEPARATOR.$file,
+						Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
+						$this->render(join('/', array($templatePath, $file)), $params)
+					);
+				}
 			}
 		}
 	}
@@ -133,36 +154,6 @@ class CrudCode extends CCodeModel
 			return ucfirst(substr($this->controller,$pos+1)).'Controller';
 		else
 			return ucfirst($this->controller).'Controller';
-	}
-
-	public function getUploadPathNameSource()
-	{
-		return $this->uploadPath['name'];
-	}
-
-	public function getUploadPathDirectorySource()
-	{
-		return $this->uploadPath['directory'];
-	}
-
-	public function getUploadPathSubfolderStatus()
-	{
-		return $this->uploadPath['subfolder'];
-	}
-
-	public function getForBackendController()
-	{
-		return $this->forBackendController;
-	}
-
-	public function getUseModified()
-	{
-		return $this->useModified;
-	}
-
-	public function getLinkSource()
-	{
-		return $this->link;
 	}
 
 	public function getModule()
@@ -216,22 +207,28 @@ class CrudCode extends CCodeModel
 		return $this->getModule()->getViewPath().'/'.$this->getControllerID();
 	}
 
-	public function getTableSchema()
+	public function getTableSchema($tableName=null)
 	{
-		return $this->_table;
+		if($tableName == null)
+			return $this->_table;
+
+		else {
+			$connection=Yii::app()->db;
+			return $connection->getSchema()->getTable($tableName, $connection->schemaCachingDuration!==0);
+		}
 	}
 
 	public function generateInputLabel($modelClass,$column)
 	{
-		return "CHtml::activeLabelEx(\$model, '{$column->name}')";
+		return "CHtml::activeLabelEx(\$model,'{$column->name}')";
 	}
 
 	public function generateInputField($modelClass,$column)
 	{
 		if($column->type==='boolean')
-			return "CHtml::activeCheckBox(\$model, '{$column->name}')";
+			return "CHtml::activeCheckBox(\$model,'{$column->name}')";
 		elseif(stripos($column->dbType,'text')!==false)
-			return "CHtml::activeTextArea(\$model, '{$column->name}',array('rows'=>6, 'cols'=>50))";
+			return "CHtml::activeTextArea(\$model,'{$column->name}',array('rows'=>6, 'cols'=>50))";
 		else
 		{
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
@@ -240,12 +237,12 @@ class CrudCode extends CCodeModel
 				$inputField='activeTextField';
 
 			if($column->type!=='string' || $column->size===null)
-				return "CHtml::{$inputField}(\$model, '{$column->name}')";
+				return "CHtml::{$inputField}(\$model,'{$column->name}')";
 			else
 			{
 				if(($size=$maxLength=$column->size)>60)
 					$size=60;
-				return "CHtml::{$inputField}(\$model, '{$column->name}',array('size'=>$size,'maxlength'=>$maxLength))";
+				return "CHtml::{$inputField}(\$model,'{$column->name}',array('size'=>$size,'maxlength'=>$maxLength))";
 			}
 		}
 	}
@@ -264,7 +261,6 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
-		//print_r($this->getTableSchema());
 		$tableSchema = $this->getTableSchema();
 		$primaryKey = $tableSchema->primaryKey;
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {		// 01
@@ -310,10 +306,10 @@ if($form == true) {
 				),
 			))";
 	} else if(in_array('file', $commentArray)) {
-		if($this->uploadPathSubfolderStatus):
-			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->{$primaryKey}.'/'.\$model->old_{$column->name}_i;";
+		if($this->uploadPathSubfolder):
+			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectory}/'.\$model->{$primaryKey}.'/'.\$model->old_{$column->name}_i;";
 		else:
-			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectorySource}/'.\$model->old_{$column->name}_i;";
+			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectory}/'.\$model->old_{$column->name}_i;";
 		endif;
 		return "if(!\$model->isNewRecord && \$model->{$column->name} != '') {
 				if(!\$model->getErrors())
@@ -436,53 +432,179 @@ if($i18n) {
 		return 'id';
 	}
 
-	/* 
-	* set name relation with underscore
-	*/
-	public function setRelation($names, $column=false) {
-		$patterns = array();
-		$patterns[0] = '(_ommu)';
-		$patterns[1] = '(_core)';
-		
-		if($column == false) {
-			$char=range("A","Z");
-			foreach($char as $val) {
-				if(strpos($names, $val) !== false) {
-					$names = str_replace($val, '_'.strtolower($val), $names);
-				}
+	public function getUploadPathDirectory()
+	{
+		return $this->uploadPath['directory'];
+	}
+
+	public function getUploadPathSubfolder()
+	{
+		return $this->uploadPath['subfolder'];
+	}
+
+	public function getForBackendController()
+	{
+		return $this->forBackendController;
+	}
+
+	public function getUseModified()
+	{
+		return $this->useModified;
+	}
+
+	public function getLinkSource()
+	{
+		return $this->link;
+	}
+
+	public function validateControllerPath($attribute,$params)
+	{
+		if(Yii::getPathOfAlias($this->controllerPath)===false)
+			$this->addError('controllerPath','Model Path must be a valid path alias.');
+	}
+
+	public function validateViewPath($attribute,$params)
+	{
+		if(Yii::getPathOfAlias($this->viewPath)===false)
+			$this->addError('viewPath','Model Path must be a valid path alias.');
+	}
+	
+	public function foreignKeys($foreignKeys)
+	{
+		$column = [];
+		if(!empty($foreignKeys)) {
+			foreach($foreignKeys as $key=>$val) {
+				// Only variables should be passed by reference
+				$arrayValue = array_values($val);
+				//$column[array_pop($arrVal)] = array_shift($arrVal);
+				$column[$key] = array_shift($arrayValue);
 			}
-		} else
-			$names = rtrim($names, 'id');
+		}
+	
+		return $column;
+	}
 
-		$return = trim(preg_replace($patterns, '', $names), '_');
-		$return = array_map('strtolower', explode('_', $return));
-		//print_r($return);
+	public function relationIndex($key) 
+	{
+		$relation = explode('_', $key);
+		$relation = array_diff($relation, array('ommu','core'));
 
-		if(count($return) != 1)
-			return end($return);
+		if(count($relation) != 1)
+			return end($relation);
 		else {
-			if(is_array($return))
-				return implode('', $return);
+			if(is_array($relation))
+				return implode('', $relation);
 			else
-				return $return;
+				return $relation;
 		}
 	}
 
-	public function getTableAttribute($columns)
+	public function setRelation($names, $column=false) 
+	{
+		$inflector = new Inflector;
+		if($column == false) {
+			$names = $inflector->camel2id($names, '_');
+			$return = $this->relationIndex($names);
+
+			return $return != 'cat' ? $return : 'category';
+	
+		} else {
+			$key = $names;
+			if (!empty($key) && strcasecmp($key, 'id')) {
+				if (substr_compare($key, 'id', -2, 2, true) === 0)
+					$key = rtrim(substr($key, 0, -2), '_');
+				elseif (substr_compare($key, 'id', 0, 2, true) === 0)
+					$key = ltrim(substr($key, 2, strlen($key)), '_');
+			}
+			$key = $this->relationIndex($key);
+			if(strtolower($key) == 'cat')
+				$key = 'category';
+		
+			$key = $inflector->singularize($inflector->id2camel($key, '_'));
+	
+			return lcfirst($key);
+		}
+	}
+
+	public function tableAttribute($columns)
 	{
 		$primaryKey = array();
-		foreach ($columns as $key => $column) {
+		foreach($columns as $name=>$column):
 			if($column->isPrimaryKey || $column->autoIncrement)
-				$primaryKey[] = $key;
-			if(preg_match('/(name|title)/', $key))
-				return $key;
-		}
+				$primaryKey[] = $column->name;
+			if(preg_match('/(name|title)/', $column->name))
+				return $column->name;
+		endforeach;
 		$pk = $primaryKey;
 	
 		if(!empty($primaryKey))
 			return $pk[0];
 		else
 			return 'id';
+	}
+
+	public function tableRelationAttribute($tableName, $separator='->')
+	{
+		$tables=array($this->getTableSchema($tableName));
+		$table = $tables[0];
+
+		$foreignKeys = $this->foreignKeys($table->foreignKeys);
+		$titleCondition = 0;
+		$foreignCondition = 0;
+
+		foreach ($table->columns as $column) {
+			$relationColumn = [];
+			if(preg_match('/(name|title)/', $column->name)) {
+				$commentArray = explode(',', $column->comment);
+				if(in_array('trigger[delete]', $commentArray)) {
+					$relationColumn[$column->name] = $this->i18nRelation($column->name);
+					$relationColumn[] = 'message';
+				} else {
+					if($column->name == 'username')
+						$relationColumn[$column->name] = 'displayname';
+					else
+						$relationColumn[$column->name] = $column->name;
+
+				}
+				$titleCondition = 1;
+			}
+			if(!empty($relationColumn))
+				return implode($separator, $relationColumn);
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $column) {
+				$relationColumn = [];
+				if($column->name == 'tag_id') {
+					$relationColumn[$column->name] = $this->setRelation($column->name, true);
+					$relationColumn[] = 'body';
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $column) {
+				$relationColumn = [];
+				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+					$relationTableName = trim($foreignKeys[$column->name]);
+					if(!$foreignCondition) {
+						$relationColumn[$column->name] = $this->setRelation($column->name, true);
+						$relationColumn[] = $this->tableRelationAttribute($relationTableName, $separator);
+						$foreignCondition = 1;
+					}
+				}
+				if(!empty($relationColumn))
+					return implode($separator, $relationColumn);
+			}
+		}
+		$pk = $table->primaryKey;
+
+		return $pk;
+	}
+
+	public function i18nRelation($column, $relation=true)
+	{
+		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 
 	/**
@@ -617,90 +739,5 @@ if($i18n) {
 		}
 
 		return implode('', $closureTokens);
-	}
-
-	public function validateControllerPath($attribute,$params)
-	{
-		if(Yii::getPathOfAlias($this->controllerPath)===false)
-			$this->addError('controllerPath','Model Path must be a valid path alias.');
-	}
-
-	public function validateViewPath($attribute,$params)
-	{
-		if(Yii::getPathOfAlias($this->viewPath)===false)
-			$this->addError('viewPath','Model Path must be a valid path alias.');
-	}
-	
-	function getForeignKeys($foreignKeys)
-	{
-		$column = [];
-		if(!empty($foreignKeys)) {
-			foreach($foreignKeys as $val) {
-				// Only variables should be passed by reference
-				$arrVal = array_values($val);
-				$column[array_pop($arrVal)] = array_shift($arrVal);
-			}
-		}
-	
-		return $column;
-	}
-
-	public function getTableRelationAttribute($tableName, $separator='->')
-	{
-		$tables=array($this->getTableSchema($tableName));
-		$table = $tables[0];
-
-		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
-		$titleCondition = 0;
-		$foreignCondition = 0;
-
-		foreach ($table->columns as $column) {
-			$relationColumn = [];
-			if(preg_match('/(name|title)/', $column->name)) {
-				$commentArray = explode(',', $column->comment);
-				if(in_array('trigger[delete]', $commentArray)) {
-					$relationColumn[$column->name] = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
-					$relationColumn[] = 'message';
-				} else {
-					if($column->name == 'username')
-						$relationColumn[$column->name] = 'displayname';
-					else
-						$relationColumn[$column->name] = $column->name;
-
-				}
-				$titleCondition = 1;
-			}
-			if(!empty($relationColumn))
-				return implode($separator, $relationColumn);
-		}
-		if(!$titleCondition) {
-			foreach ($table->columns as $column) {
-				$relationColumn = [];
-				if($column->name == 'tag_id') {
-					$relationColumn[$column->name] = $this->setRelation($column->name, true);
-					$relationColumn[] = 'body';
-				}
-				if(!empty($relationColumn))
-					return implode($separator, $relationColumn);
-			}
-		}
-		if(!$titleCondition) {
-			foreach ($table->columns as $column) {
-				$relationColumn = [];
-				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
-					$relationTableName = trim($foreignKeys[$column->name]);
-					if(!$foreignCondition) {
-						$relationColumn[$column->name] = $this->setRelation($column->name, true);
-						$relationColumn[] = $this->getTableRelationAttribute($relationTableName, $separator);
-						$foreignCondition = 1;
-					}
-				}
-				if(!empty($relationColumn))
-					return implode($separator, $relationColumn);
-			}
-		}
-		$pk = $table->primaryKey;
-
-		return $pk;
 	}
 }

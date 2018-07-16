@@ -82,15 +82,6 @@ $('#{$class}_model').bind('keyup change', function(){
 	</div>
 
 	<div class="row sticky">
-		<?php echo $form->labelEx($model,'uploadPath[name]'); ?>
-		<?php echo $form->textField($model,'uploadPath[name]',array('size'=>64)); ?>
-		<div class="tooltip">
-		It can be either a upload path variable name in source (e.g. <code>article_path, banner_path</code>)
-		</div>
-		<?php echo $form->error($model,'uploadPath[name]'); ?>
-	</div>
-
-	<div class="row sticky">
 		<?php echo $form->labelEx($model,'uploadPath[directory]'); ?>
 		<?php echo $form->textField($model,'uploadPath[directory]',array('size'=>64)); ?>
 		<div class="tooltip">
