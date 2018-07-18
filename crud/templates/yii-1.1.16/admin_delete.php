@@ -28,7 +28,7 @@ echo "<?php\n"; ?>
 $label=$inflector->pluralize($this->class2name($modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
-	\t\$model->{$relationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
+	\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
 	\t'Delete',
 \t);\n";
 ?>

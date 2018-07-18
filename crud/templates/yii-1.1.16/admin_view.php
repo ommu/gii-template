@@ -28,7 +28,7 @@ echo "<?php\n"; ?>
 $label=$inflector->pluralize($this->class2name($modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
-	\t\$model->$relationAttribute,
+	\t\$model->$breadcrumbRelationAttribute,
 \t);\n";
 ?>
 ?>
@@ -40,6 +40,11 @@ if(Yii::app()->user->hasFlash('success'))
 ?>
 <?php echo "<?php ";?>//end.Messages ?>
 
+<?php if($this->generateCode['view']['dialog']):?>
+<div class="dialog-content">
+<?php else: ?>
+<div class="box">
+<?php endif; ?>
 <?php echo "<?php"; ?> $this->widget('zii.widgets.CDetailView', array(
 	'data'=>$model,
 	'attributes'=>array(
@@ -113,7 +118,7 @@ if($translateCondition)
 else {
 	if($column->dbType == 'text' && in_array('file', $commentArray)) {
 		if($this->uploadPathSubfolder)
-			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$primaryKey, \$model->$column->name), array('target'=>'_blank')) : '-',\n";
+			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$table->primaryKey, \$model->$column->name), array('target'=>'_blank')) : '-',\n";
 		else
 			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$column->name), array('target'=>'_blank')) : '-',\n";
 	} else
@@ -127,11 +132,11 @@ if((in_array($column->dbType, array('text')) && (in_array('file', $commentArray)
 ?>
 	),
 )); ?>
-
-<div class="box">
-</div>
-<div class="dialog-content">
+<?php if($this->generateCode['view']['dialog']):?>
 </div>
 <div class="dialog-submit">
 	<?php echo "<?php ";?>echo CHtml::button(Yii::t('phrase', 'Close'), array('id'=>'closed')); ?>
 </div>
+<?php else: ?>
+</div>
+<?php endif; ?>

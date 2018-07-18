@@ -11,7 +11,39 @@ class CrudCode extends CCodeModel
 	public $uploadPath=array(
 		'directory' => 'public/main',
 	);
-	public $forBackendController=true;
+	public $defaultFunction=array(
+		'public' => array(
+			'redirect' => false,
+			'dialog' => false,
+			'file' => 'front_index.php, _view.php, front_view.php',
+		),
+		'manage' => array(
+			'redirect' => false,
+			'dialog' => false,
+			'file' => 'admin_manage.php, _option_form.php, _search.php',
+		),
+		'create' => array(
+			'redirect' => true,
+			'dialog' => true,
+			'file' => 'admin_add.php, _form.php',
+		),
+		'update' => array(
+			'redirect' => true,
+			'dialog' => true,
+			'file' => 'admin_edit.php, _form.php',
+		),
+		'view' => array(
+			'redirect' => false,
+			'dialog' => true,
+			'file' => 'admin_view.php',
+		),
+		'delete' => array(
+			'redirect' => false,
+			'dialog' => false,
+			'file' => 'admin_delete.php',
+		)
+	);
+	public $generateCode=array();
 	public $useModified=false;
 	public $link='https://github.com/ommu';
 
@@ -23,7 +55,7 @@ class CrudCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('model, controller, controllerPath, viewPath', 'filter', 'filter'=>'trim'),
-			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, forBackendController, useModified, link', 'required'),
+			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, useModified, link', 'required'),
 			array('model', 'match', 'pattern'=>'/^\w+[\w+\\.]*$/', 'message'=>'{attribute} should only contain word characters and dots.'),
 			array('controller', 'match', 'pattern'=>'/^\w+[\w+\\/]*$/', 'message'=>'{attribute} should only contain word characters and slashes.'),
 			array('baseControllerClass', 'match', 'pattern'=>'/^[a-zA-Z_\\\\][\w\\\\]*$/', 'message'=>'{attribute} should only contain word characters and backslashes.'),
@@ -33,6 +65,7 @@ class CrudCode extends CCodeModel
 			array('viewPath', 'validateViewPath', 'skipOnError'=>true),
 			array('model', 'validateModel'),
 			array('baseControllerClass, controllerPath, viewPath, uploadPath, link', 'sticky'),
+			array('generateCode', 'safe'),
 		));
 	}
 
@@ -46,7 +79,7 @@ class CrudCode extends CCodeModel
 			'viewPath'=>'View Path',
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
-			'forBackendController'=>'Backend Controller',
+			'generateCode'=>'Generate Code',
 			'useModified'=>'Modified',
 			'link'=>'Link Repository',
 		));
@@ -102,23 +135,14 @@ class CrudCode extends CCodeModel
 		$this->files=array();
 		$templatePath=$this->templatePath;
 		$controllerTemplateFile=$templatePath.DIRECTORY_SEPARATOR.'controller.php';
-
-		$generatorTemp = array('admin_manage','_option_form','_search','admin_add','admin_edit','_form','admin_view','admin_delete','admin_publish','admin_headline','front_index','_view','front_view');
-		if(!$this->forBackendController)
-			$generatorTemp = array('front_index','_view','front_view');
 		
 		$table=$this->getTableSchema();
-		$relationAttribute = $this->tableRelationAttribute($table->name, '->');
-
-		$primaryKey = $table->primaryKey;
-		if(!$primaryKey)
-			$primaryKey = key($table->$columns);
-
+		$breadcrumbRelationAttribute = $this->tableRelationAttribute($table->name, '->');
+		
 		$params=array(
 			'modelClass'=>$this->getModelClass(),
 			'columns'=>$table->columns,
-			'relationAttribute'=>$relationAttribute,
-			'primaryKey'=>$primaryKey,
+			'breadcrumbRelationAttribute'=>$breadcrumbRelationAttribute,
 			'table'=>$table,
 		);
 
@@ -132,13 +156,11 @@ class CrudCode extends CCodeModel
 		{
 			if(is_file($templatePath.'/'.$file) && CFileHelper::getExtension($file)==='php' && $file!=='controller.php')
 			{
-				if(in_array(strstr($file, '.' ,true), $generatorTemp)) {
-					$this->files[]=new CCodeFile(
-						//$this->viewPath.DIRECTORY_SEPARATOR.$file,
-						Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
-						$this->render(join('/', array($templatePath, $file)), $params)
-					);
-				}
+				$this->files[]=new CCodeFile(
+					//$this->viewPath.DIRECTORY_SEPARATOR.$file,
+					Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
+					$this->render(join('/', array($templatePath, $file)), $params)
+				);
 			}
 		}
 	}
@@ -249,20 +271,31 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveLabel($modelClass,$column, $type=false)
 	{
-		$columnName = $column->name;
+		$tableSchema = $this->getTableSchema();
+		$foreignKeys = $this->foreignKeys($tableSchema->foreignKeys);
+
 		$commentArray = explode(',', $column->comment);
+		$publicAttribute = $column->name;
 		if(in_array('trigger[delete]', $commentArray))
-			$columnName = $columnName.'_i';
+			$publicAttribute = $column->name.'_i';
+		else if($column->name == 'tag_id') {
+			$relationName = $this->setRelation($column->name, true);
+			$publicAttribute = $relationName.'_i';
+		}
+
 		if($type == false)
-			return "\$form->labelEx(\$model, '{$columnName}')";
+			return "\$form->labelEx(\$model, '{$publicAttribute}')";
 		else
-			return "\$form->labelEx(\$model, '{$columnName}', array('class'=>'col-form-label col-lg-4 col-md-3 col-sm-12'))";
+			return "\$form->labelEx(\$model, '{$publicAttribute}', array('class'=>'col-form-label col-lg-4 col-md-3 col-sm-12'))";
 	}
 
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
 		$tableSchema = $this->getTableSchema();
+		$foreignKeys = $this->foreignKeys($tableSchema->foreignKeys);
 		$primaryKey = $tableSchema->primaryKey;
+
+		$commentArray = explode(',', $column->comment);
 		if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {		// 01
 if($form == true) {
 	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
@@ -272,89 +305,94 @@ if($form == true) {
 } else {
 	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
 		return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
-	else
-		return "echo \$form->dropDownList(\$model, '{$column->name}', \$this->filterYesNo(), array('prompt'=>'', 'class'=>'form-control'))";
+	else {
+		if($column->comment != '')
+			return "echo \$form->dropDownList(\$model, '{$column->name}', array('1'=>Yii::t('phrase', '".$commentArray[0]."'), '0'=>Yii::t('phrase', '".$commentArray[1]."')), array('prompt'=>'', 'class'=>'form-control'))";
+		else
+			return "echo \$form->dropDownList(\$model, '{$column->name}', \$this->filterYesNo(), array('prompt'=>'', 'class'=>'form-control'))";
+	}
 }
 		} elseif(stripos($column->dbType,'text')!==false) {		// 02
 if($form == true) {
 	$textCondition = 0;
-	if(trim($column->comment) != '') {
+	if(trim($column->comment) != '')
 		$textCondition = 1;
-		$commentArray = explode(',', $column->comment);
-	}
 	if($textCondition == 0 || in_array('text', $commentArray))
 		return "echo \$form->textArea(\$model, '{$column->name}', array('rows'=>6, 'cols'=>50, 'class'=>'form-control'))";
 	else if(in_array('redactor', $commentArray)) {
 		return "\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
-				'model'=>\$model,
-				'attribute'=>'{$column->name}',
-				'options'=>array(
-					'buttons'=>array(
-						'html', 'formatting', '|', 
-						'bold', 'italic', 'deleted', '|',
-						'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
-						'link', '|',
+					'model'=>\$model,
+					'attribute'=>'{$column->name}',
+					'options'=>array(
+						'buttons'=>array(
+							'html', 'formatting', '|', 
+							'bold', 'italic', 'deleted', '|',
+							'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
+							'link', '|',
+						),
 					),
-				),
-				'plugins' => array(
-					'fontcolor' => array('js' => array('fontcolor.js')),
-					'table' => array('js' => array('table.js')),
-					'fullscreen' => array('js' => array('fullscreen.js')),
-				),
-				'htmlOptions'=>array(
-					'class' => 'form-control',
-				),
-			))";
+					'plugins' => array(
+						'fontcolor' => array('js' => array('fontcolor.js')),
+						'table' => array('js' => array('table.js')),
+						'fullscreen' => array('js' => array('fullscreen.js')),
+					),
+					'htmlOptions'=>array(
+						'class' => 'form-control',
+					),
+				))";
 	} else if(in_array('file', $commentArray)) {
+		$return = "if(!\$model->isNewRecord && \$model->old_{$column->name}_i != '') {\n";
 		if($this->uploadPathSubfolder):
-			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectory}/'.\$model->{$primaryKey}.'/'.\$model->old_{$column->name}_i;";
+			$return .= "\t\t\t\t\t\$old_{$column->name}_i = join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->{$primaryKey}, \$model->old_{$column->name}_i);?>\n";
 		else:
-			$CHtml = "Yii::app()->request->baseUrl.'/{$this->uploadPathDirectory}/'.\$model->old_{$column->name}_i;";
+			$return .= "\t\t\t\t\t\$old_{$column->name}_i = join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->old_{$column->name}_i);?>\n";
 		endif;
-		return "if(!\$model->isNewRecord && \$model->{$column->name} != '') {
-				if(!\$model->getErrors())
-					\$model->old_{$column->name}_i = \$model->{$column->name};
-				echo \$form->hiddenField(\$model, 'old_{$column->name}_i');
-				\${$column->name} = {$CHtml}?>
-				<div class=\"mb-15\"><img src=\"<?php echo Utility::getTimThumb(\${$column->name}, 320, 150, 1);?>\" alt=\"<?php echo \$model->old_{$column->name}_i;?>\"></div>
-			<?php }
-			echo \$form->fileField(\$model, '{$column->name}', array('class'=>'form-control'))";
+		$return .= "\t\t\t\t\t<div class=\"mb-15\"><img src=\"<?php echo Utility::getTimThumb(\$old_{$column->name}_i, 320, 150, 1);?>\" alt=\"<?php echo \$model->old_{$column->name}_i;?>\"></div>
+				<?php }
+				echo \$form->fileField(\$model, '{$column->name}', array('class'=>'form-control'))";
+		return $return;
 	}
 } else
 	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {		// 03
-			if($form == true)
-				$return = "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';\n\t\t\t";
-			$return .= "echo \$this->filterDatepicker(\$model, '{$column->name}', false)";
-			return $return;
-		} else {		// 03
+if($form == true) {
+	return "if(!\$model->getErrors())\n\t\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';
+\t\t\t\techo \$this->filterDatepicker(\$model, '{$column->name}', false)";
+} else {
+	return "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';
+\t\t\techo \$this->filterDatepicker(\$model, '{$column->name}', false)";
+}
+		} else {		// 04
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
 				$inputField='passwordField';
 			else
 				$inputField='textField';
 
-			$i18n = 0;
-			$columnName = $column->name;
-			$commentArray = explode(',', $column->comment);
-			if(in_array('trigger[delete]', $commentArray)) {
-				$columnName = $columnName.'_i';
-				$i18n = 1;
-			}
-if($form == false) {
-			if($column->isForeignKey == '1') {
-				$relationName = $this->setRelation($column->name, true);
-				if($relationName == 'cat')
-					$relationName = 'category';
-				$columnName = $relationName.'_search';
-			} else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
-				$relationArray = explode('_',$column->name);
-				$relationName = $relationArray[0];
-				$columnName = $relationName.'_search';
-			}
-			if($columnName == 'category_search')
-				$columnName = $column->name;
-}
+			$smallintCondition = 0;
 			$enumCondition = 0;
+			$i18n = 0;
+			$publicAttribute = $column->name;
+			if($column->isForeignKey) {
+				$relationName = $this->setRelation($column->name, true);
+				if($form == false)
+					$publicAttribute = $relationName.'_search';
+				if(preg_match('/(smallint)/', $column->dbType)) {
+					$smallintCondition = 1;
+					$publicAttribute = $column->name;
+				}
+			} else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) {
+				$relationName = $this->setRelation($column->name, true);
+				if($form == false)
+					$publicAttribute = $relationName.'_search';
+				if($column->name == 'tag_id')
+					$publicAttribute = $relationName.'_i';
+			} else {
+				if(in_array('trigger[delete]', $commentArray)) {
+					$publicAttribute = $column->name.'_i';
+					$i18n = 1;
+				}
+			}
+
 			if(preg_match('/(enum)/', $column->dbType)) {
 				$enumCondition = 1;
 				$patterns = array();
@@ -364,50 +402,71 @@ if($form == false) {
 				$enumvalue = trim($enumvalue, ')|(');
 				$enumArrays = explode(',', $enumvalue);
 				$dropDownOptions = array();
-				foreach ($enumArrays as $enumArray) {
+				foreach ($enumArrays as $enumArray)
 					$dropDownOptions[$enumArray] = $enumArray;
-				}
 			}
 			if ($enumCondition && is_array($enumArrays) && count($enumArrays) > 0) {
-				$dropDownOption = self::export($dropDownOptions);
-				$return = "$$columnName = $dropDownOption;\n\t\t\t";
-				$return .= "echo \$form->dropDownList(\$model, '{$columnName}', $$columnName, array('prompt'=>'', 'class'=>'form-control'))";
-				return $return;
+				$dropDownOption = self::export($dropDownOptions, $form);
+				$return = "\$$publicAttribute = $dropDownOption;\n";
+				if($form == true)
+					$return .= "\t\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$publicAttribute, array('prompt'=>'', 'class'=>'form-control'))";
+				else
+					$return .= "\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$publicAttribute, array('prompt'=>'', 'class'=>'form-control'))";
+					return $return;
 			} else if($column->size===null)
-				return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";
+				return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('class'=>'form-control'))";
 			else {
 				$maxLength=$column->size;
+				if($i18n)
+					$maxLength = in_array('redactor', $commentArray) ? '~' : (in_array('text', $commentArray) ? '128' : '64');
 if($form == true) {
-if($i18n) {
-	if(in_array('redactor', $commentArray)) {
-			return "\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
-				'model'=>\$model,
-				'attribute'=>'{$column->name}',
-				'options'=>array(
-					'buttons'=>array(
-						'html', 'formatting', '|', 
-						'bold', 'italic', 'deleted', '|',
-						'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
-						'link', '|',
+	if($i18n) {
+		if(in_array('redactor', $commentArray)) {
+				return "\$this->widget('yiiext.imperavi-redactor-widget.ImperaviRedactorWidget', array(
+					'model'=>\$model,
+					'attribute'=>'{$column->name}',
+					'options'=>array(
+						'buttons'=>array(
+							'html', 'formatting', '|', 
+							'bold', 'italic', 'deleted', '|',
+							'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
+							'link', '|',
+						),
 					),
-				),
-				'plugins' => array(
-					'fontcolor' => array('js' => array('fontcolor.js')),
-					'table' => array('js' => array('table.js')),
-					'fullscreen' => array('js' => array('fullscreen.js')),
-				),
-				'htmlOptions'=>array(
-					'class' => 'form-control',
-				),
-			))";
-	} elseif(in_array('text', $commentArray))
-		return "echo \$form->textArea(\$model, '{$columnName}', array('rows'=>6, 'cols'=>50, 'maxlength'=>128, 'class'=>'form-control'))";
+					'plugins' => array(
+						'fontcolor' => array('js' => array('fontcolor.js')),
+						'table' => array('js' => array('table.js')),
+						'fullscreen' => array('js' => array('fullscreen.js')),
+					),
+					'htmlOptions'=>array(
+						'class' => 'form-control',
+					),
+				))";
+		} elseif(in_array('text', $commentArray))
+			return "echo \$form->textArea(\$model, '{$publicAttribute}', array('rows'=>6, 'cols'=>50, 'maxlength'=>$maxLength, 'class'=>'form-control'))";
+		else
+			return "echo \$form->textField(\$model, '{$publicAttribute}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
+	} else {
+		if($column->isForeignKey && $smallintCondition) {
+			$relationTableName = trim($foreignKeys[$column->name]);
+			$relationClassName = $this->generateClassName($relationTableName);
+			$relationFunction = ucfirst($this->setRelation($relationClassName));
+			return "\$$relationName = $relationClassName::get{$relationFunction}();\n\t\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$relationName, array('prompt'=>'', 'class'=>'form-control'))";
+		} else if(($column->isForeignKey && !$smallintCondition) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))
+			return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('class'=>'form-control'))";
+		else
+			return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
+	}
+} else
+	if($column->isForeignKey && $smallintCondition) {
+		$relationTableName = trim($foreignKeys[$column->name]);
+		$relationClassName = $this->generateClassName($relationTableName);
+		$relationFunction = ucfirst($this->setRelation($relationClassName));
+		return "\$$relationName = $relationClassName::get{$relationFunction}();\n\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$relationName, array('prompt'=>'', 'class'=>'form-control'))";
+	} else if($maxLength == '~' || ($column->isForeignKey && !$smallintCondition) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))
+		return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('class'=>'form-control'))";
 	else
-		return "echo \$form->textField(\$model, '{$columnName}', array('maxlength'=>32, 'class'=>'form-control'))";
-} else
-	return "echo \$form->{$inputField}(\$model, '{$columnName}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
-} else
-	return "echo \$form->{$inputField}(\$model, '{$columnName}', array('class'=>'form-control'))";
+		return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
 			}
 		}		// end
 	}
@@ -442,9 +501,9 @@ if($i18n) {
 		return $this->uploadPath['subfolder'];
 	}
 
-	public function getForBackendController()
+	public function getGenerateCode()
 	{
-		return $this->forBackendController;
+		return $this->generateCode;
 	}
 
 	public function getUseModified()
@@ -467,6 +526,24 @@ if($i18n) {
 	{
 		if(Yii::getPathOfAlias($this->viewPath)===false)
 			$this->addError('viewPath','Model Path must be a valid path alias.');
+	}
+
+	protected function generateClassName($tableName)
+	{
+		if(($pos=strpos($tableName,'.'))!==false) // remove schema part (e.g. remove 'public2.' from 'public2.post')
+			$tableName=substr($tableName,$pos+1);
+		$className='';
+		foreach(explode('_',$tableName) as $name)
+		{
+			if($name!=='')
+				$className.=ucfirst($name);
+		}
+		if(preg_match('/Core/', $className))
+			$className = preg_replace('(Core)', '', $className);
+		else
+			$className = preg_replace('(Ommu)', '', $className);
+
+		return $tableName[0] == '_' ? join('', array('View', $className)) : $className;
 	}
 	
 	public function foreignKeys($foreignKeys)
@@ -607,6 +684,18 @@ if($i18n) {
 		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 
+	public function otherAction($actions)
+	{
+		$defaultAction = $this->defaultFunction;
+		$items = array();
+		foreach($actions as $key=>$val) {
+			if(!array_key_exists($key, $defaultAction))
+				$items[] = $key;
+		}
+		
+		return $items;
+	}
+
 	/**
 	 * Exports a variable as a string representation.
 	 *
@@ -623,10 +712,10 @@ if($i18n) {
 	 * @param mixed $var the variable to be exported.
 	 * @return string a string representation of the variable
 	 */
-	public static function export($var)
+	public static function export($var, $form=true)
 	{
 		self::$_output = '';
-		self::exportInternal($var, 0);
+		self::exportInternal($var, 0, $form);
 		return self::$_output;
 	}
 
@@ -634,7 +723,7 @@ if($i18n) {
 	 * @param mixed $var variable to be exported
 	 * @param int $level depth level
 	 */
-	private static function exportInternal($var, $level)
+	private static function exportInternal($var, $level, $form)
 	{
 		switch (gettype($var)) {
 			case 'NULL':
@@ -649,15 +738,21 @@ if($i18n) {
 					$spaces = str_repeat(' ', $level * 4);
 					self::$_output .= 'array(';
 					foreach ($keys as $key) {
-						self::$_output .= "\n" . $spaces . '	';
+						if($form == true)
+							self::$_output .= "\n\t\t\t\t" . $spaces . '	';
+						else
+							self::$_output .= "\n\t\t\t" . $spaces . '	';
 						if ($outputKeys) {
-							self::exportInternal($key, 0);
+							self::exportInternal($key, 0, $form);
 							self::$_output .= ' => Yii::t(\'phrase\', ';
 						}
-						self::exportInternal($var[$key], $level + 1);
+						self::exportInternal($var[$key], $level + 1, $form);
 						self::$_output .= '),';
 					}
-					self::$_output .= "\n" . $spaces . ')';
+					if($form == true)
+						self::$_output .= "\n\t\t\t\t" . $spaces . ')';
+					else
+						self::$_output .= "\n\t\t\t" . $spaces . ')';
 				}
 				break;
 			case 'object':
@@ -670,14 +765,14 @@ if($i18n) {
 						// serialize may fail, for example: if object contains a `\Closure` instance
 						// so we use a fallback
 						if ($var instanceof Arrayable) {
-							self::exportInternal($var->toArray(), $level);
+							self::exportInternal($var->toArray(), $level, $form);
 							return;
 						} elseif ($var instanceof \IteratorAggregate) {
 							$varAsArray = [];
 							foreach ($var as $key => $value) {
 								$varAsArray[$key] = $value;
 							}
-							self::exportInternal($varAsArray, $level);
+							self::exportInternal($varAsArray, $level, $form);
 							return;
 						} elseif ('__PHP_Incomplete_Class' !== get_class($var) && method_exists($var, '__toString')) {
 							$output = var_export($var->__toString(), true);

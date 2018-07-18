@@ -35,25 +35,25 @@ echo "<?php\n"; ?>
 	if(strpos($field,'password')!==false || $column->isPrimaryKey || $column->autoIncrement || $column->type==='boolean' || $column->dbType == 'tinyint(1)')
 		continue;
 		
-	$columnName = $column->name;
 	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray))
-		$columnName = $columnName.'_i';
-	if($column->isForeignKey == '1') {
+	$publicAttribute = $column->name;
+	if($column->isForeignKey) {
 		$relationName = $this->setRelation($column->name, true);
-		if($relationName == 'cat')
-			$relationName = 'category';
-		$columnName = $relationName.'_search';
-	} else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))) {
-		$relationArray = explode('_',$column->name);
-		$relationName = $relationArray[0];
-		$columnName = $relationName.'_search';
+		$publicAttribute = $relationName.'_search';
+		if(preg_match('/(smallint)/', $column->dbType))
+			$publicAttribute = $column->name;
+	} else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id'))) {
+		$relationName = $this->setRelation($column->name, true);
+		$publicAttribute = $relationName.'_search';
+		if($column->name == 'tag_id')
+			$publicAttribute = $relationName.'_i';
+	} else {
+		if(in_array('trigger[delete]', $commentArray))
+			$publicAttribute = $column->name.'_i';
 	}
-	if($columnName == 'category_search')
-		$columnName = $column->name;
 ?>
 		<li>
-			<?php echo "<?php echo \$model->getAttributeLabel('{$columnName}'); ?>\n"; ?>
+			<?php echo "<?php echo \$model->getAttributeLabel('{$publicAttribute}'); ?>\n"; ?>
 			<?php echo "<?php ".$this->generateActiveField($modelClass,$column,false)."; ?>\n"; ?>
 		</li>
 

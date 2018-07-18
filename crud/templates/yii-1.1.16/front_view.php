@@ -28,7 +28,7 @@ echo "<?php\n"; ?>
 $label=$inflector->pluralize($this->class2name($modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
-	\t\$model->$relationAttribute,
+	\t\$model->$breadcrumbRelationAttribute,
 \t);\n";
 ?>
 ?>
@@ -107,7 +107,7 @@ if($translateCondition)
 else {
 	if($column->dbType == 'text' && in_array('file', $commentArray)) {
 		if($this->uploadPathSubfolder)
-			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$primaryKey, \$model->$column->name), array('target'=>'_blank')) : '-',\n";
+			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$table->primaryKey, \$model->$column->name), array('target'=>'_blank')) : '-',\n";
 		else
 			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$column->name), array('target'=>'_blank')) : '-',\n";
 	} else

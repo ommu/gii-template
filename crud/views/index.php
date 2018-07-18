@@ -99,13 +99,46 @@ $('#{$class}_model').bind('keyup change', function(){
 		<?php echo $form->error($model,'uploadPath[subfolder]'); ?>
 	</div>
 
-	<div class="row">
-		<?php echo $form->labelEx($model,'forBackendController'); ?>
-		<?php echo $form->checkBox($model,'forBackendController'); ?>
-		<div class="tooltip">
-			Default value is <code>true</code>. Digunakan untuk menentukan peruntukan penggunaan controller
-		</div>
-		<?php echo $form->error($model,'forBackendController'); ?>
+	<?php 
+	$functions = $model->defaultFunction;
+	if(!$model->getErrors() && $model->model) {
+		$class=@Yii::import($model->model,true);
+		$table=CActiveRecord::model($class)->tableSchema;
+		$columns = $table->columns;
+		foreach($columns as $name=>$column) {
+			if($column->dbType == 'tinyint(1)' && (in_array($column->name, array('publish','headline')) || $column->comment != '')) {
+				$functions[$column->name] = array(
+					'redirect' => true,
+					'dialog' => false,
+					'file' => "admin_$column->name.php",
+				);
+			}
+		}
+	}?>
+	<div style="margin: 5px 0;">
+		<table class="preview">
+			<tr>
+				<th class="file"><?php echo $form->labelEx($model,'generateCode'); ?></th>
+				<th class="file">Generate</th>
+				<th class="file">Dialog</th>
+				<th class="file">Redirect</th>
+			</tr>
+<?php if(!empty($functions)) {
+	$redirect = array(
+		'manage'=>'manage',
+		'update'=>'update',
+		'view'=>'view',
+	);
+	foreach($functions as $key => $val) {?>
+		<tr>
+			<td class="file"><?php echo ucwords($key);?> <small>"<em><?php echo $val['file'];?></em>"</small></td>
+			<td class="confirm"><?php echo $form->checkBox($model,"generateCode[$key][generate]"); ?></td>
+			<td class="confirm"><?php echo $val['dialog'] == true ? $form->checkBox($model,"generateCode[$key][dialog]") : '-'; ?></td>
+			<td class="confirm"><?php echo $val['redirect'] == true ? $form->dropDownList($model,"generateCode[$key][redirect]", $redirect) : '-';?></td>
+		</tr>
+<?php }
+}?>
+		</table>
 	</div>
 
 	<div class="row">

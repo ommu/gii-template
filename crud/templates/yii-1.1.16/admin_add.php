@@ -6,6 +6,13 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
+$uploadCondition = 0;
+foreach($columns as $name=>$column):
+	$commentArray = explode(',', $column->comment);
+	if($column->dbType == 'text' && in_array('file', $commentArray))
+		$uploadCondition = 1;
+endforeach;
+
 echo "<?php\n"; ?>
 /**
  * <?php echo $inflector->pluralize($this->class2name($modelClass)); ?> (<?php echo $this->class2id($modelClass); ?>)
@@ -33,9 +40,10 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php echo '<?php'?> /*
-<div class="form" name="post-on">
+<?php if(!$this->generateCode['create']['dialog']):?>
+<div class="form"<?php echo !$uploadCondition ? ' name="post-on"' : '';?>>
 	<?php echo "<?php ";?>echo $this->renderPartial('_form', array('model'=>$model)); ?>
 </div>
-*/?>
-<?php echo "<?php ";?>echo $this->renderPartial('_form', array('model'=>$model)); ?>
+<?php else:
+	echo "<?php ";?>echo $this->renderPartial('_form', array('model'=>$model)); ?>
+<?php endif; ?>

@@ -6,6 +6,13 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
+$uploadCondition = 0;
+foreach($columns as $name=>$column):
+	$commentArray = explode(',', $column->comment);
+	if($column->dbType == 'text' && in_array('file', $commentArray))
+		$uploadCondition = 1;
+endforeach;
+
 echo "<?php\n"; ?>
 /**
  * <?php echo $inflector->pluralize($this->class2name($modelClass)); ?> (<?php echo $this->class2id($modelClass); ?>)
@@ -28,78 +35,99 @@ echo "<?php\n"; ?>
 <?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.yii-traits.system.OActiveForm', array(
 	'id'=>'<?php echo $this->class2id($modelClass);?>-form',
 	'enableAjaxValidation'=>true,
+<?php if($uploadCondition || ($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog'])):?>
+	'htmlOptions' => array(
+		'enctype' => 'multipart/form-data',
+<?php if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+		'on_post' => '',
+<?php endif; ?>
+	),
+<?php endif; ?>
 	/*
 	'enableClientValidation'=>true,
 	'clientOptions'=>array(
 		'validateOnSubmit'=>true,
 	),
+<?php if(!$uploadCondition):?>
 	'htmlOptions' => array(
 		'enctype' => 'multipart/form-data',
 	),
+<?php endif; ?>
 	*/
 )); ?>
 
-<?php echo "<?php ";?>//begin.Messages ?>
-<div id="ajax-message">
-	<?php echo "<?php "; ?>echo $form->errorSummary($model); ?>
-</div>
-<?php echo "<?php ";?>//begin.Messages ?>
+<?php if(!$this->generateCode['create']['dialog'] || !$this->generateCode['update']['dialog']):?>
+	<?php echo "<?php ";?>//begin.Messages ?>
+	<div id="ajax-message">
+		<?php echo "<?php "; ?>echo $form->errorSummary($model); ?>
+	</div>
+	<?php echo "<?php ";?>//begin.Messages ?>
 
-<fieldset>
+<?php endif;
+if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+<div class="dialog-content">
+<?php endif; ?>
+	<fieldset>
 
-<?php
-//print_r($columns);
-foreach($columns as $column)
-{
+<?php if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+		<?php echo "<?php ";?>//begin.Messages ?>
+		<div id="ajax-message">
+			<?php echo "<?php "; ?>echo $form->errorSummary($model); ?>
+		</div>
+		<?php echo "<?php ";?>//begin.Messages ?>
+
+<?php endif; ?>
+<?php foreach($columns as $column) {
 	if($column->autoIncrement || $column->comment == 'trigger' || $column->name == 'slug' || $column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null) || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
 		continue;
-	$columnName = $column->name;
-	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray))
-		$columnName = $columnName.'_i';
-?>
-	<div class="form-group row">
-		<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
-		<div class="col-lg-8 col-md-9 col-sm-12">
-			<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $columnName;?>'); ?>
-			<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
-		</div>
-	</div>
 
-<?php
-}
-//print_r($columns);
-foreach($columns as $column)
-{
-if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
-	<div class="form-group row publish">
-		<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
-		<div class="col-lg-8 col-md-9 col-sm-12">
-			<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column)."; ?>\n"; ?>
-			<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
+	$commentArray = explode(',', $column->comment);
+	$publicAttribute = $column->name;
+	if(in_array('trigger[delete]', $commentArray))
+		$publicAttribute = $column->name.'_i';
+	else if($column->name == 'tag_id') {
+		$relationName = $this->setRelation($column->name, true);
+		$publicAttribute = $relationName.'_i';
+	}
+?>
+		<div class="form-group row">
+			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
+			<div class="col-lg-8 col-md-9 col-sm-12">
+				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
+				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $publicAttribute;?>'); ?>
+				<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
+			</div>
 		</div>
-	</div>
 
 <?php }
-}
-?>
-	<?php echo '<?php'?> /*
-	<div class="form-group row submit">
-		<label class="col-form-label col-lg-4 col-md-3 col-sm-12">&nbsp;</label>
-		<div class="col-lg-8 col-md-9 col-sm-12">
-			<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
+foreach($columns as $column) {
+if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
+		<div class="form-group row publish">
+			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
+			<div class="col-lg-8 col-md-9 col-sm-12">
+				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
+				<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column)."; ?>\n"; ?>
+				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
+			</div>
 		</div>
-	</div>
-	*/?>
 
-</fieldset>
+<?php }
+}?>
+<?php if(!$this->generateCode['create']['dialog'] || !$this->generateCode['update']['dialog']):?>
+		<div class="form-group row submit">
+			<label class="col-form-label col-lg-4 col-md-3 col-sm-12">&nbsp;</label>
+			<div class="col-lg-8 col-md-9 col-sm-12">
+				<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
+			</div>
+		</div>
 
-<div class="dialog-content">
+<?php endif; ?>
+	</fieldset>
+<?php if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
 </div>
 <div class="dialog-submit">
 	<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
 	<?php echo "<?php "; ?>echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>
 </div>
+<?php endif; ?>
 <?php echo "<?php "; ?>$this->endWidget(); ?>
