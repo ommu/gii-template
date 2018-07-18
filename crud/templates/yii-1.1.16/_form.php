@@ -37,8 +37,10 @@ echo "<?php\n"; ?>
 	'enableAjaxValidation'=>true,
 <?php if($uploadCondition || ($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog'])):?>
 	'htmlOptions' => array(
+<?php if($uploadCondition):?>
 		'enctype' => 'multipart/form-data',
-<?php if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+<?php endif;
+if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
 		'on_post' => '',
 <?php endif; ?>
 	),
