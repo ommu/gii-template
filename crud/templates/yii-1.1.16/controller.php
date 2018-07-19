@@ -28,7 +28,9 @@ echo "<?php\n"; ?>
  * Reference start
  * TOC :
  *	Index
-<?php if($this->generateCode['public']['generate'])
+<?php if($this->generateCode['suggest']['generate'])
+	echo " *\tSuggest\n";
+if($this->generateCode['public']['generate'])
 	echo " *\tView\n";
 if($this->generateCode['manage']['generate'])
 	echo " *\tManage\n";
@@ -204,6 +206,45 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->render('front_view', array(
 			'model'=>$model,
 		));
+	}
+
+<?php endif;
+if($this->generateCode['suggest']['generate']):
+	$relationColumn = $this->tableRelationAttributes($table);;?>
+	/**
+	 * Suggest a particular model.
+	 * @param integer $limit
+<?php if(array_key_exists('publish', $columns)):?>
+	 * @param integer $publish
+<?php endif;?>
+	 */
+	public function actionSuggest($limit=10<?php echo array_key_exists('publish', $columns) ? ', $publish=1' : '';?>) 
+	{
+		if(Yii::app()->request->isAjaxRequest) {
+			$term = Yii::app()->getRequest()->getParam('term');
+			if($term) {
+				$criteria = new CDbCriteria;
+				$criteria->select = 't.<?php echo $table->primaryKey; ?>, t.<?php echo key($relationColumn);?>';
+<?php if(array_key_exists('publish', $columns)):?>
+				$criteria->compare('t.publish', $publish);
+<?php endif;?>
+				$criteria->compare('<?php echo count($relationColumn) > 1 ? implode('.', $relationColumn) : 't.'.implode('.', $relationColumn);?>', $term, true);
+				$criteria->limit = $limit;
+				$criteria->order = "t.<?php echo $table->primaryKey; ?> ASC";
+				$model = <?php echo $modelClass; ?>::model()->findAll($criteria);
+
+				if($model) {
+					foreach($model as $val) {
+						$result[] = array('id'=>$val-><?php echo $table->primaryKey; ?>, 'value'=>$val-><?php echo implode('->', $relationColumn);?>);
+					}
+				} else
+					$result[] = array('id'=>0, 'value'=>$term);
+			}
+			echo CJSON::encode($result);
+			Yii::app()->end();
+			
+		} else
+			throw new CHttpException(404, Yii::t('phrase', 'The requested page does not exist.'));
 	}
 
 <?php endif;

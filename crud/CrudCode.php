@@ -17,6 +17,11 @@ class CrudCode extends CCodeModel
 			'dialog' => false,
 			'file' => 'front_index.php, _view.php, front_view.php',
 		),
+		'suggest' => array(
+			'redirect' => false,
+			'dialog' => false,
+			'file' => false,
+		),
 		'manage' => array(
 			'redirect' => false,
 			'dialog' => false,
@@ -630,11 +635,8 @@ if($form == true) {
 			return 'id';
 	}
 
-	public function tableRelationAttribute($tableName, $separator='->')
+	public function tableRelationAttributes($table)
 	{
-		$tables=array($this->getTableSchema($tableName));
-		$table = $tables[0];
-
 		$foreignKeys = $this->foreignKeys($table->foreignKeys);
 		$titleCondition = 0;
 		$foreignCondition = 0;
@@ -656,7 +658,7 @@ if($form == true) {
 				$titleCondition = 1;
 			}
 			if(!empty($relationColumn))
-				return implode($separator, $relationColumn);
+				return $relationColumn;
 		}
 		if(!$titleCondition) {
 			foreach ($table->columns as $column) {
@@ -666,7 +668,7 @@ if($form == true) {
 					$relationColumn[] = 'body';
 				}
 				if(!empty($relationColumn))
-					return implode($separator, $relationColumn);
+					return $relationColumn;
 			}
 		}
 		if(!$titleCondition) {
@@ -681,11 +683,22 @@ if($form == true) {
 					}
 				}
 				if(!empty($relationColumn))
-					return implode($separator, $relationColumn);
+					return $relationColumn;
 			}
 		}
-		$pk = $table->primaryKey;
+	}
 
+	public function tableRelationAttribute($tableName, $separator='->')
+	{
+		$tables=array($this->getTableSchema($tableName));
+		$table = $tables[0];
+
+		$relationColumn = $this->tableRelationAttributes($table);
+
+		if(!empty($relationColumn))
+			return implode($separator, $relationColumn);
+
+		$pk = $table->primaryKey;
 		return $pk;
 	}
 

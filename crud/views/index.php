@@ -133,9 +133,9 @@ $('#{$class}_model').bind('keyup change', function(){
 	foreach($functions as $key => $val) {?>
 		<tr>
 			<td class="file">
-				<?php echo ucwords($key);?>
-				<small>"<em><?php echo $val['file'];?></em>"</small>
-				<?php $model->generateCode[$key]['file'] = $val['file'];
+				<?php echo ucwords($key);
+				echo $val['file'] ? '<small>"<em>'.$val['file'].'</em>"</small>' : '';
+				$model->generateCode[$key]['file'] = $val['file'];
 				echo $form->hiddenField($model, "generateCode[$key][file]");?>
 			</td>
 			<td class="confirm"><?php echo $form->checkBox($model,"generateCode[$key][generate]"); ?></td>
