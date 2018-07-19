@@ -105,8 +105,17 @@ $('#{$class}_model').bind('keyup change', function(){
 		$class=@Yii::import($model->model,true);
 		$table=CActiveRecord::model($class)->tableSchema;
 		$columns = $table->columns;
+
+		$primaryKey = $table->primaryKey;
+		if(!$primaryKey)
+			$primaryKey = key($columns);
+
+		$isStatisticTable = 0;
+		if($columns[$primaryKey]->comment == 'trigger')
+			$isStatisticTable = 1;
+
 		foreach($columns as $name=>$column) {
-			if($column->dbType == 'tinyint(1)' && (in_array($column->name, array('publish','headline')) || $column->comment != '')) {
+			if(!$isStatisticTable && $column->dbType == 'tinyint(1)' && (in_array($column->name, array('publish','headline')) || $column->comment != '')) {
 				$functions[$column->name] = array(
 					'redirect' => true,
 					'dialog' => false,
@@ -134,7 +143,7 @@ $('#{$class}_model').bind('keyup change', function(){
 		<tr>
 			<td class="file">
 				<?php echo ucwords($key);
-				echo $val['file'] ? '<small>"<em>'.$val['file'].'</em>"</small>' : '';
+				echo $val['file'] ? ' <small>"<em>'.$val['file'].'</em>"</small>' : '';
 				$model->generateCode[$key]['file'] = $val['file'];
 				echo $form->hiddenField($model, "generateCode[$key][file]");?>
 			</td>

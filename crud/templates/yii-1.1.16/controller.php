@@ -11,6 +11,14 @@ $label = $this->class2name($modelClass);
 $nameColumn = $this->tableAttribute($columns);
 $otherAction = $this->otherAction($this->generateCode);
 
+$primaryKey = $table->primaryKey;
+if(!$primaryKey)
+	$primaryKey = key($columns);
+
+$isStatisticTable = 0;
+if($columns[$primaryKey]->comment == 'trigger')
+	$isStatisticTable = 1;
+
 $uploadCondition = 0;
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
@@ -44,7 +52,7 @@ if($this->generateCode['delete']['generate'])
 	echo " *\tDelete\n";
 if(!empty($otherAction)):
 	foreach($otherAction as $action):
-		if($action == 'publish')
+		if(!$isStatisticTable && $action == 'publish')
 			echo " *\tRunAction\n";
 		if($this->generateCode[$action]['generate'])
 			echo " *\t".ucfirst($action)."\n";
@@ -514,7 +522,7 @@ if($this->generateCode['delete']['generate']): ?>
 	}
 
 <?php endif;
-if(array_key_exists('publish', $columns)): ?>
+if(!$isStatisticTable && array_key_exists('publish', $columns)): ?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
