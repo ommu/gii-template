@@ -6,6 +6,19 @@
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
+$action = '';
+foreach($this->generateCode as $key=>$val) {
+	if(preg_match('/('.$fileName.')/', $val['file']))
+		$action = $key;
+}
+
+$comment = $column[$action]->comment;
+if($comment == '' || ($action == 'publish' && $column[$action]->comment == ''))
+	$comment = 'Publish,Unpublish';
+if($action == 'headline' && $column[$action]->comment == '')
+	$comment = 'Headline,Unheadline';
+$commentArray = explode(',', $comment);
+
 echo "<?php\n"; ?>
 /**
  * <?php echo $inflector->pluralize($this->class2name($modelClass)); ?> (<?php echo $this->class2id($modelClass); ?>)
@@ -28,8 +41,8 @@ echo "<?php\n"; ?>
 $label=$inflector->pluralize($this->class2name($modelClass));
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
-	\t\$model->{$relationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
-	\t'Publish',
+	\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
+	\t'".ucwords($action)."',
 \t);\n";
 ?>
 ?>
@@ -40,7 +53,7 @@ echo "\t\$this->breadcrumbs=array(
 )); ?>
 
 	<div class="dialog-content">
-		<?php echo "<?php ";?>echo $model->publish == 1 ? Yii::t('phrase', 'Are you sure you want to unpublish this item?') : Yii::t('phrase', 'Are you sure you want to publish this item?')?>
+		<?php echo "<?php ";?>echo $model-><?php echo $action;?> == 1 ? Yii::t('phrase', 'Are you sure you want to <?php echo strtolower($commentArray[1]);?> this item?') : Yii::t('phrase', 'Are you sure you want to <?php echo strtolower($commentArray[0]);?> this item?')?>
 	</div>
 	<div class="dialog-submit">
 		<?php echo "<?php ";?>echo CHtml::submitButton($title, array('onclick' => 'setEnableSave()')); ?>

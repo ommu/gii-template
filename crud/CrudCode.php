@@ -138,6 +138,7 @@ class CrudCode extends CCodeModel
 		
 		$table=$this->getTableSchema();
 		$breadcrumbRelationAttribute = $this->tableRelationAttribute($table->name, '->');
+		$generateFiles = $this->getFileGenerate($this->generateCode);
 		
 		$params=array(
 			'modelClass'=>$this->getModelClass(),
@@ -152,15 +153,26 @@ class CrudCode extends CCodeModel
 		);
 
 		$files=scandir($templatePath);
-		foreach($files as $file)
+		//foreach($files as $file)
+		foreach($generateFiles as $file)
 		{
-			if(is_file($templatePath.'/'.$file) && CFileHelper::getExtension($file)==='php' && $file!=='controller.php')
+			//if(is_file($templatePath.'/'.$file) && CFileHelper::getExtension($file)==='php' && $file!=='controller.php')
+			if(CFileHelper::getExtension($file)==='php' && $file!=='controller.php')
 			{
-				$this->files[]=new CCodeFile(
-					//$this->viewPath.DIRECTORY_SEPARATOR.$file,
-					Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
-					$this->render(join('/', array($templatePath, $file)), $params)
-				);
+				$params['fileName'] = $file;
+				if(in_array($file, $files)) {
+					$this->files[]=new CCodeFile(
+						//$this->viewPath.DIRECTORY_SEPARATOR.$file,
+						Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
+						$this->render(join('/', array($templatePath, $file)), $params)
+					);
+				} else {
+					$this->files[]=new CCodeFile(
+						//$this->viewPath.DIRECTORY_SEPARATOR.$file,
+						Yii::getPathOfAlias($this->viewPath).DIRECTORY_SEPARATOR.$this->controller.DIRECTORY_SEPARATOR.$file,
+						$this->render(join('/', array($templatePath, 'admin_publish.php')), $params)
+					);
+				}
 			}
 		}
 	}
@@ -355,13 +367,11 @@ if($form == true) {
 } else
 	return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 		} elseif(in_array($column->dbType, array('timestamp','datetime','date'))) {		// 03
-if($form == true) {
+if($form == true)
 	return "if(!\$model->getErrors())\n\t\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';
 \t\t\t\techo \$this->filterDatepicker(\$model, '{$column->name}', false)";
-} else {
-	return "if(!\$model->getErrors())\n\t\t\t\t\$model->{$column->name} = !\$model->isNewRecord ? (!in_array(date('Y-m-d', strtotime(\$model->{$column->name})), array('0000-00-00','1970-01-01','0002-12-02','-0001-11-30')) ? date('Y-m-d', strtotime(\$model->{$column->name})) : '') : '';
-\t\t\techo \$this->filterDatepicker(\$model, '{$column->name}', false)";
-}
+else
+	return "echo \$this->filterDatepicker(\$model, '{$column->name}', false)";
 		} else {		// 04
 			if(preg_match('/^(password|pass|passwd|passcode)$/i',$column->name))
 				$inputField='passwordField';
@@ -694,6 +704,18 @@ if($form == true) {
 		}
 		
 		return $items;
+	}
+
+	public function getFileGenerate($generate)
+	{
+		$items = array();
+		foreach($generate as $key=>$val) {
+			if($val['generate'])
+				$items = array_merge($items, array_map('trim', explode(',', $val['file'])));
+		}
+		asort($items);
+		
+		return array_unique($items);
 	}
 
 	/**

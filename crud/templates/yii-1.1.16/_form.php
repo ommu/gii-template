@@ -97,7 +97,7 @@ if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dia
 			<div class="col-lg-8 col-md-9 col-sm-12">
 				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
 				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $publicAttribute;?>'); ?>
-				<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae laoreet metus. Integer eros augue, viverra at lectus vel, dignissim sagittis erat. ');?></div>
+				<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');?></div>
 			</div>
 		</div>
 

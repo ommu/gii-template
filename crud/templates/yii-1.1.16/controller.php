@@ -40,14 +40,14 @@ if($this->generateCode['view']['generate'])
 	echo " *\tView\n";
 if($this->generateCode['delete']['generate']) 
 	echo " *\tDelete\n";
-?>
-<?php if(array_key_exists('publish', $columns)): ?>
- *	RunAction
- *	Publish
-<?php endif; ?>
-<?php if(array_key_exists('headline', $columns)): ?>
- *	Headline
-<?php endif; ?>
+if(!empty($otherAction)):
+	foreach($otherAction as $action):
+		if($action == 'publish')
+			echo " *\tRunAction\n";
+		if($this->generateCode[$action]['generate'])
+			echo " *\t".ucfirst($action)."\n";
+	endforeach;
+endif;?>
  *
  *	LoadModel
  *	performAjaxValidation
@@ -426,45 +426,6 @@ if($this->generateCode['view']['generate']):?>
 	}
 
 <?php endif;
-if(array_key_exists('publish', $columns) && $this->generateCode['publish']['generate']): ?>
-	/**
-	 * Displays a particular model.
-	 * @param integer $id the ID of the model to be displayed
-	 */
-	public function actionRunAction() 
-	{
-		$id       = $_POST['trash_id'];
-		$criteria = null;
-		$actions  = Yii::app()->getRequest()->getParam('action');
-
-		if(count($id) > 0) {
-			$criteria = new CDbCriteria;
-			$criteria->addInCondition('<?php echo $table->primaryKey; ?>', $id);
-
-			if($actions == 'publish') {
-				<?php echo $modelClass; ?>::model()->updateAll(array(
-					'publish' => 1,
-				), $criteria);
-			} elseif($actions == 'unpublish') {
-				<?php echo $modelClass; ?>::model()->updateAll(array(
-					'publish' => 0,
-				), $criteria);
-			} elseif($actions == 'trash') {
-				<?php echo $modelClass; ?>::model()->updateAll(array(
-					'publish' => 2,
-				), $criteria);
-			} elseif($actions == 'delete') {
-				<?php echo $modelClass; ?>::model()->deleteAll($criteria);
-			}
-		}
-
-		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!Yii::app()->getRequest()->getParam('ajax')) {
-			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('manage'));
-		}
-	}
-
-<?php endif;
 if($this->generateCode['delete']['generate']): ?>
 	/**
 	 * Deletes a particular model.
@@ -512,11 +473,54 @@ if($this->generateCode['delete']['generate']): ?>
 	}
 
 <?php endif;
+if(array_key_exists('publish', $columns)): ?>
+	/**
+	 * Displays a particular model.
+	 * @param integer $id the ID of the model to be displayed
+	 */
+	public function actionRunAction() 
+	{
+		$id       = $_POST['trash_id'];
+		$criteria = null;
+		$actions  = Yii::app()->getRequest()->getParam('action');
+
+		if(count($id) > 0) {
+			$criteria = new CDbCriteria;
+			$criteria->addInCondition('<?php echo $table->primaryKey; ?>', $id);
+
+			if($actions == 'publish') {
+				<?php echo $modelClass; ?>::model()->updateAll(array(
+					'publish' => 1,
+				), $criteria);
+			} elseif($actions == 'unpublish') {
+				<?php echo $modelClass; ?>::model()->updateAll(array(
+					'publish' => 0,
+				), $criteria);
+			} elseif($actions == 'trash') {
+				<?php echo $modelClass; ?>::model()->updateAll(array(
+					'publish' => 2,
+				), $criteria);
+			} elseif($actions == 'delete') {
+				<?php echo $modelClass; ?>::model()->deleteAll($criteria);
+			}
+		}
+
+		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
+		if(!Yii::app()->getRequest()->getParam('ajax'))
+			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('manage'));
+	}
+
+<?php endif;
 if(!empty($otherAction)):
 	foreach($columns as $name=>$column):
 		if(in_array($column->name, $otherAction) && $this->generateCode[$column->name]['generate']):
 			$actionName = $inflector->id2camel($column->name, '_');
-			$commentArray = explode(',', $column->comment);?>
+			$comment = $column->comment;
+			if($comment == '' || ($column->name == 'publish' && $column->comment == ''))
+				$comment = 'Publish,Unpublish';
+			if($column->name == 'headline' && $column->comment == '')
+				$comment = 'Headline,Unheadline';
+			$commentArray = explode(',', $comment);?>
 	/**
 	 * <?php echo $actionName;?> a particular model.
 	 * If <?php echo lcfirst($actionName);?> is successful, the browser will be redirected to the '<?php echo $this->generateCode[$column->name]['redirect'];?>' page.
@@ -525,11 +529,7 @@ if(!empty($otherAction)):
 	public function action<?php echo $actionName;?>($id) 
 	{
 		$model=$this->loadModel($id);
-<?php if($column->comment != ''):?>
 		$title = $model-><?php echo $column->name;?> == 1 ? Yii::t('phrase', '<?php echo $commentArray['1'];?>') : Yii::t('phrase', '<?php echo $commentArray['0'];?>');
-<?php else: ?>
-		$title = $model-><?php echo $column->name;?> == 1 ? Yii::t('phrase', 'Unpublish') : Yii::t('phrase', 'Publish');
-<?php endif; ?>
 		$replace = $model-><?php echo $column->name;?> == 1 ? 0 : 1;
 
 		if(Yii::app()->request->isPostRequest) {
@@ -600,4 +600,5 @@ endif;?>
 			Yii::app()->end();
 		}
 	}
+
 }

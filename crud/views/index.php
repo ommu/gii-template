@@ -115,6 +115,7 @@ $('#{$class}_model').bind('keyup change', function(){
 			}
 		}
 	}?>
+
 	<div style="margin: 5px 0;">
 		<table class="preview">
 			<tr>
@@ -131,7 +132,12 @@ $('#{$class}_model').bind('keyup change', function(){
 	);
 	foreach($functions as $key => $val) {?>
 		<tr>
-			<td class="file"><?php echo ucwords($key);?> <small>"<em><?php echo $val['file'];?></em>"</small></td>
+			<td class="file">
+				<?php echo ucwords($key);?>
+				<small>"<em><?php echo $val['file'];?></em>"</small>
+				<?php $model->generateCode[$key]['file'] = $val['file'];
+				echo $form->hiddenField($model, "generateCode[$key][file]");?>
+			</td>
 			<td class="confirm"><?php echo $form->checkBox($model,"generateCode[$key][generate]"); ?></td>
 			<td class="confirm"><?php echo $val['dialog'] == true ? $form->checkBox($model,"generateCode[$key][dialog]") : '-'; ?></td>
 			<td class="confirm"><?php echo $val['redirect'] == true ? $form->dropDownList($model,"generateCode[$key][redirect]", $redirect) : '-';?></td>
