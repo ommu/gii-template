@@ -7,11 +7,18 @@ Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
 $uploadCondition = 0;
+$htmlOptionCondition = 0;
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if($column->dbType == 'text' && in_array('file', $commentArray))
 		$uploadCondition = 1;
 endforeach;
+
+if($uploadCondition) {
+	$htmlOptionCondition = 1;
+	if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog'])
+		$htmlOptionCondition = 1;
+}
 
 echo "<?php\n"; ?>
 /**
@@ -35,30 +42,31 @@ echo "<?php\n"; ?>
 <?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.yii-traits.system.OActiveForm', array(
 	'id'=>'<?php echo $this->class2id($modelClass);?>-form',
 	'enableAjaxValidation'=>true,
-<?php if($uploadCondition || ($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog'])):?>
+<?php if($htmlOptionCondition):?>
 	'htmlOptions' => array(
 <?php if($uploadCondition):?>
 		'enctype' => 'multipart/form-data',
-<?php endif;
-if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+<?php if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog']):?>
 		'on_post' => '',
-<?php endif; ?>
+<?php endif;
+endif; ?>
 	),
-<?php endif; ?>
 	/*
+<?php else:?>
+	/*
+	'htmlOptions' => array(
+		'enctype' => 'multipart/form-data',
+		'on_post' => '',
+	),
+<?php endif;?>
 	'enableClientValidation'=>true,
 	'clientOptions'=>array(
 		'validateOnSubmit'=>true,
 	),
-<?php if(!$uploadCondition):?>
-	'htmlOptions' => array(
-		'enctype' => 'multipart/form-data',
-	),
-<?php endif; ?>
 	*/
 )); ?>
 
-<?php if(!$this->generateCode['create']['dialog'] || !$this->generateCode['update']['dialog']):?>
+<?php if(!$this->generateAction['create']['dialog'] || !$this->generateAction['update']['dialog']):?>
 	<?php echo "<?php ";?>//begin.Messages ?>
 	<div id="ajax-message">
 		<?php echo "<?php "; ?>echo $form->errorSummary($model); ?>
@@ -66,12 +74,12 @@ if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dia
 	<?php echo "<?php ";?>//begin.Messages ?>
 
 <?php endif;
-if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog']):?>
 <div class="dialog-content">
 <?php endif; ?>
 	<fieldset>
 
-<?php if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+<?php if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog']):?>
 		<?php echo "<?php ";?>//begin.Messages ?>
 		<div id="ajax-message">
 			<?php echo "<?php "; ?>echo $form->errorSummary($model); ?>
@@ -115,7 +123,7 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 
 <?php }
 }?>
-<?php if(!$this->generateCode['create']['dialog'] || !$this->generateCode['update']['dialog']):?>
+<?php if(!$this->generateAction['create']['dialog'] || !$this->generateAction['update']['dialog']):?>
 		<div class="form-group row submit">
 			<label class="col-form-label col-lg-4 col-md-3 col-sm-12">&nbsp;</label>
 			<div class="col-lg-8 col-md-9 col-sm-12">
@@ -125,7 +133,7 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 
 <?php endif; ?>
 	</fieldset>
-<?php if($this->generateCode['create']['dialog'] || $this->generateCode['update']['dialog']):?>
+<?php if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog']):?>
 </div>
 <div class="dialog-submit">
 	<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>

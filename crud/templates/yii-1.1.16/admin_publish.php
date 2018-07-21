@@ -7,17 +7,19 @@ Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
 
 $action = '';
-foreach($this->generateCode as $key=>$val) {
+foreach($this->generateAction as $key=>$val) {
 	if(preg_match('/('.$fileName.')/', $val['file']))
 		$action = $key;
 }
 
-$comment = $column[$action]->comment;
-if($comment == '' || ($action == 'publish' && $column[$action]->comment == ''))
-	$comment = 'Publish,Unpublish';
+$publish = $column[$action]->comment;
+if($publish == '')
+	$publish = 'Enable,Disable';
+if($action == 'publish' && $column[$action]->comment == '')
+	$publish = 'Publish,Unpublish';
 if($action == 'headline' && $column[$action]->comment == '')
-	$comment = 'Headline,Unheadline';
-$commentArray = explode(',', $comment);
+	$publish = 'Headline,Unheadline';
+$publishArray = explode(',', $publish);
 
 echo "<?php\n"; ?>
 /**
@@ -53,7 +55,7 @@ echo "\t\$this->breadcrumbs=array(
 )); ?>
 
 	<div class="dialog-content">
-		<?php echo "<?php ";?>echo $model-><?php echo $action;?> == 1 ? Yii::t('phrase', 'Are you sure you want to <?php echo strtolower($commentArray[1]);?> this item?') : Yii::t('phrase', 'Are you sure you want to <?php echo strtolower($commentArray[0]);?> this item?')?>
+		<?php echo "<?php ";?>echo $model-><?php echo $action;?> == 1 ? Yii::t('phrase', 'Are you sure you want to <?php echo strtolower($publishArray[1]);?> this item?') : Yii::t('phrase', 'Are you sure you want to <?php echo strtolower($publishArray[0]);?> this item?')?>
 	</div>
 	<div class="dialog-submit">
 		<?php echo "<?php ";?>echo CHtml::submitButton($title, array('onclick' => 'setEnableSave()')); ?>

@@ -51,9 +51,13 @@ foreach($columns as $name=>$column) {
 		if($column->dbType == 'tinyint(1)' && $column->defaultValue === null) {
 			echo "\t\t\t'value'=>\$model->$column->name ? \$model->$column->name : '-',\n";
 		} else {
-			$publish = 'Publish,Unpublish';
-			if($column->comment != '')
-				$publish = $column->comment;
+			$publish = $column->comment;
+			if($publish == '')
+				$publish = 'Enable,Disable';
+			if($column->name == 'publish' && $column->comment == '')
+				$publish = 'Publish,Unpublish';
+			if($column->name == 'headline' && $column->comment == '')
+				$publish = 'Headline,Unheadline';
 			$publishArray = explode(',', $publish);
 			echo "\t\t\t'value'=>\$model->$column->name ? Yii::t('phrase', '$publishArray[0]') : Yii::t('phrase', '$publishArray[1]'),\n";
 			//echo "\t\t\t'value'=>\$model->$column->name ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";

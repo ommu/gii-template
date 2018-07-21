@@ -100,7 +100,7 @@ $('#{$class}_model').bind('keyup change', function(){
 	</div>
 
 	<?php 
-	$functions = $model->defaultFunction;
+	$functions = $model->defaultActions;
 	if(!$model->getErrors() && $model->model) {
 		$class=@Yii::import($model->model,true);
 		$table=CActiveRecord::model($class)->tableSchema;
@@ -114,13 +114,25 @@ $('#{$class}_model').bind('keyup change', function(){
 		if($columns[$primaryKey]->comment == 'trigger')
 			$isStatisticTable = 1;
 
-		foreach($columns as $name=>$column) {
-			if(!$isStatisticTable && $column->dbType == 'tinyint(1)' && (in_array($column->name, array('publish','headline')) || $column->comment != '')) {
-				$functions[$column->name] = array(
-					'redirect' => true,
-					'dialog' => false,
-					'file' => "admin_$column->name.php",
-				);
+		if($isStatisticTable) {
+			unset($functions['public']);
+			unset($functions['suggest']);
+		} else {
+			foreach($columns as $name=>$column) {
+				if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
+					$functions['runaction'] = array(
+						'redirect' => false,
+						'dialog' => false,
+						'file' => false,
+					);
+				}
+				if($column->dbType == 'tinyint(1)' && (in_array($column->name, array('publish','headline')) || $column->comment != '')) {
+					$functions[$column->name] = array(
+						'redirect' => true,
+						'dialog' => false,
+						'file' => "admin_$column->name.php",
+					);
+				}
 			}
 		}
 	}?>
@@ -128,7 +140,7 @@ $('#{$class}_model').bind('keyup change', function(){
 	<div style="margin: 5px 0;">
 		<table class="preview">
 			<tr>
-				<th class="file"><?php echo $form->labelEx($model,'generateCode'); ?></th>
+				<th class="file"><?php echo $form->labelEx($model,'generateAction'); ?></th>
 				<th class="file">Generate</th>
 				<th class="file">Dialog</th>
 				<th class="file">Redirect</th>
@@ -139,19 +151,24 @@ $('#{$class}_model').bind('keyup change', function(){
 		'update'=>'update',
 		'view'=>'view',
 	);
-	foreach($functions as $key => $val) {?>
+	foreach($functions as $key => $val) {
+		if($key == 'runaction') {
+			$model->generateAction[$key]['generate'] = 1;
+			echo $form->hiddenField($model, "generateAction[$key][generate]");
+		} else {?>
 		<tr>
 			<td class="file">
 				<?php echo ucwords($key);
 				echo $val['file'] ? ' <small>"<em>'.$val['file'].'</em>"</small>' : '';
-				$model->generateCode[$key]['file'] = $val['file'];
-				echo $form->hiddenField($model, "generateCode[$key][file]");?>
+				$model->generateAction[$key]['file'] = $val['file'];
+				echo $form->hiddenField($model, "generateAction[$key][file]");?>
 			</td>
-			<td class="confirm"><?php echo $form->checkBox($model,"generateCode[$key][generate]"); ?></td>
-			<td class="confirm"><?php echo $val['dialog'] == true ? $form->checkBox($model,"generateCode[$key][dialog]") : '-'; ?></td>
-			<td class="confirm"><?php echo $val['redirect'] == true ? $form->dropDownList($model,"generateCode[$key][redirect]", $redirect) : '-';?></td>
+			<td class="file"><?php echo $form->checkBox($model,"generateAction[$key][generate]"); ?></td>
+			<td class="file"><?php echo $val['dialog'] == true ? $form->checkBox($model,"generateAction[$key][dialog]") : '-'; ?></td>
+			<td class="file"><?php echo $val['redirect'] == true ? $form->dropDownList($model,"generateAction[$key][redirect]", $redirect) : '-';?></td>
 		</tr>
-<?php }
+<?php	}
+	}
 }?>
 		</table>
 	</div>

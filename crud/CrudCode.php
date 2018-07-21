@@ -11,7 +11,7 @@ class CrudCode extends CCodeModel
 	public $uploadPath=array(
 		'directory' => 'public/main',
 	);
-	public $defaultFunction=array(
+	public $defaultActions=array(
 		'public' => array(
 			'redirect' => false,
 			'dialog' => false,
@@ -48,7 +48,7 @@ class CrudCode extends CCodeModel
 			'file' => 'admin_delete.php',
 		)
 	);
-	public $generateCode=array();
+	public $generateAction=array();
 	public $useModified=false;
 	public $link='https://github.com/ommu';
 
@@ -70,7 +70,7 @@ class CrudCode extends CCodeModel
 			array('viewPath', 'validateViewPath', 'skipOnError'=>true),
 			array('model', 'validateModel'),
 			array('baseControllerClass, controllerPath, viewPath, uploadPath, link', 'sticky'),
-			array('generateCode', 'safe'),
+			array('generateAction', 'safe'),
 		));
 	}
 
@@ -84,7 +84,7 @@ class CrudCode extends CCodeModel
 			'viewPath'=>'View Path',
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
-			'generateCode'=>'Generate Code',
+			'generateAction'=>'Generate Action',
 			'useModified'=>'Modified',
 			'link'=>'Link Repository',
 		));
@@ -143,7 +143,7 @@ class CrudCode extends CCodeModel
 		
 		$table=$this->getTableSchema();
 		$breadcrumbRelationAttribute = $this->tableRelationAttribute($table->name, '->');
-		$generateFiles = $this->getFileGenerate($this->generateCode);
+		$generateFiles = $this->getFileGenerate($this->generateAction);
 		
 		$params=array(
 			'modelClass'=>$this->getModelClass(),
@@ -516,9 +516,9 @@ if($form == true) {
 		return $this->uploadPath['subfolder'];
 	}
 
-	public function getGenerateCode()
+	public function getGenerateAction()
 	{
-		return $this->generateCode;
+		return $this->generateAction;
 	}
 
 	public function getUseModified()
@@ -529,6 +529,39 @@ if($form == true) {
 	public function getLinkSource()
 	{
 		return $this->link;
+	}
+
+	public function getOtherActions()
+	{
+		$defaultAction = $this->defaultActions;
+		$actions = $this->generateAction;
+		
+		$items = array();
+		foreach($actions as $key=>$val) {
+			if(!array_key_exists($key, $defaultAction))
+				$items[] = $key;
+		}
+		
+		return $items;
+	}
+
+	public function getActions()
+	{
+		$actions = $this->generateAction;
+		
+		$items = array('index');
+		foreach($actions as $key=>$val) {
+			if($val['generate']) {
+				if($key == 'create')
+					$items[] = 'add';
+				else if($key == 'update')
+					$items[] = 'edit';
+				else
+					$items[] = $key;
+			}
+		}
+		
+		return $items;
 	}
 
 	public function validateControllerPath($attribute,$params)
@@ -707,18 +740,6 @@ if($form == true) {
 		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 
-	public function otherAction($actions)
-	{
-		$defaultAction = $this->defaultFunction;
-		$items = array();
-		foreach($actions as $key=>$val) {
-			if(!array_key_exists($key, $defaultAction))
-				$items[] = $key;
-		}
-		
-		return $items;
-	}
-
 	public function getFileGenerate($generate)
 	{
 		$items = array();
@@ -729,6 +750,27 @@ if($form == true) {
 		asort($items);
 		
 		return array_unique($items);
+	}
+
+	public function shortLabel($modelClass)
+	{
+		$inflector = new Inflector;
+		$names = $inflector->camel2id($modelClass, '_');
+		$nameArray = explode('_', $names);
+
+		if(count($nameArray) != 1) {
+			array_shift($nameArray);
+			if(is_array($nameArray))
+				return implode(' ', $nameArray);
+			else
+				return $nameArray;
+
+		} else {
+			if(is_array($nameArray))
+				return implode(' ', $nameArray);
+			else
+				return $nameArray;
+		}
 	}
 
 	/**

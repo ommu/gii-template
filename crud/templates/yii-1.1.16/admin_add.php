@@ -40,7 +40,7 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 ?>
 
-<?php if(!$this->generateCode['create']['dialog']):?>
+<?php if(!$this->generateAction['create']['dialog']):?>
 <div class="form"<?php echo !$uploadCondition ? ' name="post-on"' : '';?>>
 	<?php echo "<?php ";?>echo $this->renderPartial('_form', array('model'=>$model)); ?>
 </div>

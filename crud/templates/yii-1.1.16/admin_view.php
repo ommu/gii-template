@@ -34,13 +34,13 @@ echo "\t\$this->breadcrumbs=array(
 ?>
 
 <?php echo "<?php ";?>//begin.Messages ?>
-<?php echo "<?php \n";?>
-if(Yii::app()->user->hasFlash('success')) 
-	echo $this->flashMessage(Yii::app()->user->getFlash('success'), 'success'); 
-?>
+<div id="ajax-message">
+<?php echo "<?php ";?>if(Yii::app()->user->hasFlash('success'))
+	echo $this->flashMessage(Yii::app()->user->getFlash('success'), 'success');?>
+</div>
 <?php echo "<?php ";?>//end.Messages ?>
 
-<?php if($this->generateCode['view']['dialog']):?>
+<?php if($this->generateAction['view']['dialog']):?>
 <div class="dialog-content">
 <?php else: ?>
 <div class="box">
@@ -62,13 +62,27 @@ foreach($columns as $name=>$column) {
 		if($column->dbType == 'tinyint(1)' && $column->defaultValue === null) {
 			echo "\t\t\t'value'=>\$model->$column->name ? \$model->$column->name : '-',\n";
 		} else {
-			$publish = 'Publish,Unpublish';
-			if($column->comment != '')
-				$publish = $column->comment;
+			$publishCondition = 0;
+			$quickActionCondition = 0;
+			$publish = $column->comment;
+			if($publish == '')
+				$publish = 'Enable,Disable';
+			if($column->name == 'publish' && $column->comment == '') {
+				$publishCondition = 1;
+				$publish = 'Publish,Unpublish';
+			}
+			if($column->name == 'headline' && $column->comment == '')
+				$publish = 'Headline,Unheadline';
 			$publishArray = explode(',', $publish);
-			echo "\t\t\t'value'=>\$model->$column->name ? Yii::t('phrase', '$publishArray[0]') : Yii::t('phrase', '$publishArray[1]'),\n";
+			if(in_array($column->name, array('publish','headline')) || $column->comment != '') {
+				if($publishCondition)
+					echo "\t\t\t'value'=>\$this->quickAction(Yii::app()->controller->createUrl('$column->name', array('id'=>\$model->$table->primaryKey)), \$model->$column->name),\n";
+				else
+					echo "\t\t\t'value'=>\$this->quickAction(Yii::app()->controller->createUrl('$column->name', array('id'=>\$model->$table->primaryKey)), \$model->$column->name, '$publish'),\n";
+			} else
+				echo "\t\t\t'value'=>\$model->$column->name ? Yii::t('phrase', '$publishArray[0]') : Yii::t('phrase', '$publishArray[1]'),\n";
 			//echo "\t\t\t'value'=>\$model->$column->name ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
-			//echo "\t\t\t'type'=>'raw',\n";
+			echo "\t\t\t'type'=>'raw',\n";
 		}
 		echo "\t\t),\n";
 	} else if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
@@ -132,7 +146,7 @@ if((in_array($column->dbType, array('text')) && (in_array('file', $commentArray)
 ?>
 	),
 )); ?>
-<?php if($this->generateCode['view']['dialog']):?>
+<?php if($this->generateAction['view']['dialog']):?>
 </div>
 <div class="dialog-submit">
 	<?php echo "<?php ";?>echo CHtml::button(Yii::t('phrase', 'Close'), array('id'=>'closed')); ?>
