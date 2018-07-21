@@ -14,6 +14,7 @@ class ModelCode extends CCodeModel
 	public $baseClass='OActiveRecord';
 	public $buildRelations=true;
 	public $commentsAsLabels=false;
+	public $moduleName='core';
 	public $uploadPath=array(
 		'directory' => 'public/main',
 	);
@@ -32,9 +33,9 @@ class ModelCode extends CCodeModel
 	public function rules()
 	{
 		return array_merge(parent::rules(), array(
-			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId, link', 'filter', 'filter'=>'trim'),
-			array('connectionId, tableName, modelClass, modelPath, baseClass, uploadPath, useEvent, useGetFunction, useModified, link', 'required'),
-			array('tablePrefix, tableName, modelPath', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
+			array('tablePrefix, baseClass, tableName, modelClass, modelPath, connectionId, moduleName, link', 'filter', 'filter'=>'trim'),
+			array('connectionId, tableName, modelClass, modelPath, baseClass, moduleName, uploadPath, useEvent, useGetFunction, useModified, link', 'required'),
+			array('tablePrefix, tableName, modelPath, moduleName', 'match', 'pattern'=>'/^(\w+[\w\.]*|\*?|\w+\.\*)$/', 'message'=>'{attribute} should only contain word characters, dots, and an optional ending asterisk.'),
 			array('connectionId', 'validateConnectionId', 'skipOnError'=>true),
 			array('tableName', 'validateTableName', 'skipOnError'=>true),
 			array('tablePrefix, modelClass', 'match', 'pattern'=>'/^[a-zA-Z_]\w*$/', 'message'=>'{attribute} should only contain word characters.'),
@@ -42,7 +43,7 @@ class ModelCode extends CCodeModel
 			array('modelPath', 'validateModelPath', 'skipOnError'=>true),
 			array('baseClass, modelClass', 'validateReservedWord', 'skipOnError'=>true),
 			array('baseClass', 'validateBaseClass', 'skipOnError'=>true),
-			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels, uploadPath, link', 'sticky'),
+			array('connectionId, tablePrefix, modelPath, baseClass, buildRelations, commentsAsLabels, uploadPath, moduleName, link', 'sticky'),
 		));
 	}
 
@@ -57,6 +58,7 @@ class ModelCode extends CCodeModel
 			'buildRelations'=>'Build Relations',
 			'commentsAsLabels'=>'Use Column Comments as Attribute Labels',
 			'connectionId'=>'Database Connection',
+			'moduleName'=>'Module Name',
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
 			'useEvent'=>'Generate Events',
@@ -550,6 +552,11 @@ class ModelCode extends CCodeModel
 	{
 		if(Yii::app()->hasComponent($this->connectionId)===false || !(Yii::app()->getComponent($this->connectionId) instanceof CDbConnection))
 			$this->addError('connectionId','A valid database connection is required to run this generator.');
+	}
+
+	public function getModuleName()
+	{
+		return $this->moduleName;
 	}
 
 	public function getUploadPathDirectory()

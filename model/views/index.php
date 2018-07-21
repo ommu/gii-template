@@ -70,6 +70,15 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		</div>
 		<?php echo $form->error($model,'tablePrefix'); ?>
 	</div>
+	<div class="row sticky">
+		<?php echo $form->label($model,'moduleName'); ?>
+		<?php echo $form->textField($model,'moduleName', array('size'=>32)); ?>
+		<div class="tooltip">
+		This is the name of the model class to be generated (e.g. <code>Post</code>, <code>Comment</code>).
+		It is case-sensitive.
+		</div>
+		<?php echo $form->error($model,'moduleName'); ?>
+	</div>
 	<div class="row">
 		<?php echo $form->labelEx($model,'tableName'); ?>
 		<?php $this->widget('zii.widgets.jui.CJuiAutoComplete', array(

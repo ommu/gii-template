@@ -720,10 +720,12 @@ if((in_array($column->dbType, array('text')) && (in_array('file', $commentArray)
 if(!empty($manyRelationPublicVariables)) {
 	foreach ($manyRelationPublicVariables as $key=>$val) {
 		$controller = $inflector->singularize($val);
+		if($controller == $this->moduleName)
+			$controller = 'admin';
 		$attribute = $inflector->singularize($this->setRelation($modelClass));
 		echo "\t\t\t\$this->templateColumns['$key'] = array(\n";
 		echo "\t\t\t\t'name' => '$key',\n";
-		echo "\t\t\t\t'value' => 'CHtml::link(\$data->$key ? \$data->$key : 0, Yii::app()->controller->createUrl(\'$controller\', array(\'$attribute\'=>\$data->$isPrimaryKey)))',\n";
+		echo "\t\t\t\t'value' => 'CHtml::link(\$data->$key ? \$data->$key : 0, Yii::app()->controller->createUrl(\'o/$controller/manage\', array(\'$attribute\'=>\$data->$isPrimaryKey)))',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
