@@ -12,6 +12,7 @@ $nameColumn = $this->tableAttribute($columns);
 $otherActions = $this->otherActions;
 $shortLabel = ucwords($this->shortLabel($modelClass));
 $relationColumn = $this->tableRelationAttributes($table);
+$controllerFor = $this->controllerFor;
 
 $primaryKey = $table->primaryKey;
 if(!$primaryKey)
@@ -90,8 +91,11 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	{
 <?php if($this->generateAction['manage']['generate'] || ($this->generateAction['manage']['generate'] && $this->generateAction['public']['generate'])):?>
 		if(!Yii::app()->user->isGuest) {
-			if(Yii::app()->user->level == 1) {
-			//if(in_array(Yii::app()->user->level, array(1,2))) {
+<?php if(count($controllerFor) == 1):?>
+			if(Yii::app()->user->level == <?php echo $controllerFor[0];?>) {
+<?php else:?>
+			if(in_array(Yii::app()->user->level, array(<?php echo implode(',', $controllerFor);?>))) {
+<?php endif; ?>
 				$arrThemes = $this->currentTemplate('admin');
 				Yii::app()->theme = $arrThemes['folder'];
 				$this->layout = $arrThemes['layout'];
@@ -135,8 +139,11 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 			array('allow', // allow authenticated user to perform 'create' and 'update' actions
 				'actions'=>array('<?php echo implode('\',\'', $this->actions);?>'),
 				'users'=>array('@'),
-				'expression'=>'in_array(Yii::app()->user->level, array(1,2))',
-				//'expression'=>'Yii::app()->user->level == 1',
+<?php if(count($controllerFor) == 1):?>
+				'expression'=>'Yii::app()->user->level == <?php echo $controllerFor[0];?>',
+<?php else:?>
+				'expression'=>'in_array(Yii::app()->user->level, array(<?php echo implode(',', $controllerFor);?>))',
+<?php endif; ?>
 			),
 			array('deny',  // deny all users
 				'users'=>array('*'),

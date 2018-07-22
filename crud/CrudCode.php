@@ -49,6 +49,7 @@ class CrudCode extends CCodeModel
 		)
 	);
 	public $generateAction=array();
+	public $controllerFor;
 	public $useModified=false;
 	public $link='https://github.com/ommu';
 
@@ -60,7 +61,7 @@ class CrudCode extends CCodeModel
 	{
 		return array_merge(parent::rules(), array(
 			array('model, controller, controllerPath, viewPath', 'filter', 'filter'=>'trim'),
-			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, useModified, link', 'required'),
+			array('model, controller, baseControllerClass, controllerPath, viewPath, uploadPath, controllerFor, useModified, link', 'required'),
 			array('model', 'match', 'pattern'=>'/^\w+[\w+\\.]*$/', 'message'=>'{attribute} should only contain word characters and dots.'),
 			array('controller', 'match', 'pattern'=>'/^\w+[\w+\\/]*$/', 'message'=>'{attribute} should only contain word characters and slashes.'),
 			array('baseControllerClass', 'match', 'pattern'=>'/^[a-zA-Z_\\\\][\w\\\\]*$/', 'message'=>'{attribute} should only contain word characters and backslashes.'),
@@ -85,6 +86,7 @@ class CrudCode extends CCodeModel
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
 			'generateAction'=>'Generate Action',
+			'controllerFor'=>'Controller For',
 			'useModified'=>'Modified',
 			'link'=>'Link Repository',
 		));
@@ -519,6 +521,11 @@ if($form == true) {
 	public function getGenerateAction()
 	{
 		return $this->generateAction;
+	}
+
+	public function getControllerFor()
+	{
+		return $this->controllerFor;
 	}
 
 	public function getUseModified()

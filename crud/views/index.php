@@ -99,6 +99,19 @@ $('#{$class}_model').bind('keyup change', function(){
 		<?php echo $form->error($model,'uploadPath[subfolder]'); ?>
 	</div>
 
+	<div class="row">
+		<?php echo $form->labelEx($model,'controllerFor'); ?>
+		<?php $controllerFor = UserLevel::getUserLevel();
+		echo $form->checkBoxList($model,'controllerFor',$controllerFor, array(
+			'separator'=>' ',
+			'template'=>'<span>{input}<span></span>{label}</span>',
+			'labelOptions'=>array(
+				'style'=>'display: inline-block; padding: 0 10px 0 5px;',
+			),
+		)); ?>
+		<?php echo $form->error($model,'controllerFor'); ?>
+	</div>
+
 	<?php 
 	$functions = $model->defaultActions;
 	if(!$model->getErrors() && $model->model) {
