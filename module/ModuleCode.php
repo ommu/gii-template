@@ -4,12 +4,18 @@ class ModuleCode extends CCodeModel
 {
 	public $moduleID;
 
+	public $moduleName;
+	public $moduleDesc;
+	public $useModified=false;
+	public $link='https://github.com/ommu';
+
 	public function rules()
 	{
 		return array_merge(parent::rules(), array(
-			array('moduleID', 'filter', 'filter'=>'trim'),
-			array('moduleID', 'required'),
+			array('moduleID, moduleName, moduleDesc, link', 'filter', 'filter'=>'trim'),
+			array('moduleID, moduleName, useModified, link', 'required'),
 			array('moduleID', 'match', 'pattern'=>'/^\w+$/', 'message'=>'{attribute} should only contain word characters.'),
+			array('moduleName, moduleDesc, link', 'sticky'),
 		));
 	}
 
@@ -17,6 +23,8 @@ class ModuleCode extends CCodeModel
 	{
 		return array_merge(parent::attributeLabels(), array(
 			'moduleID'=>'Module ID',
+			'useModified'=>'Modified',
+			'link'=>'Link Repository',
 		));
 	}
 
@@ -48,16 +56,22 @@ EOD;
 		$templatePath=$this->templatePath;
 		$modulePath=$this->modulePath;
 		$moduleTemplateFile=$templatePath.DIRECTORY_SEPARATOR.'module.php';
+		$moduleYAMLTemplateFile=$templatePath.DIRECTORY_SEPARATOR.'module.yaml.php';
 
 		$this->files[]=new CCodeFile(
 			$modulePath.'/'.$this->moduleClass.'.php',
 			$this->render($moduleTemplateFile)
 		);
+		$this->files[]=new CCodeFile(
+			$modulePath.'/'.$this->moduleID.'.yaml',
+			$this->render($moduleYAMLTemplateFile)
+		);
 
 		$files=CFileHelper::findFiles($templatePath,array(
 			'exclude'=>array(
 				'.svn',
-				'.gitignore'
+				'.gitignore',
+				'.yaml',
 			),
 		));
 
@@ -74,10 +88,12 @@ EOD;
 				}
 				else
 					$content=file_get_contents($file);
-				$this->files[]=new CCodeFile(
-					$modulePath.substr($file,strlen($templatePath)),
-					$content
-				);
+				if(!preg_match('/(yaml)/', $file)) {
+					$this->files[]=new CCodeFile(
+						$modulePath.substr($file,strlen($templatePath)),
+						$content
+					);
+				}
 			}
 		}
 	}
@@ -90,5 +106,25 @@ EOD;
 	public function getModulePath()
 	{
 		return Yii::app()->modulePath.DIRECTORY_SEPARATOR.$this->moduleID;
+	}
+
+	public function getModuleName()
+	{
+		return $this->moduleName;
+	}
+
+	public function getModuleDescription()
+	{
+		return $this->moduleDesc;
+	}
+
+	public function getUseModified()
+	{
+		return $this->useModified;
+	}
+
+	public function getLinkSource()
+	{
+		return $this->link;
 	}
 }

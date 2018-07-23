@@ -16,4 +16,40 @@
 		<?php echo $form->error($model,'moduleID'); ?>
 	</div>
 
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'moduleName'); ?>
+		<?php echo $form->textField($model,'moduleName', array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a hyperlink (e.g. <code>https://github.com/ommu</code>)
+		</div>
+		<?php echo $form->error($model,'moduleName'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'moduleDesc'); ?>
+		<?php echo $form->textField($model,'moduleDesc', array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a hyperlink (e.g. <code>https://github.com/ommu</code>)
+		</div>
+		<?php echo $form->error($model,'moduleDesc'); ?>
+	</div>
+
+	<div class="row">
+		<?php echo $form->labelEx($model,'useModified'); ?>
+		<?php echo $form->checkBox($model,'useModified'); ?>
+		<div class="tooltip">
+			Default value is <code>false</code>. Used to display modification date in source code
+		</div>
+		<?php echo $form->error($model,'useModified'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'link'); ?>
+		<?php echo $form->textField($model,'link', array('size'=>64)); ?>
+		<div class="tooltip">
+		It can be either a hyperlink (e.g. <code>https://github.com/ommu</code>)
+		</div>
+		<?php echo $form->error($model,'link'); ?>
+	</div>
+
 <?php $this->endWidget(); ?>
