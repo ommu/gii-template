@@ -41,7 +41,7 @@ endif;
 ?>
 ?>
 
-<?php echo "<?php ";?>$form=$this->beginWidget('application.libraries.yii-traits.system.OActiveForm', array(
+<?php echo "<?php ";?>$form=$this->beginWidget('CActiveForm', array(
 	'id'=>'<?php echo $this->class2id($modelClass);?>-form',
 	'enableAjaxValidation'=>true,
 )); ?>
