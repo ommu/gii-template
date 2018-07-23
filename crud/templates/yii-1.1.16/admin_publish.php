@@ -12,10 +12,10 @@ foreach($this->generateAction as $key=>$val) {
 		$action = $key;
 }
 
-$publish = $column[$action]->comment;
-if($action == 'publish' && $column[$action]->comment == '')
+$publish = $columns[$action]->comment;
+if($action == 'publish' && $columns[$action]->comment == '')
 	$publish = 'Publish,Unpublish';
-if($action == 'headline' && $column[$action]->comment == '')
+if($action == 'headline' && $columns[$action]->comment == '')
 	$publish = 'Headline,Unheadline';
 $publishArray = explode(',', $publish);
 

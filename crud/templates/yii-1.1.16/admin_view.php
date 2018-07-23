@@ -143,7 +143,7 @@ else {
 		echo "\t\t\t'value'=>\$model->$publicAttribute ? \$model->$column->name : '-',\n";
 }
 if((in_array($column->dbType, array('text')) && (in_array('file', $commentArray) || in_array('redactor', $commentArray))) && $column->name != 'slug')
-	echo "\t\t\t'type' => 'raw',\n";
+	echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
 	}
 }

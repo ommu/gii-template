@@ -89,7 +89,10 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	 */
 	public function init() 
 	{
-<?php if($this->generateAction['manage']['generate'] || ($this->generateAction['manage']['generate'] && $this->generateAction['public']['generate'])):?>
+<?php 
+$isAdminCondition = 0;
+if($this->generateAction['manage']['generate'] || ($this->generateAction['manage']['generate'] && $this->generateAction['public']['generate']) || (!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate'])):
+	$isAdminCondition = 1;?>
 		if(!Yii::app()->user->isGuest) {
 <?php if(count($controllerFor) == 1):?>
 			if(Yii::app()->user->level == <?php echo $controllerFor[0];?>) {
@@ -121,7 +124,7 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		);
 	}
 
-<?php if($this->generateAction['manage']['generate'] || ($this->generateAction['manage']['generate'] && $this->generateAction['public']['generate'])):?>
+<?php if($isAdminCondition):?>
 	/**
 	 * Specifies the access control rules.
 	 * This method is used by the 'accessControl' filter.
@@ -188,9 +191,13 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 		$this->render('front_index', array(
 			'dataProvider'=>$dataProvider,
 		));
-<?php else:?>
+<?php else:
+	if($this->generateAction['manage']['generate']):?>
 		$this->redirect(array('manage'));
-<?php endif; ?>
+<?php elseif($this->generateAction['update']['generate']):?>
+		$this->redirect(array('edit'));
+<?php endif;
+endif; ?>
 	}
 
 <?php if($this->generateAction['public']['generate']):?>
@@ -376,9 +383,17 @@ if($this->generateAction['update']['generate']):?>
 	 * If update is successful, the browser will be redirected to the 'view' page.
 	 * @param integer $id the ID of the model to be updated
 	 */
+<?php if($this->generateAction['manage']['generate']):?>
 	public function actionEdit($id) 
 	{
 		$model=$this->loadModel($id);
+<?php else:?>
+	public function actionEdit() 
+	{
+		$model = <?php echo $modelClass; ?>::model()->findByPk(1);
+		if($model == null)
+			$model=new <?php echo $modelClass; ?>;
+<?php endif;?>
 
 		// Uncomment the following line if AJAX validation is needed
 		$this->performAjaxValidation($model);
@@ -411,8 +426,9 @@ if($this->generateAction['update']['generate']):?>
 				if(Yii::app()->getRequest()->getParam('enablesave') == 1) {
 					if($model->save()) {
 						echo CJSON::encode(array(
-							'type' => 5,
-<?php if($this->generateAction['update']['redirect'] == 'manage'):?>
+							'type' => <?php echo (!$this->generateAction['manage']['generate'] && $this->generateAction['update']['redirect'] == 'update') ? '0' : '5'?>,
+<?php if($this->generateAction['manage']['generate']):
+	if($this->generateAction['update']['redirect'] == 'manage'):?>
 							'get' => Yii::app()->controller->createUrl('manage'),
 <?php elseif($this->generateAction['update']['redirect'] == 'update'):?>
 							'get' => Yii::app()->controller->createUrl('edit', array('id'=>$model-><?php echo $table->primaryKey; ?>)),
@@ -420,6 +436,7 @@ if($this->generateAction['update']['generate']):?>
 							'get' => Yii::app()->controller->createUrl('view', array('id'=>$model-><?php echo $table->primaryKey; ?>)),
 <?php endif;?>
 							'id' => 'partial-<?php echo $this->class2id($modelClass); ?>',
+<?php endif;?>
 							'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success updated.').'</strong></div>',
 						));
 					} else
@@ -446,8 +463,12 @@ if($this->generateAction['update']['generate']):?>
 		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
 		$this->dialogWidth = 600;
 
-<?php endif;?>
+<?php endif;
+if($this->generateAction['manage']['generate']):?>
 		$this->pageTitle = Yii::t('phrase', 'Update <?php echo $inflector->singularize($shortLabel); ?>: {<?php echo key($relationColumn);?>}', array('{<?php echo key($relationColumn);?>}'=>$model-><?php echo implode('->', $relationColumn);?>));
+<?php else:?>
+		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
+<?php endif;?>
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_edit', array(
@@ -504,7 +525,11 @@ if($this->generateAction['delete']['generate']): ?>
 <?php endif; ?>
 				echo CJSON::encode(array(
 					'type' => 5,
+<?php if($this->generateAction['manage']['generate']):?>
 					'get' => Yii::app()->controller->createUrl('manage'),
+<?php elseif($this->generateAction['update']['generate']): ?>
+					'get' => Yii::app()->controller->createUrl('edit'),
+<?php endif; ?>
 					'id' => 'partial-<?php echo $this->class2id($modelClass); ?>',
 					'msg' => '<div class="errorSummary success"><strong>'.Yii::t('phrase', '<?php echo ucfirst(strtolower($inflector->singularize($label))); ?> success deleted.').'</strong></div>',
 				));
@@ -517,10 +542,18 @@ if($this->generateAction['delete']['generate']): ?>
 		}
 
 		$this->dialogDetail = true;
+<?php if($this->generateAction['manage']['generate']):?>
 		$this->dialogGroundUrl = Yii::app()->controller->createUrl('manage');
+<?php elseif($this->generateAction['update']['generate']): ?>
+		$this->dialogGroundUrl = Yii::app()->controller->createUrl('edit');
+<?php endif; ?>
 		$this->dialogWidth = 350;
 
+<?php if($this->generateAction['manage']['generate']):?>
 		$this->pageTitle = Yii::t('phrase', 'Delete <?php echo $inflector->singularize($shortLabel); ?>: {<?php echo key($relationColumn);?>}', array('{<?php echo key($relationColumn);?>}'=>$model-><?php echo implode('->', $relationColumn);?>));
+<?php else: ?>
+		$this->pageTitle = Yii::t('phrase', 'Delete <?php echo $inflector->singularize($shortLabel); ?>');
+<?php endif; ?>
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_delete');

@@ -26,11 +26,18 @@ echo "<?php\n"; ?>
 
 <?php
 $label=$inflector->pluralize($this->class2name($modelClass));
+if(!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate']):
+echo "\t\$this->breadcrumbs=array(
+	\t'$label'=>array('index'),
+	\t'Delete',
+\t);\n";
+else:
 echo "\t\$this->breadcrumbs=array(
 	\t'$label'=>array('manage'),
 	\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
 	\t'Delete',
 \t);\n";
+endif;
 ?>
 ?>
 

@@ -88,7 +88,7 @@ if($this->generateAction['create']['dialog'] || $this->generateAction['update'][
 
 <?php endif; ?>
 <?php foreach($columns as $column) {
-	if($column->autoIncrement || $column->comment == 'trigger' || $column->name == 'slug' || $column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null) || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
+	if($column->autoIncrement || $column->comment == 'trigger' || $column->name == 'slug' || $column->type==='boolean' || ($column->dbType == 'tinyint(1)' && ($column->defaultValue !== null && $column->name != 'permission')) || (in_array($column->name, array('creation_id','modified_id','updated_id')) && $column->comment != 'trigger'))
 		continue;
 
 	$commentArray = explode(',', $column->comment);
@@ -111,6 +111,9 @@ if($this->generateAction['create']['dialog'] || $this->generateAction['update'][
 
 <?php }
 foreach($columns as $column) {
+if($column->name == 'permission')
+	continue;
+
 if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
 		<div class="form-group row publish">
 			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>

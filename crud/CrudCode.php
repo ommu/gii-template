@@ -471,7 +471,7 @@ if($form == true) {
 			$relationTableName = trim($foreignKeys[$column->name]);
 			$relationClassName = $this->generateClassName($relationTableName);
 			$relationFunction = ucfirst($this->setRelation($relationClassName));
-			return "\$$relationName = $relationClassName::get{$relationFunction}();\n\t\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$relationName, array('prompt'=>'', 'class'=>'form-control'))";
+			return "\$$relationName = $relationClassName::get{$relationFunction}();\n\t\t\t\tif(\$$relationName != null)\n\t\t\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$relationName, array('prompt'=>'', 'class'=>'form-control'));\n\t\t\t\telse\n\t\t\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', array('prompt'=>''), array('class'=>'form-control'))";
 		} else if(($column->isForeignKey && !$smallintCondition) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))
 			return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('class'=>'form-control'))";
 		else
