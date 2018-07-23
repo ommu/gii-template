@@ -770,16 +770,18 @@ foreach($columns as $name=>$column)
 }
 foreach($columns as $name=>$column)
 {
+	$comment = $column->comment;
+	if($column->name == 'headline' && $column->comment == '')
+		$comment = 'Headline,Unheadline';
+
 	if($column->dbType == 'tinyint(1)' && in_array($column->name, array('publish','permission')))
 		continue;
 
-	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || $column->comment != '')) {
+	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || $comment != '')) {
 		echo "\t\t\t\$this->templateColumns['$column->name'] = array(\n";
 		echo "\t\t\t\t'name' => '$column->name',\n";
-		if($column->name == 'headline')
-			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name)',\n";
-		else
-			echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$column->comment\')',\n";
+		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$comment\')',\n";
+		echo "\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
@@ -790,14 +792,19 @@ foreach($columns as $name=>$column)
 }
 foreach($columns as $name=>$column)
 {
+	$comment = $column->comment;
+	if($column->name == 'headline' && $column->comment == '')
+		$comment = 'Publish,Unpublish';
+
 	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
 		echo "\t\t\tif(!Yii::app()->getRequest()->getParam('type')) {\n";
 		echo "\t\t\t\t\$this->templateColumns['$column->name'] = array(\n";
 		echo "\t\t\t\t\t'name' => '$column->name',\n";
-		if($column->comment != '')
-			echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$column->comment\')',\n";
-		else
+		if($comment == '')
 			echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name)',\n";
+		else
+			echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$comment\')',\n";
+		echo "\t\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
 		echo "\t\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t\t),\n";
