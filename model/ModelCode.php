@@ -3,9 +3,6 @@ Yii::import('application.libraries.gii.Inflector');
 
 class ModelCode extends CCodeModel
 {
-    const TYPE_TABLE = 1;
-	const TYPE_VIEW  = 2;
-	
 	public $connectionId='db';
 	public $tablePrefix;
 	public $tableName;
@@ -253,10 +250,17 @@ class ModelCode extends CCodeModel
 		$labels=array();
 		foreach($table->columns as $column)
 		{
-			//if($this->commentsAsLabels && $column->comment)
-			//	$labels[$column->name]=$column->comment;
-			//else
-			//{
+			$comment = $column->comment;
+			if($column->name == 'publish' && $column->comment == '')
+				$comment = 'Publish,Unpublish';
+			if($column->name == 'headline' && $column->comment == '')
+				$comment = 'Headline,Unheadline';
+			$commentArray = explode(',', $comment);
+
+			if($this->commentsAsLabels && $column->comment)
+				$labels[$column->name]=$column->comment;
+
+			else {
 				$label=ucwords(trim(strtolower(str_replace(array('-','_'),' ',preg_replace('/(?<![A-Z])[A-Z]/', ' \0', $column->name)))));
 				$label=preg_replace('/\s+/',' ',$label);
 				if(strcasecmp(substr($label,-3),' id')===0)
@@ -264,8 +268,15 @@ class ModelCode extends CCodeModel
 				if($label==='Id')
 					$label='ID';
 				$label=str_replace("'","\\'",$label);
-				$labels[$column->name]=$label;
-			//}
+				
+				if($column->dbType == 'tinyint(1)') {
+					if($comment)
+						$labels[$column->name]=$commentArray[0];
+					else
+						$labels[$column->name]=$label;
+				} else
+					$labels[$column->name]=$label;
+			}
 		}
 		return $labels;
 	}
@@ -280,6 +291,7 @@ class ModelCode extends CCodeModel
 		$safe=array();
 		$trigger=array();
 		$serialize=array();
+
 		foreach($table->columns as $column)
 		{
 			$commentArray = explode(',', $column->comment);
@@ -289,13 +301,22 @@ class ModelCode extends CCodeModel
 			$r=!$column->allowNull && $column->defaultValue===null;
 			if($r && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug')))
 				$required[]=$column->name;
-			if($column->type==='integer')
+			if($column->type==='integer') {
 				$integers[]=$column->name;
-			elseif($column->type==='double')
+				if($column->allowNull) {
+					$safe[]=$column->name;
+					$length[$column->size][]=$column->name;
+				}
+				if($column->defaultValue!==null)
+					$safe[]=$column->name;
+			}elseif($column->type==='double')
 				$numerical[]=$column->name;
 			elseif($column->type==='string') {
-				if(preg_match('/(int)/', $column->dbType))
+				if(preg_match('/(int)/', $column->dbType)) {
+					if($column->allowNull)
+						$safe[]=$column->name;
 					$integers[]=$column->name;
+				}
 				if($column->size>0)
 					$length[$column->size][]=$column->name;
 			} elseif(!$column->isPrimaryKey && !$r)
@@ -609,33 +630,6 @@ class ModelCode extends CCodeModel
 
 		return $tableViews;
 	}
-	
-	public function tableType($tableName) 
-	{
-		if($tableName == '')
-			throw new \Exception('Parameter $tableName wajib ada!.');
-
-		$_tblType = null;
-		$allTables = $this->getAllTables();
-		foreach($allTables as $item) {
-			$vars = get_object_vars($item);
-			foreach($vars as $key => $val) {
-				if($key != 'Table_type' && $val == $tableName) {
-					if($vars['Table_type'] == 'VIEW')
-						$_tblType = self::TYPE_VIEW;
-					break;
-				}
-			}
-
-			if($_tblType != null)
-				break;
-		}
-
-		if($_tblType == self::TYPE_VIEW)
-			return self::TYPE_VIEW;
-		else
-			return self::TYPE_TABLE;
-	}
 
 	public function tableView($tableName, $type2=false)
 	{
@@ -735,7 +729,7 @@ class ModelCode extends CCodeModel
 
 		foreach ($table->columns as $column) {
 			$relationColumn = [];
-			if(preg_match('/(name|title)/', $column->name)) {
+			if(preg_match('/(name|title|body)/', $column->name)) {
 				$commentArray = explode(',', $column->comment);
 				if(in_array('trigger[delete]', $commentArray)) {
 					$relationColumn[$column->name] = $this->i18nRelation($column->name);

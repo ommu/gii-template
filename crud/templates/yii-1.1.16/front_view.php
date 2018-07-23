@@ -46,23 +46,21 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\t'value'=>\$model->$column->name,\n";
 		echo "\t\t),\n";
 	} else if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {
+		$publish = $column->comment;
+		if($column->name == 'publish' && $column->comment == '')
+			$publish = 'Publish,Unpublish';
+		if($column->name == 'headline' && $column->comment == '')
+			$publish = 'Headline,Unheadline';
+		$publishArray = explode(',', $publish);
+
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$column->name',\n";
-		if($column->dbType == 'tinyint(1)' && $column->defaultValue === null) {
+		if($publish == '')
 			echo "\t\t\t'value'=>\$model->$column->name ? \$model->$column->name : '-',\n";
-		} else {
-			$publish = $column->comment;
-			if($publish == '')
-				$publish = 'Enable,Disable';
-			if($column->name == 'publish' && $column->comment == '')
-				$publish = 'Publish,Unpublish';
-			if($column->name == 'headline' && $column->comment == '')
-				$publish = 'Headline,Unheadline';
-			$publishArray = explode(',', $publish);
+		else
 			echo "\t\t\t'value'=>\$model->$column->name ? Yii::t('phrase', '$publishArray[0]') : Yii::t('phrase', '$publishArray[1]'),\n";
-			//echo "\t\t\t'value'=>\$model->$column->name ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
-			//echo "\t\t\t'type'=>'raw',\n";
-		}
+		//echo "\t\t\t'value'=>\$model->$column->name ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
+		//echo "\t\t\t'type'=>'raw',\n";
 		echo "\t\t),\n";
 	} else if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 		$relationName = $this->setRelation($column->name, true);

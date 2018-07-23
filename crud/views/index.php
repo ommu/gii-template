@@ -124,13 +124,14 @@ $('#{$class}_model').bind('keyup change', function(){
 			$primaryKey = key($columns);
 
 		$isStatisticTable = 0;
-		if($columns[$primaryKey]->comment == 'trigger')
+		if(in_array($columns[$primaryKey]->comment, array('trigger','trigger[insert]')))
 			$isStatisticTable = 1;
 
 		if($isStatisticTable) {
 			unset($functions['public']);
 			unset($functions['suggest']);
-		} else {
+		}
+		if(!in_array($columns[$primaryKey]->comment, array('trigger'))) {
 			foreach($columns as $name=>$column) {
 				if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
 					$functions['runaction'] = array(

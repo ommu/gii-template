@@ -17,7 +17,9 @@ $inflector = new Inflector;
 $primaryKey = $table->primaryKey;
 if(!$primaryKey)
 	$primaryKey = key($columns);
+
 $tableViewCondition = 0;
+$isStatisticTable = 0;
 $generateFunctionCondition = 0;
 $otherRelationCondition = 0;
 $viewRelationCondition = 0;
@@ -46,8 +48,12 @@ if(in_array($tableView1, $tableViews) || in_array($tableView2, $tableViews)) {
 
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
-	if(!$tableViewCondition && $column->name == $primaryKey && preg_match('/(smallint)/', $column->dbType))
-		$generateFunctionCondition = 1;
+	if($column->name == $primaryKey && !$tableViewCondition) {
+		if(preg_match('/(smallint)/', $column->dbType))
+			$generateFunctionCondition = 1;
+		if($column->comment == 'trigger')
+			$isStatisticTable = 1;
+	}
 	if($column->dbType == 'tinyint(1)') {
 		$tinyCondition = 1;
 		if($column->name == 'publish')
@@ -440,7 +446,7 @@ if(!empty($searchPublicVariables)) {
 $isPrimaryKey = '';
 $availableRelations = array();
 
-if($searchVariableCondition) {?>
+if($searchVariableCondition || $viewRelationCondition) {?>
 		$criteria->with = array(
 <?php 
 if($viewRelationCondition) {
@@ -506,16 +512,20 @@ foreach($columns as $name=>$column) {
 <?php }
 foreach($columns as $name=>$column) {
 	if($column->name == 'publish') {
-		echo "\t\tif(Yii::app()->getRequest()->getParam('type') == 'publish')\n";
-		echo "\t\t\t\$criteria->compare('t.$column->name', 1);\n";
-		echo "\t\telseif(Yii::app()->getRequest()->getParam('type') == 'unpublish')\n";
-		echo "\t\t\t\$criteria->compare('t.$column->name', 0);\n";
-		echo "\t\telseif(Yii::app()->getRequest()->getParam('type') == 'trash')\n";
-		echo "\t\t\t\$criteria->compare('t.$column->name', 2);\n";
-		echo "\t\telse {\n";
-		echo "\t\t\t\$criteria->addInCondition('t.$column->name', array(0,1));\n";
-		echo "\t\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
-		echo "\t\t}\n";
+		if($tableViewCondition)
+			echo "\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
+		else {
+			echo "\t\tif(Yii::app()->getRequest()->getParam('type') == 'publish')\n";
+			echo "\t\t\t\$criteria->compare('t.$column->name', 1);\n";
+			echo "\t\telseif(Yii::app()->getRequest()->getParam('type') == 'unpublish')\n";
+			echo "\t\t\t\$criteria->compare('t.$column->name', 0);\n";
+			echo "\t\telseif(Yii::app()->getRequest()->getParam('type') == 'trash')\n";
+			echo "\t\t\t\$criteria->compare('t.$column->name', 2);\n";
+			echo "\t\telse {\n";
+			echo "\t\t\t\$criteria->addInCondition('t.$column->name', array(0,1));\n";
+			echo "\t\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
+			echo "\t\t}\n";
+		}
 
 	} else if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 		$relationName = $this->setRelation($column->name, true);
@@ -530,7 +540,10 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\t\$criteria->compare('date(t.$column->name)', date('Y-m-d', strtotime(\$this->$column->name)));\n";
 
 	} else if(preg_match('/(int)/', $column->dbType) || ($column->type==='string' && $column->isPrimaryKey == '1'))
-		echo "\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
+		if($column->dbType == 'tinyint(1)')
+			echo "\t\t\$criteria->compare('t.$column->name', Yii::app()->getRequest()->getParam('$column->name') ? Yii::app()->getRequest()->getParam('$column->name') : \$this->$column->name);\n";
+		else
+			echo "\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
 
 	else if($column->type==='string') {
 		if($tableViewCondition && preg_match('/(decimal)/', $column->dbType))
@@ -596,6 +609,11 @@ foreach($columns as $name=>$column) {
 			echo "\t\t\$criteria->compare('$relationAttribute', strtolower(\$this->$publicAttribute), true);\n";
 			$publicAttributes[] = $publicAttribute;
 		}
+	}
+}
+if($viewRelationCondition && !empty($manyRelationPublicVariables)) {
+	foreach ($manyRelationPublicVariables as $key=>$val) {
+		echo "\t\t\$criteria->compare('view.{$val}', \$this->{$key});\n";
 	}
 }
 
@@ -725,11 +743,10 @@ if(!empty($manyRelationPublicVariables)) {
 		$attribute = $inflector->singularize($this->setRelation($modelClass));
 		echo "\t\t\t\$this->templateColumns['$key'] = array(\n";
 		echo "\t\t\t\t'name' => '$key',\n";
-		echo "\t\t\t\t'value' => 'CHtml::link(\$data->$key ? \$data->$key : 0, Yii::app()->controller->createUrl(\'o/$controller/manage\', array(\'$attribute\'=>\$data->$isPrimaryKey)))',\n";
+		echo "\t\t\t\t'value' => 'CHtml::link(\$data->view->$val ? \$data->view->$val : 0, Yii::app()->controller->createUrl(\'o/$controller/manage\', array(\'$attribute\'=>\$data->$isPrimaryKey)))',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
-		echo "\t\t\t\t'filter' => false,\n";
 		echo "\t\t\t\t'type' => 'raw',\n";
 		echo "\t\t\t);\n";
 	}
@@ -864,7 +881,7 @@ if($uploadCondition) {?>
 
 $afEvents = 0;
 $afterFind = 0;
-if($tagCondition || $uploadCondition || $serializeCondition || $i18n || $manyRelationCondition)
+if($tagCondition || $uploadCondition || $serializeCondition || $i18n)
 	$afEvents = 1;
 foreach($columns as $name=>$column) {
 	$columnArray = explode('_', $column->name);
@@ -899,12 +916,6 @@ foreach($columns as $name=>$column) {
 			echo "\t\t\$this->$publicAttribute = \$this->{$relationName}->message;\n";
 			$afterFind = 1;
 		}
-	}
-}
-if(!empty($manyRelationPublicVariables)) {
-	foreach ($manyRelationPublicVariables as $key=>$val) {
-		echo "\t\t\$this->$key = count(\$this->{$val});\n";
-		$afterFind = 1;
 	}
 }
 echo !$afterFind ? "\t\t// Create action\n\n" : '';?>

@@ -48,7 +48,7 @@ class Utility
 	*/
 	public static function getCurrentTemplate($typePage) {
 		$model = OmmuThemes::model()->find(array(
-			'select'=>'folder, layout',
+			'select' => 'folder, layout',
 			'condition' => 'group_page = :group AND default_theme = "1"',
 			'params' => array(':group' => $typePage)
 		));

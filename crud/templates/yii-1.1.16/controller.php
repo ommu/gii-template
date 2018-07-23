@@ -11,7 +11,7 @@ $label = $this->class2name($modelClass);
 $nameColumn = $this->tableAttribute($columns);
 $otherActions = $this->otherActions;
 $shortLabel = ucwords($this->shortLabel($modelClass));
-$relationColumn = $this->tableRelationAttributes($table);
+$relationColumn = $this->tableRelationAttributes($table, '->');
 $controllerFor = $this->controllerFor;
 
 $primaryKey = $table->primaryKey;
@@ -275,7 +275,7 @@ if($this->generateAction['manage']['generate']):?>
 
 		$columns = $model->getGridColumn($this->gridColumnTemp());
 
-		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($shortLabel); ?>');
+		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_manage', array(

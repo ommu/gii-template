@@ -323,7 +323,10 @@ if($form == true) {
 		return "echo \$form->checkBox(\$model, '{$column->name}', array('class'=>'form-control'))";
 } else {
 	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
-		return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
+		if($column->comment != '')
+			return "echo \$form->dropDownList(\$model, '{$column->name}', array('1'=>Yii::t('phrase', '".$commentArray[0]."'), '0'=>Yii::t('phrase', '".$commentArray[1]."')), array('prompt'=>'', 'class'=>'form-control'))";
+		else
+			return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 	else {
 		if($column->comment != '')
 			return "echo \$form->dropDownList(\$model, '{$column->name}', array('1'=>Yii::t('phrase', '".$commentArray[0]."'), '0'=>Yii::t('phrase', '".$commentArray[1]."')), array('prompt'=>'', 'class'=>'form-control'))";
@@ -675,7 +678,7 @@ if($form == true) {
 			return 'id';
 	}
 
-	public function tableRelationAttributes($table)
+	public function tableRelationAttributes($table, $separator='->')
 	{
 		$foreignKeys = $this->foreignKeys($table->foreignKeys);
 		$titleCondition = 0;
@@ -683,7 +686,7 @@ if($form == true) {
 
 		foreach ($table->columns as $column) {
 			$relationColumn = [];
-			if(preg_match('/(name|title)/', $column->name)) {
+			if(preg_match('/(name|title|body)/', $column->name)) {
 				$commentArray = explode(',', $column->comment);
 				if(in_array('trigger[delete]', $commentArray)) {
 					$relationColumn[$column->name] = $this->i18nRelation($column->name);
@@ -733,7 +736,7 @@ if($form == true) {
 		$tables=array($this->getTableSchema($tableName));
 		$table = $tables[0];
 
-		$relationColumn = $this->tableRelationAttributes($table);
+		$relationColumn = $this->tableRelationAttributes($table, $separator);
 
 		if(!empty($relationColumn))
 			return implode($separator, $relationColumn);

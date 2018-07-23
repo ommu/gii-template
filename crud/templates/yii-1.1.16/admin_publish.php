@@ -13,8 +13,6 @@ foreach($this->generateAction as $key=>$val) {
 }
 
 $publish = $column[$action]->comment;
-if($publish == '')
-	$publish = 'Enable,Disable';
 if($action == 'publish' && $column[$action]->comment == '')
 	$publish = 'Publish,Unpublish';
 if($action == 'headline' && $column[$action]->comment == '')
