@@ -196,6 +196,10 @@ if($tinyCondition || $dateCondition) {
 	echo "\tuse GridViewTrait;\n";
 	$traitCondition = 1;
 }
+if($uploadCondition) {
+	echo "\tuse FileTrait;\n";
+	$traitCondition = 1;
+}
 if($traitCondition)
 	echo "\n";?>
 	public $gridForbiddenColumn = array();
@@ -959,10 +963,10 @@ if($uploadCondition) {
 			$fileType = $inflector->singularize($inflector->id2camel($column->name, '_')).'FileType';?>
 			$<?php echo $fileType;?> = array('bmp','gif','jpg','png');
 			$<?php echo $column->name;?> = CUploadedFile::getInstance($this, '<?php echo $column->name;?>');
-			if($<?php echo $column->name;?>->name != null) {
+			if($<?php echo $column->name;?> != null) {
 				$extension = pathinfo($<?php echo $column->name;?>->name, PATHINFO_EXTENSION);
 				if(!in_array(strtolower($extension), $<?php echo $fileType;?>))
-					$this->addError('<?php echo $column->name;?>', Yii::t('phrase', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
+					$this->addError('<?php echo $column->name;?>', Yii::t('phrase', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}.', array(
 						'{name}'=>$<?php echo $column->name;?>->name,
 						'{extensions}'=>Utility::formatFileType($<?php echo $fileType;?>, false),
 					)));
