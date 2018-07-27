@@ -727,6 +727,8 @@ if($translateCondition) {
 			echo "\t\t\t\t'value' => '\$data->$column->name ? CHtml::link(\$data->$column->name, join(\'/\', array(Yii::app()->request->baseUrl, self::getUploadPath(false), \$data->$primaryKey, \$data->$column->name), array(\'target\' => \'_blank\')) : \'-\'',\n";
 		else
 			echo "\t\t\t\t'value' => '\$data->$column->name ? CHtml::link(\$data->$column->name, join(\'/\', array(Yii::app()->request->baseUrl, self::getUploadPath(false), \$data->$column->name)), array(\'target\' => \'_blank\')) : \'-\'',\n";
+	} else if($column->dbType == 'text' && in_array('serialize', $commentArray)) {
+		echo "\t\t\t\t'value' => 'serialize(\$data->$column->name)',\n";
 	} else {
 		if($column->name === 'permission')
 			echo "\t\t\t\t'value' => '\$data->$column->name ? Yii::t(\'phrase\', \'Yes\') : Yii::t(\'phrase\, \'No\')',\n";

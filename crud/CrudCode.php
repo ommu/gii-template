@@ -729,6 +729,17 @@ if($form == true) {
 					return $relationColumn;
 			}
 		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $column) {
+				$relationColumn = [];
+				if($column->name == 'user_id') {
+					$relationColumn[$column->name] = $this->setRelation($column->name, true);
+					$relationColumn[] = 'displayname';
+				}
+				if(!empty($relationColumn))
+					return $relationColumn;
+			}
+		}
 	}
 
 	public function tableRelationAttribute($tableName, $separator='->')
