@@ -305,7 +305,7 @@ class CrudCode extends CCodeModel
 		if($type == false)
 			return "\$form->labelEx(\$model, '{$publicAttribute}')";
 		else
-			return "\$form->labelEx(\$model, '{$publicAttribute}', array('class'=>'col-form-label col-lg-4 col-md-3 col-sm-12'))";
+			return "\$form->labelEx(\$model, '{$publicAttribute}', array('class'=>'col-form-label col-lg-3 col-md-3 col-sm-12'))";
 	}
 
 	public function generateActiveField($modelClass,$column,$form=true)
@@ -346,17 +346,36 @@ if($form == true) {
 					'model'=>\$model,
 					'attribute'=>'{$column->name}',
 					'options'=>array(
+						'fileUpload'=>Yii::app()->createUrl('post/fileUpload',array(
+							'attr'=>'{$column->name}',
+						)),
+						'fileUploadErrorCallback'=>new CJavaScriptExpression(
+							'function(obj,json) { alert(json.error); }'
+						),
+						'imageUpload'=>Yii::app()->createUrl('post/imageUpload',array(
+							'attr'=>'{$column->name}',
+						)),
+						'imageUploadErrorCallback'=>new CJavaScriptExpression(
+							'function(obj,json) { alert(json.error); }'
+						),
+						'imageManagerJson'=>Yii::app()->createUrl('post/imageList',array(
+							'attr'=>'{$column->name}',
+						)),
+						/*
 						'buttons'=>array(
 							'html', 'formatting', '|', 
 							'bold', 'italic', 'deleted', '|',
-							'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
-							'link', '|',
+							'unorderedlist', 'orderedlist', 'outdent', 'indent', 'alignment', '|',
+							'image', 'file', 'link', '|',
 						),
+						*/
 					),
 					'plugins' => array(
 						'fontcolor' => array('js' => array('fontcolor.js')),
-						'table' => array('js' => array('table.js')),
 						'fullscreen' => array('js' => array('fullscreen.js')),
+						'table' => array('js' => array('table.js')),
+						'imagemanager' => array('js' => array('imagemanager.js')),
+						'filemanager' => array('js' => array('filemanager.js')),
 					),
 					'htmlOptions'=>array(
 						'class' => 'form-control',
@@ -446,17 +465,36 @@ if($form == true) {
 					'model'=>\$model,
 					'attribute'=>'{$column->name}',
 					'options'=>array(
+						'fileUpload'=>Yii::app()->createUrl('post/fileUpload',array(
+							'attr'=>'{$column->name}',
+						)),
+						'fileUploadErrorCallback'=>new CJavaScriptExpression(
+							'function(obj,json) { alert(json.error); }'
+						),
+						'imageUpload'=>Yii::app()->createUrl('post/imageUpload',array(
+							'attr'=>'{$column->name}',
+						)),
+						'imageUploadErrorCallback'=>new CJavaScriptExpression(
+							'function(obj,json) { alert(json.error); }'
+						),
+						'imageManagerJson'=>Yii::app()->createUrl('post/imageList',array(
+							'attr'=>'{$column->name}',
+						)),
+						/*
 						'buttons'=>array(
 							'html', 'formatting', '|', 
 							'bold', 'italic', 'deleted', '|',
-							'unorderedlist', 'orderedlist', 'outdent', 'indent', '|',
-							'link', '|',
+							'unorderedlist', 'orderedlist', 'outdent', 'indent', 'alignment', '|',
+							'image', 'file', 'link', '|',
 						),
+						*/
 					),
 					'plugins' => array(
 						'fontcolor' => array('js' => array('fontcolor.js')),
-						'table' => array('js' => array('table.js')),
 						'fullscreen' => array('js' => array('fullscreen.js')),
+						'table' => array('js' => array('table.js')),
+						'imagemanager' => array('js' => array('imagemanager.js')),
+						'filemanager' => array('js' => array('filemanager.js')),
 					),
 					'htmlOptions'=>array(
 						'class' => 'form-control',

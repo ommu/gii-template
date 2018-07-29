@@ -8,6 +8,7 @@ $inflector = new Inflector;
 
 $uploadCondition = 0;
 $htmlOptionCondition = 0;
+$formDialogCondition = 0;
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
 	if($column->dbType == 'text' && in_array('file', $commentArray))
@@ -19,6 +20,11 @@ if($uploadCondition) {
 	if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog'])
 		$htmlOptionCondition = 1;
 }
+if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog'])
+	$formDialogCondition = 1;
+
+$labelClass = $formDialogCondition ? 'col-lg-3 col-md-3 col-sm-12' : 'col-lg-3 col-md-3 col-sm-12';
+$boxFieldClass = $formDialogCondition ? 'col-lg-9 col-md-9 col-sm-12' : 'col-lg-6 col-md-9 col-sm-12';
 
 echo "<?php\n"; ?>
 /**
@@ -102,7 +108,7 @@ if($this->generateAction['create']['dialog'] || $this->generateAction['update'][
 ?>
 		<div class="form-group row">
 			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
-			<div class="col-lg-8 col-md-9 col-sm-12">
+			<div class="<?php echo $boxFieldClass;?>">
 				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
 				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $publicAttribute;?>'); ?>
 				<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');?></div>
@@ -117,7 +123,7 @@ if($column->name == 'permission')
 if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->defaultValue !== null)) {?>
 		<div class="form-group row publish">
 			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
-			<div class="col-lg-8 col-md-9 col-sm-12">
+			<div class="<?php echo $boxFieldClass;?>">
 				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
 				<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column)."; ?>\n"; ?>
 				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
@@ -128,8 +134,8 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 }?>
 <?php if(!$this->generateAction['create']['dialog'] || !$this->generateAction['update']['dialog']):?>
 		<div class="form-group row submit">
-			<label class="col-form-label col-lg-4 col-md-3 col-sm-12">&nbsp;</label>
-			<div class="col-lg-8 col-md-9 col-sm-12">
+			<label class="col-form-label <?php echo $labelClass;?>">&nbsp;</label>
+			<div class="<?php echo $boxFieldClass;?>">
 				<?php echo "<?php "; ?>echo CHtml::submitButton($model->isNewRecord ? Yii::t('phrase', 'Create') : Yii::t('phrase', 'Save'), array('onclick' => 'setEnableSave()')); ?>
 			</div>
 		</div>
