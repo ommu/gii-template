@@ -60,7 +60,7 @@ class <?php echo $this->moduleClass; ?> extends CWebModule
 		{
 			// pake ini untuk set theme per action di controller..
 			// $currentAction = Yii::app()->controller->id.'/'.$action->id;
-			if(!in_array(strtolower(Yii::app()->controller->id), $this->publicControllers) && !Yii::app()->user->isGuest) {
+			if(!in_array(Yii::app()->controller->id, $this->publicControllers) && !Yii::app()->user->isGuest) {
 				$arrThemes = $this->currentTemplate('admin');
 				Yii::app()->theme = $arrThemes['folder'];
 				$this->layout = $arrThemes['layout'];
