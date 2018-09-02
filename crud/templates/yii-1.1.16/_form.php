@@ -23,8 +23,8 @@ if($uploadCondition) {
 if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog'])
 	$formDialogCondition = 1;
 
-$labelClass = $formDialogCondition ? 'col-lg-3 col-md-3 col-sm-12' : 'col-lg-3 col-md-3 col-sm-12';
-$boxFieldClass = $formDialogCondition ? 'col-lg-9 col-md-9 col-sm-12' : 'col-lg-6 col-md-9 col-sm-12';
+$labelClass = $formDialogCondition ? 'col-lg-4 col-md-4 col-sm-12' : 'col-lg-3 col-md-3 col-sm-12';
+$boxFieldClass = $formDialogCondition ? 'col-lg-8 col-md-8 col-sm-12' : 'col-lg-6 col-md-9 col-sm-12';
 
 echo "<?php\n"; ?>
 /**

@@ -290,6 +290,10 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveLabel($modelClass,$column, $type=false)
 	{
+		$formDialogCondition = 0;
+		if($this->generateAction['create']['dialog'] || $this->generateAction['update']['dialog'])
+			$formDialogCondition = 1;
+
 		$tableSchema = $this->getTableSchema();
 		$foreignKeys = $this->foreignKeys($tableSchema->foreignKeys);
 
@@ -304,8 +308,11 @@ class CrudCode extends CCodeModel
 
 		if($type == false)
 			return "\$form->labelEx(\$model, '{$publicAttribute}')";
-		else
-			return "\$form->labelEx(\$model, '{$publicAttribute}', array('class'=>'col-form-label col-lg-3 col-md-3 col-sm-12'))";
+		else {
+			$labelClass = $formDialogCondition ? 'col-lg-4 col-md-4 col-sm-12' : 'col-lg-3 col-md-3 col-sm-12';
+
+			return "\$form->labelEx(\$model, '{$publicAttribute}', array('class'=>'col-form-label {$labelClass}'))";
+		}
 	}
 
 	public function generateActiveField($modelClass,$column,$form=true)
