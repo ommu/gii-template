@@ -22,7 +22,7 @@ class <?php echo $this->moduleClass; ?> extends CWebModule
 	private $_module = '<?php echo $this->moduleID;?>';
 
 	public $defaultController = 'site';
-	
+
 	// getAssetsUrl()
 	//	return the URL for this module's assets, performing the publish operation
 	//	the first time, and caching the result for subsequent use.

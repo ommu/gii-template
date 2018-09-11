@@ -6,16 +6,18 @@ class ModuleCode extends CCodeModel
 
 	public $moduleName;
 	public $moduleDesc;
+	public $modulePath='application.modules';
 	public $useModified=false;
 	public $link='https://github.com/ommu';
 
 	public function rules()
 	{
 		return array_merge(parent::rules(), array(
-			array('moduleID, moduleName, moduleDesc, link', 'filter', 'filter'=>'trim'),
-			array('moduleID, moduleName, useModified, link', 'required'),
+			array('moduleID, moduleName, moduleDesc, modulePath, link', 'filter', 'filter'=>'trim'),
+			array('moduleID, moduleName, modulePath, useModified, link', 'required'),
 			array('moduleID', 'match', 'pattern'=>'/^\w+$/', 'message'=>'{attribute} should only contain word characters.'),
-			array('moduleName, moduleDesc, link', 'sticky'),
+			array('modulePath', 'validateModulePath', 'skipOnError'=>true),
+			array('moduleName, moduleDesc, modulePath, link', 'sticky'),
 		));
 	}
 
@@ -23,6 +25,9 @@ class ModuleCode extends CCodeModel
 	{
 		return array_merge(parent::attributeLabels(), array(
 			'moduleID'=>'Module ID',
+			'moduleName'=>'Module Name',
+			'moduleDesc'=>'Module Description',
+			'modulePath'=>'Module Path',
 			'useModified'=>'Modified',
 			'link'=>'Link Repository',
 		));
@@ -54,16 +59,16 @@ EOD;
 	{
 		$this->files=array();
 		$templatePath=$this->templatePath;
-		$modulePath=$this->modulePath;
+		$modulePath=$this->modulePathId;
 		$moduleTemplateFile=$templatePath.DIRECTORY_SEPARATOR.'module.php';
 		$moduleYAMLTemplateFile=$templatePath.DIRECTORY_SEPARATOR.'module.yaml.php';
 
 		$this->files[]=new CCodeFile(
-			$modulePath.'/'.$this->moduleClass.'.php',
+			Yii::getPathOfAlias($modulePath).DIRECTORY_SEPARATOR.$this->moduleClass.'.php',
 			$this->render($moduleTemplateFile)
 		);
 		$this->files[]=new CCodeFile(
-			$modulePath.'/'.$this->moduleID.'.yaml',
+			Yii::getPathOfAlias($modulePath).DIRECTORY_SEPARATOR.$this->moduleID.'.yaml',
 			$this->render($moduleYAMLTemplateFile)
 		);
 
@@ -90,7 +95,7 @@ EOD;
 					$content=file_get_contents($file);
 				if(!preg_match('/(yaml)/', $file)) {
 					$this->files[]=new CCodeFile(
-						$modulePath.substr($file,strlen($templatePath)),
+						Yii::getPathOfAlias($modulePath).substr($file,strlen($templatePath)),
 						$content
 					);
 				}
@@ -103,9 +108,15 @@ EOD;
 		return ucfirst($this->moduleID).'Module';
 	}
 
-	public function getModulePath()
+	public function getModulePathId()
 	{
-		return Yii::app()->modulePath.DIRECTORY_SEPARATOR.$this->moduleID;
+		return join('.', array($this->modulePath, $this->moduleID));
+	}
+
+	public function validatemodulePath($attribute,$params)
+	{
+		if(Yii::getPathOfAlias($this->modulePath)===false)
+			$this->addError('modulePath','Model Path must be a valid path alias.');
 	}
 
 	public function getModuleName()

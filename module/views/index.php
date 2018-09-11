@@ -20,7 +20,7 @@
 		<?php echo $form->labelEx($model,'moduleName'); ?>
 		<?php echo $form->textField($model,'moduleName', array('size'=>64)); ?>
 		<div class="tooltip">
-		It can be either a hyperlink (e.g. <code>https://github.com/ommu</code>)
+		Module name.
 		</div>
 		<?php echo $form->error($model,'moduleName'); ?>
 	</div>
@@ -29,9 +29,19 @@
 		<?php echo $form->labelEx($model,'moduleDesc'); ?>
 		<?php echo $form->textField($model,'moduleDesc', array('size'=>64)); ?>
 		<div class="tooltip">
-		It can be either a hyperlink (e.g. <code>https://github.com/ommu</code>)
+		Module description.
 		</div>
 		<?php echo $form->error($model,'moduleDesc'); ?>
+	</div>
+
+	<div class="row sticky">
+		<?php echo $form->labelEx($model,'modulePath'); ?>
+		<?php echo $form->textField($model,'modulePath', array('size'=>65)); ?>
+		<div class="tooltip">
+			This refers to the directory that the new module class file should be generated under.
+			It should be specified in the form of a path alias, for example, <code>application.modules</code>.
+		</div>
+		<?php echo $form->error($model,'modulePath'); ?>
 	</div>
 
 	<div class="row">
