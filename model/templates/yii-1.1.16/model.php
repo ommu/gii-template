@@ -690,7 +690,8 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\t\t'value' => '\$data->$relationAttribute ? \$data->$relationAttribute : \'-\'',\n";
 		if($column->isForeignKey && $smallintCondition) {
 			$relationClassName = $this->generateClassName($relationTableName);
-			$relationFunction = ucfirst($this->setRelation($relationClassName));
+			$functionName = $inflector->singularize($this->setRelation($relationClassName));
+			$relationFunction = ucfirst($functionName);
 			echo "\t\t\t\t\t'filter' => $relationClassName::get{$relationFunction}(),\n";
 		}
 		echo "\t\t\t\t);\n";
@@ -759,7 +760,28 @@ if(!empty($manyRelationPublicVariables)) {
 }
 foreach($columns as $name=>$column)
 {
-	if($column->dbType == 'tinyint(1)' && (in_array($column->name, array('publish','headline','permission')) || $column->comment != ''))
+	$comment = $column->comment;
+	if($column->dbType == 'tinyint(1)' && in_array($column->name, array('publish','headline','permission')))
+		continue;
+
+	if($column->dbType == 'tinyint(1)' && $comment != '' && $comment[0] == '"') {
+		$functionName = ucfirst($inflector->singularize($inflector->id2camel($column->name, '_')));
+
+		echo "\t\t\t\$this->templateColumns['$column->name'] = array(\n";
+		echo "\t\t\t\t'name' => '$column->name',\n";
+		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, $modelClass::get$functionName())',\n";
+		echo "\t\t\t\t'htmlOptions' => array(\n";
+		echo "\t\t\t\t\t'class' => 'center',\n";
+		echo "\t\t\t\t),\n";
+		echo "\t\t\t\t'filter' => self::get$functionName(),\n";
+		echo "\t\t\t\t'type' => 'raw',\n";
+		echo "\t\t\t);\n";
+	}
+}
+foreach($columns as $name=>$column)
+{
+	$comment = $column->comment;
+	if($column->dbType == 'tinyint(1)' && (in_array($column->name, array('publish','headline','permission')) || $comment != ''))
 		continue;
 
 	if($column->dbType == 'tinyint(1)') {
@@ -777,13 +799,10 @@ foreach($columns as $name=>$column)
 foreach($columns as $name=>$column)
 {
 	$comment = $column->comment;
-	if($column->name == 'headline' && $column->comment == '')
-		$comment = 'Headline,Unheadline';
-
-	if($column->dbType == 'tinyint(1)' && in_array($column->name, array('publish','permission')))
+	if($column->dbType == 'tinyint(1)' && in_array($column->name, array('publish','headline','permission')))
 		continue;
 
-	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || $comment != '')) {
+	if($column->dbType == 'tinyint(1)' && $comment != '' && $comment[0] != '"') {
 		echo "\t\t\t\$this->templateColumns['$column->name'] = array(\n";
 		echo "\t\t\t\t'name' => '$column->name',\n";
 		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$comment\')',\n";
@@ -800,8 +819,24 @@ foreach($columns as $name=>$column)
 {
 	$comment = $column->comment;
 	if($column->name == 'headline' && $column->comment == '')
-		$comment = 'Publish,Unpublish';
+		$comment = 'Headline,Unheadline';
 
+	if($column->dbType == 'tinyint(1)' && $column->name == 'headline') {
+		echo "\t\t\t\$this->templateColumns['$column->name'] = array(\n";
+		echo "\t\t\t\t'name' => '$column->name',\n";
+		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$comment\')',\n";
+		echo "\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
+		echo "\t\t\t\t'htmlOptions' => array(\n";
+		echo "\t\t\t\t\t'class' => 'center',\n";
+		echo "\t\t\t\t),\n";
+		echo "\t\t\t\t'filter' => \$this->filterYesNo(),\n";
+		echo "\t\t\t\t'type' => 'raw',\n";
+		echo "\t\t\t);\n";
+	}
+}
+foreach($columns as $name=>$column)
+{
+	$comment = $column->comment;
 	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
 		echo "\t\t\tif(!Yii::app()->getRequest()->getParam('type')) {\n";
 		echo "\t\t\t\t\$this->templateColumns['$column->name'] = array(\n";
@@ -845,12 +880,13 @@ foreach($columns as $name=>$column)
 		}
 	}
 <?php 
-if(!$tableViewCondition && ($this->useGetFunction || $generateFunctionCondition)) {?>
+if(!$tableViewCondition && ($this->useGetFunction || $generateFunctionCondition)) {
+	$functionName = $inflector->singularize($this->setRelation($modelClass));?>
 
 	/**
-	 * function get<?php echo ucfirst($this->setRelation($modelClass))."\n";?>
+	 * function get<?php echo ucfirst($functionName)."\n";?>
 	 */
-	public static function get<?php echo ucfirst($this->setRelation($modelClass));?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
+	public static function get<?php echo ucfirst($functionName);?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
 	{
 		$criteria=new CDbCriteria;
 <?php if($publishCondition):?>
@@ -880,6 +916,35 @@ if($i18n):
 			return $model;
 	}
 <?php }
+
+$columnFunctionArray = array();
+foreach($columns as $name=>$column) {
+	if($column->comment[0] == '"')
+		$columnFunctionArray[$column->name] = $column->comment;
+}
+if(!$tableViewConditio || !empty($columnFunctionArray)) {
+	foreach($columnFunctionArray as $key=>$val) {
+		$functionName = $inflector->singularize($inflector->id2camel($key, '_'));
+		$itemArray = $this->commentToArray($val);?>
+
+	/**
+	 * function get<?php echo ucfirst($functionName)."\n";?>
+	 */
+	public static function get<?php echo ucfirst($functionName);?>($value=null)
+	{
+		$items = array(
+<?php foreach($itemArray as $key=>$val) {?>
+			'<?php echo $key;?>'=>Yii::t('phrase', '<?php echo ucfirst($val);?>'),
+<?php }?>
+		);
+
+		if($value != null)
+			return $items[$value];
+		else
+			return $items;
+	}
+<?php }
+}
 if($uploadCondition) {?>
 
 	/**
@@ -896,9 +961,6 @@ $afEvents = 0;
 $afterFind = 0;
 if($tagCondition || $uploadCondition || $serializeCondition || $i18n)
 	$afEvents = 1;
-foreach($columns as $name=>$column) {
-	$columnArray = explode('_', $column->name);
-}
 if(!$tableViewCondition && ($this->useEvent || $afEvents)) {?>
 
 	/**
@@ -1040,7 +1102,7 @@ if(!$tableViewCondition && ($this->useEvent || $bsEvents)) {?>
 	/**
 	 * before save attributes
 	 */
-	protected function beforeSave() 
+	protected function beforeSave()
 	{
 <?php if($i18n) {?>
 		$module = strtolower(Yii::app()->controller->module->id);
@@ -1052,33 +1114,25 @@ if(!$tableViewCondition && ($this->useEvent || $bsEvents)) {?>
 <?php }?>
 		if(parent::beforeSave()) {
 <?php 
-if($uploadCondition) {?>
+if($uploadCondition) {
+	if($uploadCondition && !$this->uploadPathSubfolder) {?>
+			// create directory
+			$this->createUploadDirectory(self::getUploadPath());
+
+			$uploadPath = self::getUploadPath();
+			$verwijderenPath = join('/', array(self::getUploadPath(), 'verwijderen'));
+
+<?php }?>
 			if(!$this->isNewRecord) {
 <?php if($this->uploadPathSubfolder) {?>
+				// create directory
+				$this->createUploadDirectory(self::getUploadPath(), $this-><?php echo $primaryKey;?>);
+				
 				$uploadPath = join('/', array(self::getUploadPath(), $this-><?php echo $primaryKey;?>));
-<?php } else {?>
-				$uploadPath = self::getUploadPath();
-<?php }?>
 				$verwijderenPath = join('/', array(self::getUploadPath(), 'verwijderen'));
-				// Add directory
-				if(!file_exists($uploadPath) || !file_exists($verwijderenPath)) {
-					@mkdir($uploadPath, 0755, true);
-					@mkdir($verwijderenPath, 0755, true);
 
-					// Add file in directory (index.php)
-					$indexFile = join('/', array($uploadPath, 'index.php'));
-					if(!file_exists($indexFile))
-						file_put_contents($indexFile, "<?php echo "<?php"?>\n");
-
-					$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
-					if(!file_exists($verwijderenFile))
-						file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
-				} else {
-					@chmod($uploadPath, 0755, true);
-					@chmod($verwijderenPath, 0755, true);
-				}
-
-<?php foreach($columns as $name=>$column) {
+<?php }
+foreach($columns as $name=>$column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->dbType == 'text' && in_array('file', $commentArray)) {?>
 				$this-><?php echo $column->name;?> = CUploadedFile::getInstance($this, '<?php echo $column->name;?>');
@@ -1169,9 +1223,6 @@ $asEvents = 0;
 $afterSave = 0;
 if($uploadCondition)
 	$asEvents = 1;
-foreach($columns as $name=>$column) {
-	$columnArray = explode('_', $column->name);
-}
 if(!$tableViewCondition && ($this->useEvent || $asEvents)) {?>
 
 	/**
@@ -1183,28 +1234,14 @@ if(!$tableViewCondition && ($this->useEvent || $asEvents)) {?>
 <?php if($uploadCondition) {
 	echo "\n";
 	if($this->uploadPathSubfolder) {?>
+		// create directory
+		$this->createUploadDirectory(self::getUploadPath(), $this-><?php echo $primaryKey;?>);
+
 		$uploadPath = join('/', array(self::getUploadPath(), $this-><?php echo $primaryKey;?>));
 <?php } else {?>
 		$uploadPath = self::getUploadPath();
 <?php }?>
 		$verwijderenPath = join('/', array(self::getUploadPath(), 'verwijderen'));
-		// Add directory
-		if(!file_exists($uploadPath) || !file_exists($verwijderenPath)) {
-			@mkdir($uploadPath, 0755, true);
-			@mkdir($verwijderenPath, 0755,true);
-
-			// Add file in directory (index.php)
-			$indexFile = join('/', array($uploadPath, 'index.php'));
-			if(!file_exists($indexFile))
-				file_put_contents($indexFile, "<?php echo "<?php"?>\n");
-
-			$verwijderenFile = join('/', array($verwijderenPath, 'index.php'));
-			if(!file_exists($verwijderenFile))
-				file_put_contents($verwijderenFile, "<?php echo "<?php"?>\n");
-		} else {
-			@chmod($uploadPath, 0755, true);
-			@chmod($verwijderenPath, 0755,true);
-		}
 
 		if($this->isNewRecord) {
 <?php foreach($columns as $name=>$column) {
@@ -1248,9 +1285,6 @@ $adEvents = 0;
 $afterDelete = 0;
 if($uploadCondition)
 	$adEvents = 1;
-foreach($columns as $name=>$column) {
-	$columnArray = explode('_', $column->name);
-}
 if(!$tableViewCondition && ($this->useEvent || $adEvents)) {?>
 
 	/**
@@ -1267,7 +1301,7 @@ if(!$tableViewCondition && ($this->useEvent || $adEvents)) {?>
 		$uploadPath = self::getUploadPath();
 <?php }?>
 		$verwijderenPath = join('/', array(self::getUploadPath(), 'verwijderen'));
-		
+
 <?php foreach($columns as $name=>$column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->dbType == 'text' && in_array('file', $commentArray)) {?>
@@ -1276,6 +1310,9 @@ if(!$tableViewCondition && ($this->useEvent || $adEvents)) {?>
 <?php 		$afterDelete = 1;
 		}
 	}
+
+if($this->uploadPathSubfolder)
+	echo "\n\t\t\$this->deleteFolder(\$uploadPath);\n";
 }
 echo !$afterDelete ? "\t\t// Create action\n" : '';?>
 	}

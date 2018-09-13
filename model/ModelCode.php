@@ -255,6 +255,8 @@ class ModelCode extends CCodeModel
 				$comment = 'Publish,Unpublish';
 			if($column->name == 'headline' && $column->comment == '')
 				$comment = 'Headline,Unheadline';
+			if($column->dbType == 'tinyint(1)' && $comment[0] == '"')
+				$comment = '';
 			$commentArray = explode(',', $comment);
 
 			if($this->commentsAsLabels && $column->comment)
@@ -802,5 +804,25 @@ class ModelCode extends CCodeModel
 	public function i18nRelation($column, $relation=true)
 	{
 		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
+	}
+
+	/**
+	 * Explode or Implode Function
+	 *
+	 * @param array/string string if param $type=true and array if param $type=false
+	 * @param bool $type true (explode), false (implode)
+	 * @param string $separator Word separator (usually '-' or '_')
+	 */
+	public function commentToArray($data, $separator=',') 
+	{
+		$data = trim($data, '"');
+		$array1 = array_map('trim', explode($separator, $data));
+		$array2 = array();
+		foreach($array1 as $val) {
+			$array_map = array_map('trim', explode('=', $val));
+			$array2[$array_map[0]] = $array_map[1];
+		}
+			
+		return $array2; 
 	}
 }

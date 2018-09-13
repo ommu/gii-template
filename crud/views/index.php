@@ -101,7 +101,7 @@ $('#{$class}_model').bind('keyup change', function(){
 
 	<div class="row">
 		<?php echo $form->labelEx($model,'controllerFor'); ?>
-		<?php $controllerFor = UserLevel::getUserLevel();
+		<?php $controllerFor = UserLevel::getLevel();
 		echo $form->checkBoxList($model,'controllerFor',$controllerFor, array(
 			'separator'=>' ',
 			'template'=>'<span>{input}<span></span>{label}</span>',
