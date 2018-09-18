@@ -69,27 +69,32 @@ foreach($columns as $name=>$column) {
 
 		echo "\t\tarray(\n";
 		echo "\t\t\t'name'=>'$column->name',\n";
-		if($publish == '')
-			echo "\t\t\t'value'=>\$model->$column->name ? \$model->$column->name : '-',\n";
-		else {
+		if($publish == '') {
+			echo "\t\t\t'value'=>\$this->parseYesNo(\$model->$column->name),\n";
+			echo "\t\t\t'type'=>'raw',\n";
+		} else {
 			if(in_array($column->name, array('publish','headline')) || $column->comment != '') {
-				if($publishCondition)
-					if($this->generateAction[$column->name]['generate'])
+				if($this->generateAction[$column->name]['generate']) {
+					if($publishCondition)
 						echo "\t\t\t'value'=>\$this->quickAction(Yii::app()->controller->createUrl('$column->name', array('id'=>\$model->$table->primaryKey)), \$model->$column->name),\n";
-					else
-						echo "\t\t\t'value'=>\$model->$column->name ? Yii::t('phrase', '$publishArray[0]') : Yii::t('phrase', '$publishArray[1]'),\n";
-				else {
-					if($this->generateAction[$column->name]['generate'])
-						echo "\t\t\t'value'=>\$this->quickAction(Yii::app()->controller->createUrl('$column->name', array('id'=>\$model->$table->primaryKey)), \$model->$column->name, '$publish'),\n";
-					else
-						echo "\t\t\t'value'=>\$model->$column->name ? Yii::t('phrase', '$publishArray[0]') : Yii::t('phrase', '$publishArray[1]'),\n";
-				}
+					else {
+						if($column->comment[0] == '"') {
+							$functionName = ucfirst($inflector->singularize($inflector->id2camel($column->name, '_')));
+							echo "\t\t\t'value'=>\$this->quickAction(Yii::app()->controller->createUrl('$column->name', array('id'=>\$model->$table->primaryKey)), \$model->$column->name, $modelClass::get$functionName()),\n";
+						} else
+							echo "\t\t\t'value'=>\$this->quickAction(Yii::app()->controller->createUrl('$column->name', array('id'=>\$model->$table->primaryKey)), \$model->$column->name, '$publish'),\n";
+					}
+				} else
+					echo "\t\t\t'value'=>\$model->$column->name ? Yii::t('phrase', '$publishArray[0]') : Yii::t('phrase', '$publishArray[1]'),\n";
 			}
 			echo "\t\t\t'type'=>'raw',\n";
 		}
 		//echo "\t\t\t'value'=>\$model->$column->name ? CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/publish.png') : CHtml::image(Yii::app()->theme->baseUrl.'/images/icons/unpublish.png'),\n";
 		echo "\t\t),\n";
 	} else if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
+		$smallintCondition = 0;
+		if(preg_match('/(smallint)/', $column->dbType))
+			$smallintCondition = 1;
 		$relationName = $this->setRelation($column->name, true);
 		$publicAttribute = $relationName.'_search';
 		$relationAttribute = 'displayname';
@@ -103,7 +108,7 @@ foreach($columns as $name=>$column) {
 			$relationTableName = trim($foreignKeys[$column->name]);
 			$relationAttribute = $this->tableRelationAttribute($relationTableName, '->');
 		}
-		if($relationName == 'category')
+		if($relationName == 'category' || $smallintCondition)
 			$publicAttribute = $column->name;
 
 		$relationAttribute = join('->', array($relationName, $relationAttribute));
@@ -136,9 +141,9 @@ if($translateCondition)
 else {
 	if($column->dbType == 'text' && in_array('file', $commentArray)) {
 		if($this->uploadPathSubfolder)
-			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$table->primaryKey, \$model->$column->name), array('target'=>'_blank')) : '-',\n";
+			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$table->primaryKey, \$model->$column->name), array('target'=>'_blank'))) : '-',\n";
 		else
-			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$column->name), array('target'=>'_blank')) : '-',\n";
+			echo "\t\t\t'value'=>\$model->$column->name ? CHtml::link(\$model->$column->name, join('/', array(Yii::app()->request->baseUrl, $modelClass::getUploadPath(false), \$model->$column->name), array('target'=>'_blank'))) : '-',\n";
 	} else
 		echo "\t\t\t'value'=>\$model->$publicAttribute ? \$model->$column->name : '-',\n";
 }

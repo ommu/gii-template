@@ -317,6 +317,8 @@ class CrudCode extends CCodeModel
 
 	public function generateActiveField($modelClass,$column,$form=true)
 	{
+		$inflector = new Inflector;
+		
 		$tableSchema = $this->getTableSchema();
 		$foreignKeys = $this->foreignKeys($tableSchema->foreignKeys);
 		$primaryKey = $tableSchema->primaryKey;
@@ -326,8 +328,22 @@ class CrudCode extends CCodeModel
 if($form == true) {
 	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
 		return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
-	else
-		return "echo \$form->checkBox(\$model, '{$column->name}', array('class'=>'form-control'))";
+	else {
+		if($column->comment[0] == '"') {
+			$functionName = ucfirst($inflector->singularize($inflector->id2camel($column->name, '_')));
+			return "echo \$form->radioButtonList(\$model, '{$column->name}', $modelClass::get$functionName(), array('class'=>'form-control'))";
+		} else {
+			if($column->name == 'permission') {
+				return "if(\$model->isNewRecord && !\$model->getErrors())
+					\$model->permission = 1;
+				echo \$form->radioButtonList(\$model, '{$column->name}', array(
+					1 => Yii::t('phrase', 'Yes, the public can view report unless they are made private.'),
+					0 => Yii::t('phrase', 'No, the public cannot view report.'),
+				), array('class'=>'form-control'))";
+			} else
+				return "echo \$form->checkBox(\$model, '{$column->name}', array('class'=>'form-control'))";
+		}
+	}
 } else {
 	if($column->dbType == 'tinyint(1)' && $column->defaultValue === null)
 		if($column->comment != '')
@@ -335,9 +351,13 @@ if($form == true) {
 		else
 			return "echo \$form->textField(\$model, '{$column->name}', array('class'=>'form-control'))";
 	else {
-		if($column->comment != '')
-			return "echo \$form->dropDownList(\$model, '{$column->name}', array('1'=>Yii::t('phrase', '".$commentArray[0]."'), '0'=>Yii::t('phrase', '".$commentArray[1]."')), array('prompt'=>'', 'class'=>'form-control'))";
-		else
+		if($column->comment != '') {
+			if($column->comment[0] == '"') {
+				$functionName = ucfirst($inflector->singularize($inflector->id2camel($column->name, '_')));
+				return "echo \$form->dropDownList(\$model, '{$column->name}', $modelClass::get$functionName(), array('prompt'=>'', 'class'=>'form-control'))";
+			} else
+				return "echo \$form->dropDownList(\$model, '{$column->name}', array('1'=>Yii::t('phrase', '".$commentArray[0]."'), '0'=>Yii::t('phrase', '".$commentArray[1]."')), array('prompt'=>'', 'class'=>'form-control'))";
+		} else
 			return "echo \$form->dropDownList(\$model, '{$column->name}', \$this->filterYesNo(), array('prompt'=>'', 'class'=>'form-control'))";
 	}
 }
@@ -515,19 +535,27 @@ if($form == true) {
 		if($column->isForeignKey && $smallintCondition) {
 			$relationTableName = trim($foreignKeys[$column->name]);
 			$relationClassName = $this->generateClassName($relationTableName);
-			$relationFunction = ucfirst($this->setRelation($relationClassName));
+			$relationFunction = ucfirst($inflector->singularize($this->setRelation($relationClassName)));
 			return "\$$relationName = $relationClassName::get{$relationFunction}();\n\t\t\t\tif(\$$relationName != null)\n\t\t\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$relationName, array('prompt'=>'', 'class'=>'form-control'));\n\t\t\t\telse\n\t\t\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', array('prompt'=>''), array('class'=>'form-control'))";
 		} else if(($column->isForeignKey && !$smallintCondition) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))
 			return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('class'=>'form-control'))";
-		else
-			return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
+		else {
+			if($column->name == 'license') {
+				return "if(\$model->isNewRecord || (!\$model->isNewRecord && \$model->$column->name == '')) {
+					\$model->license = \$this->licenseCode();
+					echo \$form->textField(\$model, '$column->name', array('maxlength'=>$maxLength, 'class'=>'form-control'));
+				} else
+					echo \$form->textField(\$model, '$column->name', array('maxlength'=>$maxLength, 'class'=>'form-control', 'disabled'=>'disabled'))";
+			} else
+				return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('maxlength'=>$maxLength, 'class'=>'form-control'))";
+		}
 	}
 } else
 	if($column->isForeignKey && $smallintCondition) {
 		$relationTableName = trim($foreignKeys[$column->name]);
 		$relationClassName = $this->generateClassName($relationTableName);
-		$relationFunction = ucfirst($this->setRelation($relationClassName));
-		return "\$$relationName = $relationClassName::get{$relationFunction}();\n\t\t\techo \$form->dropDownList(\$model, '{$publicAttribute}', \$$relationName, array('prompt'=>'', 'class'=>'form-control'))";
+		$relationFunction = ucfirst($inflector->singularize($this->setRelation($relationClassName)));
+		return "echo \$form->dropDownList(\$model, '{$publicAttribute}', $relationClassName::get$relationFunction(), array('prompt'=>'', 'class'=>'form-control'))";
 	} else if($maxLength == '~' || ($column->isForeignKey && !$smallintCondition) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))
 		return "echo \$form->{$inputField}(\$model, '{$publicAttribute}', array('class'=>'form-control'))";
 	else

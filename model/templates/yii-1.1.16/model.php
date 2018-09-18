@@ -30,6 +30,7 @@ $slugCondition = 0;
 $tagCondition = 0;
 $uploadCondition = 0;
 $serializeCondition = 0;
+$permissionCondition = 0;
 $searchVariableCondition = 0;
 $manyRelationCondition = 0;
 $i18n = 0;
@@ -58,6 +59,8 @@ foreach($columns as $name=>$column):
 		$tinyCondition = 1;
 		if($column->name == 'publish')
 			$publishCondition = 1;
+		if($column->name == 'permission')
+			$permissionCondition = 1;
 	}
 	if(in_array($column->dbType, array('timestamp','datetime','date')))
 		$dateCondition = 1;
@@ -544,7 +547,7 @@ foreach($columns as $name=>$column) {
 		echo "\t\t\t\$criteria->compare('date(t.$column->name)', date('Y-m-d', strtotime(\$this->$column->name)));\n";
 
 	} else if(preg_match('/(int)/', $column->dbType) || ($column->type==='string' && $column->isPrimaryKey == '1'))
-		if($column->dbType == 'tinyint(1)')
+		if($column->dbType == 'tinyint(1)' && $column->name != 'permission')
 			echo "\t\t\$criteria->compare('t.$column->name', Yii::app()->getRequest()->getParam('$column->name') ? Yii::app()->getRequest()->getParam('$column->name') : \$this->$column->name);\n";
 		else
 			echo "\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
@@ -806,7 +809,7 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\$this->templateColumns['$column->name'] = array(\n";
 		echo "\t\t\t\t'name' => '$column->name',\n";
 		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$comment\')',\n";
-		echo "\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
+		//echo "\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
@@ -825,7 +828,7 @@ foreach($columns as $name=>$column)
 		echo "\t\t\t\$this->templateColumns['$column->name'] = array(\n";
 		echo "\t\t\t\t'name' => '$column->name',\n";
 		echo "\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$comment\')',\n";
-		echo "\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
+		//echo "\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
@@ -845,7 +848,7 @@ foreach($columns as $name=>$column)
 			echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name)',\n";
 		else
 			echo "\t\t\t\t\t'value' => 'Utility::getPublish(Yii::app()->controller->createUrl(\'$column->name\', array(\'id\'=>\$data->$isPrimaryKey)), \$data->$column->name, \'$comment\')',\n";
-		echo "\t\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
+		//echo "\t\t\t\t\t//'value' => '\$data->$column->name == 1 ? CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/publish.png\') : CHtml::image(Yii::app()->theme->baseUrl.\'/images/icons/unpublish.png\')',\n";
 		echo "\t\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t\t),\n";
@@ -863,10 +866,10 @@ foreach($columns as $name=>$column)
 	/**
 	 * Model get information
 	 */
-	public static function getInfo($id, $column=null)
+	public static function getInfo(<?php echo $permissionCondition ? '$column=null' : '$id, $column=null';?>)
 	{
 		if($column != null) {
-			$model = self::model()->findByPk($id, array(
+			$model = self::model()->findByPk(<?php echo  $permissionCondition ? '1' : '$id';?>, array(
 				'select' => $column,
 			));
 			if(count(explode(',', $column)) == 1)
@@ -875,7 +878,7 @@ foreach($columns as $name=>$column)
 				return $model;
 			
 		} else {
-			$model = self::model()->findByPk($id);
+			$model = self::model()->findByPk(<?php echo  $permissionCondition ? '1' : '$id';?>);
 			return $model;
 		}
 	}

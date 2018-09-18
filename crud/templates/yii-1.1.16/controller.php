@@ -609,9 +609,9 @@ if(!empty($otherActions)):
 				$publish = 'Headline,Unheadline';
 			$publishArray = explode(',', $publish);?>
 	/**
-	 * <?php echo $actionName;?> a particular model.
+	 * <?php echo $actionName;?> a particular model.<?php echo $column->comment[0] == '"' ? " //commentInCondition\n" : "\n";?>
 	 * If <?php echo lcfirst($actionName);?> is successful, the browser will be redirected to the '<?php echo $this->generateAction[$column->name]['redirect'];?>' page.
-	 * @param integer $id the ID of the model to be deleted
+	 * @param integer $id the ID of the model to be <?php echo lcfirst($actionName)."\n";?>
 	 */
 	public function action<?php echo $actionName;?>($id) 
 	{

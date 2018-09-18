@@ -107,11 +107,25 @@ if($this->generateAction['create']['dialog'] || $this->generateAction['update'][
 	}
 ?>
 		<div class="form-group row">
+<?php if($column->name == 'license'):?>
+			<label class="col-form-label col-lg-3 col-md-3 col-sm-12">
+				<?php echo "<?php "; ?>echo $model->getAttributeLabel('<?php echo $column->name;?>');?> <span class="required">*</span><br/>
+				<span><?php echo "<?php "; ?>echo Yii::t('phrase', 'Format: XXXX-XXXX-XXXX-XXXX');?></span>
+			</label>
+<?php else:?>
 			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
+<?php endif; ?>
 			<div class="<?php echo $boxFieldClass;?>">
+<?php if($column->name == 'permission'):?>
+				<div class="small-px"><?php echo "<?php "; ?>echo Yii::t('phrase', 'Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');?></div>
+<?php endif; ?>
 				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
 				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $publicAttribute;?>'); ?>
-				<div class="small-px silent"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');?></div>
+<?php if($column->name == 'license'):?>
+				<div class="small-px"><?php echo '<?php ';?>echo Yii::t('phrase', 'Enter the your license key that is provided to you when you purchased this plugin. If you do not know your license key, please contact support team.');?></div>
+<?php elseif(!in_array($column->name, array('permission','meta_description','meta_keyword'))):?>
+				<div class="small-px"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');?></div>
+<?php endif;?>
 			</div>
 		</div>
 
@@ -124,8 +138,9 @@ if($column->type==='boolean' || ($column->dbType == 'tinyint(1)' && $column->def
 		<div class="form-group row publish">
 			<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column, true)."; ?>\n"; ?>
 			<div class="<?php echo $boxFieldClass;?>">
-				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; ?>
-				<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column)."; ?>\n"; ?>
+				<?php echo "<?php ".$this->generateActiveField($modelClass,$column)."; ?>\n"; 
+				if($column->comment[0] != '"') {?>
+				<?php echo "<?php echo ".$this->generateActiveLabel($modelClass,$column)."; ?>\n"; }?>
 				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $column->name;?>'); ?>
 			</div>
 		</div>
