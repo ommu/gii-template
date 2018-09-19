@@ -15,9 +15,9 @@
  *
  * @author Putra Sudaryanto <putra@sudaryanto.id>
  * @contact (+62)856-299-4114
- * @create date April 15, 2014 10:29 WIB
+ * @created date April 15, 2014 10:29 WIB
  * @copyright Copyright (c) 2014 Ommu Platform (www.ommu.co)
- * @link http://opensource.ommu.co
+ * @link https://github.com/ommu/gii-template
  *
  * Contains many function that most used
  *
