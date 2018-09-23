@@ -123,9 +123,9 @@ if($this->generateAction['create']['dialog'] || $this->generateAction['update'][
 				<?php echo "<?php "; ?>echo $form->error($model, '<?php echo $publicAttribute;?>'); ?>
 <?php if($column->name == 'license'):?>
 				<div class="small-px"><?php echo '<?php ';?>echo Yii::t('phrase', 'Enter the your license key that is provided to you when you purchased this plugin. If you do not know your license key, please contact support team.');?></div>
-<?php elseif(!in_array($column->name, array('permission','meta_description','meta_keyword'))):?>
+<?php /* elseif(!in_array($column->name, array('permission','meta_description','meta_keyword'))):?>
 				<div class="small-px"><?php echo '<?php ';?>echo Yii::t('phrase', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');?></div>
-<?php endif;?>
+<?php */ endif;?>
 			</div>
 		</div>
 

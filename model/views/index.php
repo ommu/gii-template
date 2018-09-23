@@ -74,8 +74,7 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		<?php echo $form->label($model,'moduleName'); ?>
 		<?php echo $form->textField($model,'moduleName', array('size'=>32)); ?>
 		<div class="tooltip">
-		This is the name of the model class to be generated (e.g. <code>Post</code>, <code>Comment</code>).
-		It is case-sensitive.
+		Module Name.
 		</div>
 		<?php echo $form->error($model,'moduleName'); ?>
 	</div>
@@ -158,7 +157,7 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		<?php echo $form->labelEx($model,'uploadPath[subfolder]'); ?>
 		<?php echo $form->checkBox($model,'uploadPath[subfolder]'); ?>
 		<div class="tooltip">
-		It can be either a upload path directory (e.g. <code>public/module-name</code>)
+		Default value is <code>false</code>. Digunakan untuk menambahkan sub directory berupa id (nomor) pada upload path directory.
 		</div>
 		<?php echo $form->error($model,'uploadPath[subfolder]'); ?>
 	</div>
@@ -176,7 +175,7 @@ $('.form .row.model-class').toggle($('#{$class}_tableName').val().substring($('#
 		<?php echo $form->labelEx($model,'useGetFunction'); ?>
 		<?php echo $form->checkBox($model,'useGetFunction'); ?>
 		<div class="tooltip">
-			Default value is <code>false</code>. Used to display modification date in source code
+			Default value is <code>false</code>. Digunakan untuk menggenerate function get pada models.
 		</div>
 		<?php echo $form->error($model,'useGetFunction'); ?>
 	</div>

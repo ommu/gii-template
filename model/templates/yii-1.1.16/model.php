@@ -753,10 +753,11 @@ if(!empty($manyRelationPublicVariables)) {
 		$attribute = $inflector->singularize($this->setRelation($modelClass));
 		echo "\t\t\t\$this->templateColumns['$key'] = array(\n";
 		echo "\t\t\t\t'name' => '$key',\n";
-		echo "\t\t\t\t'value' => 'CHtml::link(\$data->view->$val ? \$data->view->$val : 0, Yii::app()->controller->createUrl(\'o/$controller/manage\', array(\'$attribute\'=>\$data->$isPrimaryKey)))',\n";
+		echo "\t\t\t\t'value' => 'CHtml::link(\$data->$key ? \$data->$key : 0, Yii::app()->controller->createUrl(\'o/$controller/manage\', array(\'$attribute\'=>\$data->$isPrimaryKey)))',\n";
 		echo "\t\t\t\t'htmlOptions' => array(\n";
 		echo "\t\t\t\t\t'class' => 'center',\n";
 		echo "\t\t\t\t),\n";
+		echo "\t\t\t\t'filter' => false,\n";
 		echo "\t\t\t\t'type' => 'raw',\n";
 		echo "\t\t\t);\n";
 	}
@@ -962,7 +963,7 @@ if($uploadCondition) {?>
 
 $afEvents = 0;
 $afterFind = 0;
-if($tagCondition || $uploadCondition || $serializeCondition || $i18n)
+if($tagCondition || $uploadCondition || $serializeCondition || $i18n || ($viewRelationCondition && !empty($manyRelationPublicVariables)))
 	$afEvents = 1;
 if(!$tableViewCondition && ($this->useEvent || $afEvents)) {?>
 
@@ -994,6 +995,12 @@ foreach($columns as $name=>$column) {
 			echo "\t\t\$this->$publicAttribute = \$this->{$relationName}->message;\n";
 			$afterFind = 1;
 		}
+	}
+}
+if($viewRelationCondition && !empty($manyRelationPublicVariables)) {
+	foreach ($manyRelationPublicVariables as $key=>$val) {
+		echo "\t\t\$this->$key = \$this->view->{$val};\n";
+		$afterFind = 1;
 	}
 }
 echo !$afterFind ? "\t\t// Create action\n\n" : '';?>

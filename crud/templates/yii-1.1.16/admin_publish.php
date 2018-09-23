@@ -59,5 +59,5 @@ echo "\t\$this->breadcrumbs=array(
 		<?php echo "<?php ";?>echo CHtml::submitButton($title, array('onclick' => 'setEnableSave()')); ?>
 		<?php echo "<?php ";?>echo CHtml::button(Yii::t('phrase', 'Cancel'), array('id'=>'closed')); ?>
 	</div>
-	
+
 <?php echo "<?php ";?>$this->endWidget(); ?>
