@@ -40,7 +40,7 @@ class CrudCode extends CCodeModel
 		'view' => array(
 			'redirect' => false,
 			'dialog' => true,
-			'file' => 'admin_view.php',
+			'file' => 'admin_view.php, _detail.php',
 		),
 		'delete' => array(
 			'redirect' => false,

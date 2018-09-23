@@ -23,17 +23,8 @@ echo "<?php\n"; ?>
  * @link <?php echo $this->linkSource."\n";?>
  *
  */
-
-<?php
-$label=$inflector->pluralize($this->class2name($modelClass));
-echo "\t\$this->breadcrumbs=array(
-	\t'$label'=>array('manage'),
-	\t\$model->$breadcrumbRelationAttribute,
-\t);\n";
-?>
 ?>
 
-<div class="box">
 <?php echo "<?php"; ?> $this->widget('zii.widgets.CDetailView', array(
 	'data'=>$model,
 	'attributes'=>array(
@@ -144,4 +135,3 @@ if((in_array($column->dbType, array('text')) && (in_array('file', $commentArray)
 ?>
 	),
 )); ?>
-</div>
