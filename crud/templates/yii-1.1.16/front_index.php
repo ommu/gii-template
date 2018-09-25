@@ -25,9 +25,10 @@ echo "<?php\n"; ?>
  */
 
 <?php
-$label=$inflector->pluralize($this->class2name($modelClass));
+$label = $inflector->singularize($feature);
 echo "\t\$this->breadcrumbs=array(
-	\t'$label',
+	\tYii::t('phrase', '$module'),
+	\tYii::t('phrase', '$label'),
 \t);\n";
 ?>
 ?>

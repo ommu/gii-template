@@ -25,19 +25,23 @@ echo "<?php\n"; ?>
  */
 
 <?php
-$label=$inflector->pluralize($this->class2name($modelClass));
-if(!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate']):
+$label = $inflector->singularize($feature);
+$moduleAction = $this->ControllerID != 'admin' ? 'o/admin/manage' : 'manage';
+if(!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate']) {
 echo "\t\$this->breadcrumbs=array(
-	\t'$label'=>array('index'),
-	\t'Delete',
+	\tYii::t('phrase', '$module')=>array('$moduleAction'),
+	\tYii::t('phrase', '$label')=>array('index'),
+	\tYii::t('phrase', 'Delete'),
 \t);\n";
-else:
+} else {
 echo "\t\$this->breadcrumbs=array(
-	\t'$label'=>array('manage'),
-	\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
-	\t'Delete',
+	\tYii::t('phrase', '$module')=>array('$moduleAction'),\n";
+if($this->ControllerID != 'admin') 
+	echo "\t\tYii::t('phrase', '$label')=>array('manage'),\n";
+echo "\t\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
+	\tYii::t('phrase', 'Delete'),
 \t);\n";
-endif;
+}
 ?>
 ?>
 

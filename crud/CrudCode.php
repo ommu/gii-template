@@ -152,6 +152,8 @@ class CrudCode extends CCodeModel
 			'columns'=>$table->columns,
 			'breadcrumbRelationAttribute'=>$breadcrumbRelationAttribute,
 			'table'=>$table,
+			'module'=>$this->getModuleName(),
+			'feature'=>$this->getModuleName(true),
 		);
 
 		$this->files[]=new CCodeFile(
@@ -1005,5 +1007,24 @@ if($form == true) {
 		}
 
 		return implode('', $closureTokens);
+	}
+
+	private function getModuleName($feature=false)
+	{
+		$inflector = new Inflector;
+
+		$data = $inflector->singularize($this->class2name($this->getModelClass()));
+		$arrayData = explode(' ', $data);
+		$key = $arrayData[0];
+
+		if($feature == false)
+			return $key;
+		else {
+			$shift = array_shift($arrayData);
+			if($key == $shift)
+				return implode('', $arrayData);
+			else
+				return $data;
+		}
 	}
 }

@@ -25,10 +25,13 @@ echo "<?php\n"; ?>
  */
 
 <?php
-$label=$inflector->pluralize($this->class2name($modelClass));
+$label = $inflector->singularize($feature);
+$moduleAction = $this->ControllerID != 'admin' ? 'o/admin/manage' : 'manage';
 echo "\t\$this->breadcrumbs=array(
-	\t'$label'=>array('manage'),
-	\t\$model->$breadcrumbRelationAttribute,
+	\tYii::t('phrase', '$module')=>array('$moduleAction'),\n";
+if($this->ControllerID != 'admin') 
+	echo "\t\tYii::t('phrase', '$label')=>array('manage'),\n";
+echo "\t\t\$model->$breadcrumbRelationAttribute,
 \t);\n";
 ?>
 ?>
