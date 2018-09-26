@@ -26,16 +26,16 @@ echo "<?php\n"; ?>
 
 <?php
 $label = $inflector->singularize($feature);
-$moduleAction = $this->ControllerID != 'admin' ? 'o/admin/manage' : 'manage';
+$manageAction = $this->ControllerID != 'admin' ? 'o/admin/manage' : 'manage';
 if(!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate']) {
 echo "\t\$this->breadcrumbs=array(
-	\tYii::t('phrase', '$module')=>array('$moduleAction'),
-	\tYii::t('phrase', '$label')=>array('index'),
+	\tYii::t('phrase', '$module')=>array('$manageAction'),
+	\tYii::t('phrase', '$label')=>array('edit'),
 	\tYii::t('phrase', 'Delete'),
 \t);\n";
 } else {
 echo "\t\$this->breadcrumbs=array(
-	\tYii::t('phrase', '$module')=>array('$moduleAction'),\n";
+	\tYii::t('phrase', '$module')=>array('$manageAction'),\n";
 if($this->ControllerID != 'admin') 
 	echo "\t\tYii::t('phrase', '$label')=>array('manage'),\n";
 echo "\t\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
