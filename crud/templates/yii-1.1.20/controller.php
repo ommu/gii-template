@@ -301,7 +301,7 @@ if($this->generateAction['manage']['generate']) {
 	$relationModuleFeature = $this->getModuleName($relationModelClass, true);?>
 		if($<?php echo $relationName;?> != null) {
 			$data = <?php echo $relationModelClass;?>::model()->findByPk($<?php echo $relationName;?>);
-			$pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($this->ControllerID != 'admin' && $feature != '' ? $feature : $module);?>: <?php echo $inflector->singularize($this->ControllerID != 'admin' && $relationModuleFeature != '' ? $relationModuleFeature : $relationModule);?> {<?php echo key($relationAttribute);?>}', array ('{<?php echo key($relationAttribute);?>}'=>$data-><?php echo implode('->', $relationAttribute);?>));
+			$pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($feature != '' ? $feature : $module);?>: <?php echo $inflector->singularize($relationModuleFeature != '' ? $relationModuleFeature : $relationModule);?> {<?php echo key($relationAttribute);?>}', array ('{<?php echo key($relationAttribute);?>}'=>$data-><?php echo implode('->', $relationAttribute);?>));
 		}
 <?php }?>
 

@@ -39,10 +39,10 @@ echo "<?php\n"; ?>
 
 <?php
 $label = $inflector->singularize($feature);
-$manageAction = $this->ControllerID != 'admin' && $feature != '' ? 'o/admin/manage' : 'manage';
+$manageAction = $feature != '' ? 'o/admin/manage' : 'manage';
 echo "\t\$this->breadcrumbs=array(
 	\tYii::t('phrase', '$module')=>array('$manageAction'),\n";
-if($this->ControllerID != 'admin' && $feature != '') 
+if($feature != '') 
 	echo "\t\tYii::t('phrase', '$label')=>array('manage'),\n";
 echo "\t\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
 	\tYii::t('phrase', '".ucwords($action)."'),
