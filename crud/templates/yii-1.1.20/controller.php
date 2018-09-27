@@ -198,7 +198,7 @@ if($this->generateAction['manage']['generate'] || ($this->generateAction['manage
 		$this->redirect(array('manage'));
 <?php } elseif($this->generateAction['update']['generate']) {?>
 		$this->redirect(array('edit'));
-	<?php }
+<?php }
 } ?>
 	}
 
@@ -270,11 +270,15 @@ if($this->generateAction['suggest']['generate']) {?>
 	}
 
 <?php }
-if($this->generateAction['manage']['generate']) {?>
+if($this->generateAction['manage']['generate']) {
+	$arrayRelation = array();
+	foreach($foreignKeys as $key => $val) {
+		$arrayRelation[] = '$'.$this->setRelation($key, true).'=null';
+	}?>
 	/**
 	 * Manages all models.
 	 */
-	public function actionManage() 
+	public function actionManage(<?php echo !empty($arrayRelation) ? implode(', ', $arrayRelation) : '';?>) 
 	{
 		$model=new <?php echo $modelClass; ?>('search');
 		$model->unsetAttributes();	// clear any default values
