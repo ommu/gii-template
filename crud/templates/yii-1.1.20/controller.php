@@ -29,6 +29,8 @@ foreach($columns as $name=>$column):
 		$uploadCondition = 1;
 endforeach;
 
+$foreignKeys = $this->foreignKeys($table->foreignKeys);
+
 echo "<?php\n"; ?>
 /**
  * <?php echo $this->controllerClass."\n"; ?>
@@ -282,7 +284,25 @@ if($this->generateAction['manage']['generate']) {?>
 
 		$columns = $model->getGridColumn($this->gridColumnTemp());
 
+<?php if(empty($foreignKeys)) {?>
 		$this->pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
+<?php } else {?>
+		$pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($label); ?>');
+<?php foreach($foreignKeys as $key => $val) {
+	$tableSchema = $this->getTableSchema($val);
+	$relationName = $this->setRelation($key, true);
+	$relationModelClass = $this->generateClassName($val);
+	$relationAttribute = $this->tableRelationAttributes($tableSchema, '->');
+	$relationModule = $this->getModuleName($relationModelClass);
+	$relationModuleFeature = $this->getModuleName($relationModelClass, true);?>
+		if($<?php echo $relationName;?> != null) {
+			$data = <?php echo $relationModelClass;?>::model()->findByPk($<?php echo $relationName;?>);
+			$pageTitle = Yii::t('phrase', '<?php echo $inflector->pluralize($this->ControllerID != 'admin' && $feature != '' ? $feature : $module);?>: <?php echo $inflector->singularize($this->ControllerID != 'admin' && $relationModuleFeature != '' ? $relationModuleFeature : $relationModule);?> {<?php echo key($relationAttribute);?>}', array ('{<?php echo key($relationAttribute);?>}'=>$data-><?php echo implode('->', $relationAttribute);?>));
+		}
+<?php }?>
+
+		$this->pageTitle = $pageTitle;
+<?php }?>
 		$this->pageDescription = '';
 		$this->pageMeta = '';
 		$this->render('admin_manage', array(

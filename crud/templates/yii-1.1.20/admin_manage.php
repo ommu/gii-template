@@ -25,10 +25,10 @@ echo "<?php\n"; ?>
 
 <?php
 $label = $inflector->singularize($feature);
-$manageAction = $this->ControllerID != 'admin' ? 'o/admin/manage' : 'manage';
+$manageAction = $this->ControllerID != 'admin' && $feature != '' ? 'o/admin/manage' : 'manage';
 echo "\t\$this->breadcrumbs=array(
 	\tYii::t('phrase', '$module')=>array('$manageAction'),\n";
-if($this->ControllerID != 'admin')
+if($this->ControllerID != 'admin' && $feature != '')
 	echo "\t\tYii::t('phrase', '$label')=>array('manage'),\n";
 echo "\t\tYii::t('phrase', 'Manage'),
 \t);\n";
@@ -92,7 +92,7 @@ echo "\t\tYii::t('phrase', 'Manage'),
 						'imageUrl' => Yii::app()->params['grid-view']['buttonImageUrl'],
 						'options' => array(
 							'class' => 'view',
-							'title' => Yii::t('phrase', 'Detail <?php echo $this->ControllerID != 'admin' ? $label : $module;?>'),
+							'title' => Yii::t('phrase', 'Detail <?php echo $this->ControllerID != 'admin' && $feature != '' ? $label : $module;?>'),
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'view\', array(\'id\'=>$data->primaryKey))'),
 					'update' => array(
@@ -100,7 +100,7 @@ echo "\t\tYii::t('phrase', 'Manage'),
 						'imageUrl' => Yii::app()->params['grid-view']['buttonImageUrl'],
 						'options' => array(
 							'class' => 'update',
-							'title' => Yii::t('phrase', 'Update <?php echo $this->ControllerID != 'admin' ? $label : $module;?>'),
+							'title' => Yii::t('phrase', 'Update <?php echo $this->ControllerID != 'admin' && $feature != '' ? $label : $module;?>'),
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'edit\', array(\'id\'=>$data->primaryKey))'),
 					'delete' => array(
@@ -108,7 +108,7 @@ echo "\t\tYii::t('phrase', 'Manage'),
 						'imageUrl' => Yii::app()->params['grid-view']['buttonImageUrl'],
 						'options' => array(
 							'class' => 'delete',
-							'title' => Yii::t('phrase', 'Delete <?php echo $this->ControllerID != 'admin' ? $label : $module;?>'),
+							'title' => Yii::t('phrase', 'Delete <?php echo $this->ControllerID != 'admin' && $feature != '' ? $label : $module;?>'),
 						),
 						'url' => 'Yii::app()->controller->createUrl(\'delete\', array(\'id\'=>$data->primaryKey))'),
 				),

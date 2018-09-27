@@ -33,25 +33,17 @@ echo "<?php\n"; ?>
 
 <?php
 $label = $inflector->singularize($feature);
-$manageAction = $this->ControllerID != 'admin' ? 'o/admin/manage' : 'manage';
-if(!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate']) {
-echo "\t\$this->breadcrumbs=array(
-	\tYii::t('phrase', '$module')=>array('$manageAction'),
-	\tYii::t('phrase', '$label'),
-\t);\n";
-} else {
+$manageAction = $this->ControllerID != 'admin' && $feature != '' ? 'o/admin/manage' : 'manage';
 echo "\t\$this->breadcrumbs=array(
 	\tYii::t('phrase', '$module')=>array('$manageAction'),\n";
-if($this->ControllerID != 'admin') 
+if($this->ControllerID != 'admin' && $feature != '') 
 	echo "\t\tYii::t('phrase', '$label')=>array('manage'),\n";
-echo "\t\t\$model->{$breadcrumbRelationAttribute}=>array('view','id'=>\$model->{$table->primaryKey}),
-	\tYii::t('phrase', 'Update'),
+echo "\t\tYii::t('phrase', 'Create'),
 \t);\n";
-}
 ?>
 ?>
 
-<?php if(!$this->generateAction['update']['dialog']):?>
+<?php if(!$this->generateAction['create']['dialog']):?>
 <div class="form"<?php echo !$uploadCondition ? ' name="post-on"' : '';?>>
 	<?php echo "<?php ";?>echo $this->renderPartial('_form', array('model'=>$model)); ?>
 </div>

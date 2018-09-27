@@ -5,7 +5,6 @@
  */
 Yii::import('application.libraries.gii.Inflector');
 $inflector = new Inflector;
-$foreignKeys = $this->foreignKeys($table->foreignKeys);
 
 echo "<?php\n"; ?>
 /**
@@ -26,10 +25,10 @@ echo "<?php\n"; ?>
 
 <?php
 $label = $inflector->singularize($feature);
-$manageAction = $this->ControllerID != 'admin' ? 'o/admin/manage' : 'manage';
+$manageAction = $this->ControllerID != 'admin' && $feature != '' ? 'o/admin/manage' : 'manage';
 echo "\t\$this->breadcrumbs=array(
 	\tYii::t('phrase', '$module')=>array('$manageAction'),\n";
-if($this->ControllerID != 'admin') 
+if($this->ControllerID != 'admin' && $feature != '') 
 	echo "\t\tYii::t('phrase', '$label')=>array('manage'),\n";
 echo "\t\t\$model->$breadcrumbRelationAttribute,
 \t);\n";
