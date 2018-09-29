@@ -1022,7 +1022,7 @@ if($form == true) {
 		else {
 			$shift = array_shift($arrayData);
 			if($key == $shift)
-				return implode('', $arrayData);
+				return implode(' ', $arrayData);
 			else
 				return $data;
 		}

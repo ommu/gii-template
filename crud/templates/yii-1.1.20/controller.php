@@ -55,12 +55,14 @@ if($this->generateAction['view']['generate'])
 	echo " *\tView\n";
 if($this->generateAction['delete']['generate']) 
 	echo " *\tDelete\n";
-if(!empty($otherActions)):
-	foreach($otherActions as $action):
+if(!empty($otherActions)) {
+	if(!$this->generateAction['manage']['generate'])
+		$otherActions = array_diff($otherActions, array('runaction'));
+	foreach($otherActions as $action) {
 		if($this->generateAction[$action]['generate'])
 			echo " *\t".ucfirst($action)."\n";
-	endforeach;
-endif;?>
+	}
+}?>
  *
  *	LoadModel
  *	performAjaxValidation
@@ -92,27 +94,25 @@ class <?php echo $this->controllerClass; ?> extends <?php echo $this->baseContro
 	public function init() 
 	{
 <?php 
-$isAdminCondition = 0;
-if($this->generateAction['manage']['generate'] || ($this->generateAction['manage']['generate'] && $this->generateAction['public']['generate']) || (!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate'])):
-	$isAdminCondition = 1;?>
+if($this->generateAction['manage']['generate'] || ($this->generateAction['manage']['generate'] && $this->generateAction['public']['generate']) || (!$this->generateAction['manage']['generate'] && $this->generateAction['update']['generate'])) {?>
 		if(!Yii::app()->user->isGuest) {
-<?php if(count($controllerFor) == 1):?>
+<?php if(count($controllerFor) == 1) {?>
 			if(Yii::app()->user->level == <?php echo $controllerFor[0];?>) {
-<?php else:?>
+<?php } else {?>
 			if(in_array(Yii::app()->user->level, array(<?php echo implode(',', $controllerFor);?>))) {
-<?php endif; ?>
+<?php }?>
 				$arrThemes = $this->currentTemplate('admin');
 				Yii::app()->theme = $arrThemes['folder'];
 				$this->layout = $arrThemes['layout'];
 			}
 		} else
 			$this->redirect(Yii::app()->createUrl('site/login'));
-<?php else:?>
+<?php } else {?>
 		$arrThemes = $this->currentTemplate('public');
 		Yii::app()->theme = $arrThemes['folder'];
 		$this->layout = $arrThemes['layout'];
 		$this->applyViewPath(__dir__);
-<?php endif; ?>
+<?php }?>
 	}
 
 	/**
@@ -126,7 +126,6 @@ if($this->generateAction['manage']['generate'] || ($this->generateAction['manage
 		);
 	}
 
-<?php if($isAdminCondition):?>
 	/**
 	 * Specifies the access control rules.
 	 * This method is used by the 'accessControl' filter.
@@ -135,20 +134,25 @@ if($this->generateAction['manage']['generate'] || ($this->generateAction['manage
 	public function accessRules() 
 	{
 		return array(
-<?php if($this->generateAction['public']['generate']):?>
+<?php $actions = $this->actions;
+if(!$this->generateAction['manage']['generate'])
+	$actions = array_diff($this->actions, array('runaction'));
+if($this->generateAction['public']['generate']) {?>
 			array('allow',  // allow all users to perform 'index' and 'view' actions
 				'actions'=>array('index','view'),
 				'users'=>array('*'),
 			),
-<?php endif; ?>
+<?php }?>
 			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('<?php echo implode('\',\'', $this->actions);?>'),
+				'actions'=>array('<?php echo implode('\',\'', $actions);?>'),
 				'users'=>array('@'),
-<?php if(count($controllerFor) == 1):?>
+<?php if(count($controllerFor) == 1) {?>
 				'expression'=>'Yii::app()->user->level == <?php echo $controllerFor[0];?>',
-<?php else:?>
+<?php } elseif(count($controllerFor) == 3) {?>
+				'expression'=>'Yii::app()->user->level',
+<?php } else {?>
 				'expression'=>'in_array(Yii::app()->user->level, array(<?php echo implode(',', $controllerFor);?>))',
-<?php endif; ?>
+<?php }?>
 			),
 			array('deny',  // deny all users
 				'users'=>array('*'),
@@ -156,7 +160,6 @@ if($this->generateAction['manage']['generate'] || ($this->generateAction['manage
 		);
 	}
 
-<?php endif; ?>
 	/**
 	 * Lists all models.
 	 */
@@ -198,7 +201,11 @@ if($this->generateAction['manage']['generate'] || ($this->generateAction['manage
 		$this->redirect(array('manage'));
 <?php } elseif($this->generateAction['update']['generate']) {?>
 		$this->redirect(array('edit'));
-<?php }
+<?php } else {
+		if($this->generateAction['suggest']['generate']) {?>
+		throw new CHttpException(404, Yii::t('phrase', 'The requested page does not exist.'));
+<?php 	}
+	}
 } ?>
 	}
 
@@ -240,7 +247,7 @@ if($this->generateAction['suggest']['generate']) {?>
 	 * @param integer $publish
 <?php }?>
 	 */
-	public function actionSuggest($limit=10<?php echo array_key_exists('publish', $columns) ? ', $publish=1' : '';?>) 
+	public function actionSuggest($limit=10)
 	{
 		if(Yii::app()->request->isAjaxRequest) {
 			$term = Yii::app()->getRequest()->getParam('term');
@@ -248,7 +255,8 @@ if($this->generateAction['suggest']['generate']) {?>
 				$criteria = new CDbCriteria;
 				$criteria->select = 't.<?php echo $table->primaryKey; ?>, t.<?php echo key($relationColumn);?>';
 <?php if(array_key_exists('publish', $columns)) {?>
-				$criteria->compare('t.publish', $publish);
+				//$criteria->compare('t.publish', $publish);
+				$criteria->addInCondition('t.publish', array(0,1));
 <?php }?>
 				$criteria->compare('<?php echo count($relationColumn) > 1 ? implode('.', $relationColumn) : 't.'.implode('.', $relationColumn);?>', $term, true);
 				$criteria->limit = $limit;
@@ -587,7 +595,7 @@ if($this->generateAction['delete']['generate']) {?>
 	}
 
 <?php }
-if(!$isStatisticTable && array_key_exists('publish', $columns)) {?>
+if(!$isStatisticTable && $this->generateAction['manage']['generate'] && array_key_exists('publish', $columns)) {?>
 	/**
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
