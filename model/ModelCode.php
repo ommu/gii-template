@@ -250,6 +250,9 @@ class ModelCode extends CCodeModel
 		$labels=array();
 		foreach($table->columns as $column)
 		{
+			if($column->name[0] == '_')
+				continue;
+
 			$comment = $column->comment;
 			if($column->name == 'publish' && $column->comment == '')
 				$comment = 'Publish,Unpublish';
@@ -297,7 +300,7 @@ class ModelCode extends CCodeModel
 		foreach($table->columns as $column)
 		{
 			$commentArray = explode(',', $column->comment);
-			if($column->autoIncrement)
+			if($column->autoIncrement || $column->name[0] == '_')
 				continue;
 
 			$r=!$column->allowNull && $column->defaultValue===null;

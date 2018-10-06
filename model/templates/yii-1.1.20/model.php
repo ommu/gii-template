@@ -100,6 +100,9 @@ endforeach;
  *
  * The followings are the available columns in table '<?php echo $tableName; ?>':
 <?php foreach($columns as $column):
+	if($column->name[0] == '_')
+		continue;
+
 	$type = $column->type;
 	if($type == 'string' && preg_match('/(int)/', $column->dbType))
 		$type = 'integer';?>
@@ -348,10 +351,17 @@ else
 	$searchVariables = array_keys($inputPublicVariables);
 $searchVariables = array_merge($searchVariables, array_keys($searchPublicVariables));
 
-$searchVariable = implode(', ', $searchVariables);?>
+$searchVariable = implode(', ', $searchVariables);
+$columnSearch = array_keys($columns);
+$columnSearch1 = array();
+foreach($columnSearch as $val) {
+	if($val[0] == '_')
+		continue;
+	$columnSearch1[] = $val;
+}?>
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('<?php echo implode(', ', array_keys($columns)); echo !empty($searchVariables) ? ",\n\t\t\t\t{$searchVariable}" : '' ?>', 'safe', 'on'=>'search'),
+			array('<?php echo implode(', ', $columnSearch1); echo !empty($searchVariables) ? ",\n\t\t\t\t{$searchVariable}" : '' ?>', 'safe', 'on'=>'search'),
 		);
 	}
 
@@ -518,6 +528,9 @@ foreach($columns as $name=>$column) {
 
 <?php }
 foreach($columns as $name=>$column) {
+	if($column->name[0] == '_')
+		continue;
+
 	if($column->name == 'publish') {
 		if($tableViewCondition)
 			echo "\t\t\$criteria->compare('t.$column->name', \$this->$column->name);\n";
@@ -660,6 +673,9 @@ if($viewRelationCondition && !empty($manyRelationPublicVariables)) {
 <?php
 foreach($columns as $name=>$column)
 {
+	if($column->name[0] == '_')
+		continue;
+
 	$commentArray = explode(',', $column->comment);
 
 	if($column->isPrimaryKey || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))

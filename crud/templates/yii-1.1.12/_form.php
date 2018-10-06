@@ -13,7 +13,6 @@
 <?php echo "<?php \$form=\$this->beginWidget('CActiveForm', array(
 	'id'=>'".$this->class2id($this->modelClass)."-form',
 	'enableAjaxValidation'=>true,
-	//'htmlOptions' => array('enctype' => 'multipart/form-data')
 )); ?>\n"; ?>
 
 	<?php echo "<div id=\"ajax-message\"><?php echo \$form->errorSummary(\$model); ?></div>\n"; ?>
