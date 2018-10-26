@@ -170,8 +170,7 @@ echo $memberCondition ? "use ".ltrim('ommu\member\models\Members', '\\').";\n" :
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $i18n || $tagCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition ? "\tuse \\".ltrim('\ommu\traits\GridViewTrait', '\\').";\n" : '';?>
+<?php echo $tinyCondition || $i18n || $tagCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
 <?php echo $tinyCondition || $i18n || $tagCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
@@ -551,7 +550,7 @@ endif;?>
 endforeach;
 
 foreach ($tableSchema->columns as $column):
-	if(($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline']) || $column->comment != '')) || $column->name[0] == '_')
+	if(($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline','permission']) || $column->comment != '')) || $column->name[0] == '_')
 		continue;
 		
 	if($column->dbType == 'tinyint(1)'):?>
@@ -567,7 +566,7 @@ foreach ($tableSchema->columns as $column):
 endforeach;
 
 foreach ($tableSchema->columns as $column):
-	if(($column->dbType == 'tinyint(1)' && $column->name == 'publish') || $column->name[0] == '_')
+	if(($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','permission'])) || $column->name[0] == '_')
 		continue;
 
 	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || $column->comment != '')):?>
