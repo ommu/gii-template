@@ -360,11 +360,11 @@ class Generator extends \ommu\gii\Generator
 		//print_r($tableSchema->columns);
 		if ($tableSchema === false || !isset($tableSchema->columns[$attribute])) {
 			if (preg_match('/^(password|pass|passwd|passcode)$/i', $attribute)) {
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->passwordInput()
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			} else {
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			}
 		}
@@ -377,88 +377,88 @@ class Generator extends \ommu\gii\Generator
 			$translateCondition = 1;
 		}
 
-		if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {
-			return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
+		if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {	// 01 //oke
+			return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
 \t->checkbox(['label'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
-		} elseif ($column->name === 'email') {
-			return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->textInput(['type' => 'email'])
+		} elseif ($column->name === 'email') {	// 02 //oke
+			return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->textInput(['type'=>'email'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
-		} elseif (in_array($column->dbType, array('timestamp','datetime','date'))) {
+		} elseif (in_array($column->dbType, array('timestamp','datetime','date'))) {	// 03
 			// Jui datepicker lebih fleksibel terhadap dukungan browser dan dapat diformat tanggalnya
 			// dari pada html5.
 			if($this->useJuiDatePicker) {
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type' => 'date', 'class' => 'form-control']])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type'=>'date', 'class'=>'form-control']])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			} else {
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textInput(['type' => 'date'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			}
-		} elseif ($column->type === 'text' || $translateCondition) {
-			if($column->comment == 'file' || in_array('file', $commentArray)) {
+		} elseif ($column->type === 'text' || $translateCondition) {	// 04
+			if(in_array('file', $commentArray)) {	// 04.1
 				$modelClass = StringHelper::basename($this->modelClass);
 				return "<div class=\"form-group field-$attribute\">
 \t<?php echo \$form->field(\$model, '$attribute', ['template' => '{label}', 'options' => ['tag' => null]])
 \t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
-\t<div class=\"col-md-9 col-sm-9 col-xs-12\">
+\t<div class=\"col-md-6 col-sm-9 col-xs-12\">
 \t\t<?php echo !\$model->isNewRecord && \$model->old_{$attribute}_i != '' ? Html::img(join('/', [Url::Base(), $modelClass::getUploadPath(false), \$model->old_{$attribute}_i]), ['class'=>'mb-15', 'width'=>'100%']) : '';?>
 \t\t<?php echo \$form->field(\$model, '$attribute', ['template' => '{input}{error}'])
 \t\t\t->fileInput()
 \t\t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
 \t</div>\n</div>";
 /*
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->fileInput()
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 */
-			} else if($column->comment == 'redactor' || in_array('redactor', $commentArray)) {
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			} else if(in_array('redactor', $commentArray)) {	// 04.2
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textarea(['rows'=>2,'rows'=>6])
 \t->widget(Redactor::className(), ['clientOptions' => \$redactorOptions])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-			} else if($column->comment == 'text' || in_array('text', $commentArray)) {
-				$maxlength = $translateCondition ? ',\'maxlength\' => true' : '';
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->textarea(['rows'=>2,'rows'=>6$maxlength])
+			} else if(in_array('text', $commentArray)) {	// 04.3
+				$maxlength = $translateCondition ? ', \'maxlength\'=>true' : '';
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->textarea(['rows'=>2, 'rows'=>6$maxlength])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-			} else {
-				if($translateCondition) {
-					return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->textInput(['maxlength' => true])
+			} else {	// 04.4
+				if($translateCondition) {	// 04.4.1
+					return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->textInput(['maxlength'=>true])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-				} else {
-					return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->textarea(['rows'=>2,'rows'=>6])
+				} else {	// 04.4.2
+					return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->textarea(['rows'=>2, 'rows'=>6])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 				}
 			}
 
-		} else {
-			if (preg_match('/^(password|pass|passwd|passcode)$/i', $column->name)) {
+		} else {		// 05
+			if (preg_match('/^(password|pass|passwd|passcode)$/i', $column->name))
 				$input = 'passwordInput';
-			} else {
+			else
 				$input = 'textInput';
-			}
+				
 			if (is_array($column->enumValues) && count($column->enumValues) > 0) {
 				$dropDownOptions = [];
 				foreach ($column->enumValues as $enumValue) {
 					$dropDownOptions[$enumValue] = Inflector::humanize($enumValue);
 				}
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->dropDownList(". preg_replace("/\n\s*/", ' ', VarDumper::export($dropDownOptions)).", ['prompt' => ''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			} elseif ($column->phpType !== 'string' || $column->size === null) {
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->$input(['type' => 'number', 'min' => '1'])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->$input(['type'=>'number', 'min'=>'1'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			} else {
-				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-9 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->$input(['maxlength' => true])
+				return "\$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->$input(['maxlength'=>true])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			}
 		}
@@ -473,9 +473,8 @@ class Generator extends \ommu\gii\Generator
 	{
 		$tableSchema = $this->getTableSchema();
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
-		if ($tableSchema === false) {
+		if ($tableSchema === false)
 			return "\$form->field(\$model, '$attribute')";
-		}
 
 		$column = $tableSchema->columns[$attribute];
 		$i18n = 0;
@@ -483,35 +482,34 @@ class Generator extends \ommu\gii\Generator
 		if(in_array('trigger[delete]', $commentArray))
 			$i18n = 1;
 
-		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
+		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
 			$attributeName = $this->setRelationName($column->name).'_search';
 			return "\$form->field(\$model, '$attributeName')";
 
-		elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
+		} elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
 			$relationName = $this->setRelationName($column->name);
 			$attributeName = $relationName.'_search';
 			if($column->name == 'tag_id')
 				$attributeName = $relationName.'_i';
 			return "\$form->field(\$model, '$attributeName')";
 
-		elseif(in_array($column->dbType, ['timestamp','datetime','date'])):
-			if($this->useJuiDatePicker):
+		} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
+			if($this->useJuiDatePicker)
 				return "\$form->field(\$model, '$attribute')\n\t\t\t->widget(\yii\jui\DatePicker::classname(), [\n\t\t\t\t'dateFormat' => Yii::\$app->formatter->dateFormat,\n\t\t\t\t'options' => ['class' => 'form-control']\n\t\t\t])";
-			else:
+			else
 				return "\$form->field(\$model, '$attribute')\n\t\t\t->input('date')";
-			endif;
 
-		else:
-			if($i18n):
+		} else {
+			if($i18n) {
 				$attributeName = $column->name.'_i';
 				return "\$form->field(\$model, '$attributeName')";
-			else:
+			} else {
 				if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)')
-					return "\$form->field(\$model, '$attribute')\n\t\t\t->checkbox()";
+					return "\$form->field(\$model, '$attribute')\n\t\t\t->dropDownList(\$this->filterYesNo(), ['prompt'=>''])";
 				else
 					return "\$form->field(\$model, '$attribute')";
-			endif;
-		endif;
+			}
+		}
 	}
 
 	/**
@@ -955,5 +953,37 @@ class Generator extends \ommu\gii\Generator
 		}
 
 		return $this->classNames[$fullTableName] = Inflector::id2camel($schemaName.$className, '_');
+	}
+
+	public function modelLabel($modelClass)
+	{
+		$patternLabel = [];
+		$patternLabel[0] = '(Core)';
+		$patternLabel[1] = '(Zone)';
+		$patternLabel[2] = '(Ommu)';
+
+		$label = Inflector::camel2words(Inflector::singularize(preg_replace($patternLabel, '', $modelClass)));
+
+		return $label;
+	}
+
+	public function shortLabel($modelClass)
+	{
+		$label = $this->modelLabel($modelClass);
+		$labels = explode(' ', $label);
+
+		if(count($labels) != 1) {
+			array_shift($labels);
+			if(is_array($labels))
+				return implode(' ', $labels);
+			else
+				return $labels;
+
+		} else {
+			if(is_array($labels))
+				return implode(' ', $labels);
+			else
+				return $labels;
+		}
 	}
 }

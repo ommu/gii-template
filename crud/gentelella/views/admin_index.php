@@ -12,12 +12,7 @@ $label = Inflector::camel2words($modelClass);
 $urlParams = $generator->generateUrlParams();
 $nameAttribute = $generator->getNameRelationAttribute();
 
-$patternLabel = array();
-$patternLabel[0] = '(Core )';
-$patternLabel[1] = '(Zone )';
-$patternLabel[1] = '(Ommu )';
-
-$labelButton = Inflector::singularize(preg_replace($patternLabel, '', $label));
+$functionLabel = ucwords($generator->shortLabel($modelClass));
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -33,15 +28,16 @@ echo "<?php\n";
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($generator->useModified):?>
+<?php if($generator->useModified) {?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
-<?php endif; ?>
+<?php }?>
  * @link <?php echo $generator->link."\n";?>
  *
  */
 
+use Yii;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use <?= ($generator->indexWidgetType === 'grid' ? "app\\libraries\\grid\\GridView" : "yii\\widgets\\ListView"); ?>;
@@ -50,7 +46,7 @@ use <?= ($generator->indexWidgetType === 'grid' ? "app\\libraries\\grid\\GridVie
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->params['menu']['content'] = [
-	['label' => <?= $generator->generateString('Add '.$labelButton) ?>, 'url' => Url::to(['create']), 'icon' => 'plus-square'],
+	['label' => <?= $generator->generateString('Add '.$functionLabel) ?>, 'url' => Url::to(['create']), 'icon' => 'plus-square'],
 ];
 <?php if(!empty($generator->searchModelClass)): ?>
 $this->params['menu']['option'] = [
@@ -108,16 +104,16 @@ array_push($columnData, [
 	'buttons' => [
 		'view' => function ($url, $model, $key) {
 			$url = Url::to(['view', 'id'=>$model->primaryKey]);
-			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title' => <?= $generator->generateString('Detail ' . $labelButton) ?>]);
+			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title' => <?= $generator->generateString('Detail ' . $functionLabel) ?>]);
 		},
 		'update' => function ($url, $model, $key) {
 			$url = Url::to(['update', 'id'=>$model->primaryKey]);
-			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title' => <?= $generator->generateString('Update ' . $labelButton) ?>]);
+			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title' => <?= $generator->generateString('Update ' . $functionLabel) ?>]);
 		},
 		'delete' => function ($url, $model, $key) {
 			$url = Url::to(['delete', 'id'=>$model->primaryKey]);
 			return Html::a('<span class="glyphicon glyphicon-trash"></span>', $url, [
-				'title' => <?= $generator->generateString('Delete ' . $labelButton) ?>,
+				'title' => <?= $generator->generateString('Delete ' . $functionLabel) ?>,
 				'data-confirm' => <?= $generator->generateString('Are you sure you want to delete this item?') ?>,
 				'data-method'  => 'post',
 			]);

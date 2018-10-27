@@ -13,9 +13,8 @@ use yii\helpers\StringHelper;
 $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $searchModelClass = StringHelper::basename($generator->searchModelClass);
-if ($modelClass === $searchModelClass) {
+if($modelClass === $searchModelClass)
 	$searchModelAlias = $searchModelClass . 'Search';
-}
 
 /* @var $class ActiveRecordInterface */
 $class = $generator->modelClass;
@@ -24,12 +23,8 @@ $urlParams = $generator->generateUrlParams();
 $actionParams = $generator->generateActionParams();
 $actionParamComments = $generator->generateActionParamComments();
 
-$patternLabel = array();
-$patternLabel[0] = '(Core)';
-$patternLabel[1] = '(Zone)';
-$patternLabel[2] = '(Ommu)';
-
-$label = Inflector::camel2words(Inflector::singularize(preg_replace($patternLabel, '', $modelClass)));
+$label = ucwords($generator->modelLabel($modelClass));
+$shortLabel = ucwords($generator->shortLabel($modelClass));
 $attributeName = $generator->getNameAttribute();
 $relationAttributeName = $generator->getNameRelationAttribute();
 
@@ -159,7 +154,7 @@ endforeach;?>
 		}
 		$columns = $searchModel->getGridColumn($cols);
 
-		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($label));?>;
+		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($shortLabel));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('admin_index', [
@@ -172,7 +167,7 @@ endforeach;?>
 			'query' => <?= $modelClass ?>::find(),
 		]);
 
-		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($label));?>;
+		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($shortLabel));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('admin_index', [
@@ -199,7 +194,7 @@ endforeach;?>
 			} 
 		}
 
-		$this->view->title = <?php echo $generator->generateString('Create '.$label);?>;
+		$this->view->title = <?php echo $generator->generateString('Create '.$shortLabel);?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('admin_create', [
@@ -227,7 +222,7 @@ endforeach;?>
 		}
 
 <?php if($generator->enableI18N) {
-	$pageTitle = [Inflector::camel2id('modelClass') => $label];
+	$pageTitle = [Inflector::camel2id('modelClass') => $shortLabel];
 	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";
 ?>
 		$this->view->title = <?php echo $generator->generateString('Update '.Inflector::camel2id('{modelClass}').': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;
@@ -251,7 +246,7 @@ endforeach;?>
 		$model = $this->findModel(<?= $actionParams ?>);
 
 <?php if($generator->enableI18N) {
-	$pageTitle = [Inflector::camel2id('modelClass') => $label];
+	$pageTitle = [Inflector::camel2id('modelClass') => $shortLabel];
 	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";
 ?>
 		$this->view->title = <?php echo $generator->generateString('Detail '.Inflector::camel2id('{modelClass}').': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;

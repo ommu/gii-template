@@ -11,12 +11,7 @@ $label = Inflector::camel2words($modelClass);
 
 $urlParams = $generator->generateUrlParams();
 
-$patternLabel = array();
-$patternLabel[0] = '(Core )';
-$patternLabel[1] = '(Zone )';
-$patternLabel[1] = '(Ommu )';
-
-$labelButton = Inflector::pluralize(preg_replace($patternLabel, '', $label));
+$functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass)));
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -33,19 +28,19 @@ echo "<?php\n";
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($generator->useModified):?>
+<?php if($generator->useModified) {?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
-<?php endif; ?>
+<?php }?>
  * @link <?php echo $generator->link."\n";?>
  *
  */
 
-use yii\helpers\Html;
+use Yii;
 use yii\helpers\Url;
 
-$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($labelButton) ?>, 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model-><?= $generator->getNameRelationAttribute() ?>, 'url' => ['view', <?= $urlParams ?>]];
 $this->params['breadcrumbs'][] = <?= $generator->generateString('Update') ?>;
 

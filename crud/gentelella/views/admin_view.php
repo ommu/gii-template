@@ -16,17 +16,13 @@ $tableSchema = $generator->getTableSchema();
 
 $urlParams = $generator->generateUrlParams();
 
-$patternLabel = array();
-$patternLabel[0] = '(Core )';
-$patternLabel[1] = '(Zone )';
-
 $uploadCondition = 0;
 foreach ($tableSchema->columns as $column):
 	if($column->type == 'text' && $column->comment == 'file') 
 		$uploadCondition = 1;
 endforeach;
 
-$labelButton = Inflector::pluralize(preg_replace($patternLabel, '', $label));
+$functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass)));
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -42,24 +38,24 @@ echo "<?php\n";
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($generator->useModified):?>
+<?php if($generator->useModified) {?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
-<?php endif; ?>
+<?php }?>
  * @link <?php echo $generator->link."\n";?>
  *
  */
 
-use yii\helpers\Html;
+use Yii;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
 <?php 
 echo $uploadCondition ? "use ".ltrim($generator->modelClass)."\n" : '';
 ?>
 
-$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($labelButton) ?>, 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
+$this->params['breadcrumbs'][] = $model-><?= $generator->getNameRelationAttribute(); ?>;
 
 $this->params['menu']['content'] = [
 	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['index']), 'icon' => 'table'],
@@ -116,7 +112,7 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 <?php } else if($column->dbType == 'tinyint(1)') {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-<?php if(in_array($column->name, ['publish','headline']) || $column->comment != '') {
+<?php if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
 	if($column->name == 'publish') {
 		if($column->comment == '') {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
@@ -124,13 +120,13 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),
 <?php 	}
 	} else if($column->name == 'headline') {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, 'Headline,No Headline', true),
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, 'Headline,Unheadline', true),
 <?php } else {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),
 <?php }?>
 			'format' => 'raw',
 <?php } else {?>
-			'value' => $model-><?php echo $column->name;?> == 1 ? <?php echo $generator->generateString('Yes');?> : <?php echo $generator->generateString('No');?>,
+			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
 <?php }?>
 		],
 <?php } else if(in_array($column->dbType, array('text'))) {?>

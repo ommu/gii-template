@@ -31,15 +31,16 @@ echo "<?php\n";
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($generator->useModified):?>
+<?php if($generator->useModified) {?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
-<?php endif; ?>
+<?php }?>
  * @link <?php echo $generator->link."\n";?>
  *
  */
 
+use Yii;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 ?>
@@ -51,11 +52,23 @@ use yii\widgets\ActiveForm;
 	]); ?>
 <?php
 $count = 0;
-foreach ($generator->getColumnNames() as $attribute) {
-	if($attribute == $primaryKey || $attribute[0] == '_')
+foreach($tableSchema->columns as $column) {
+	if($column->name[0] == '_')
+		continue;
+	if($column->isPrimaryKey || $column->autoIncrement || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
 		
-	echo "\t\t<?php echo ".$generator->generateActiveSearchField($attribute).";?>\n\n";
+	echo "\t\t<?php echo ".$generator->generateActiveSearchField($column->name).";?>\n\n";
+}
+foreach($tableSchema->columns as $column) {
+	if($column->name == 'publish')
+		continue;
+	if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)')
+		echo "\t\t<?php echo ".$generator->generateActiveSearchField($column->name).";?>\n\n";
+}
+foreach($tableSchema->columns as $column) {
+	if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)' && $column->name == 'publish')
+		echo "\t\t<?php echo ".$generator->generateActiveSearchField($column->name).";?>\n\n";
 }
 ?>
 		<div class="form-group">

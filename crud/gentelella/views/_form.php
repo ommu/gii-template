@@ -12,9 +12,8 @@ $label = Inflector::camel2words($modelClass);
 /* @var $model \yii\db\ActiveRecord */
 $model = new $generator->modelClass();
 $safeAttributes = $model->safeAttributes();
-if (empty($safeAttributes)) {
+if(empty($safeAttributes))
 	$safeAttributes = $model->attributes();
-}
 $tableSchema = $generator->tableSchema;
 
 $redactorCondition = 0;
@@ -23,11 +22,7 @@ foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('redactor', $commentArray))
 		$redactorCondition = 1;
-	if($column->type == 'text' && $column->comment == 'redactor')
-		$redactorCondition = 1;
 	if(in_array('file', $commentArray))
-		$uploadCondition = 1;
-	if($column->type == 'text' && $column->comment == 'file') 
 		$uploadCondition = 1;
 }
 
@@ -46,21 +41,22 @@ echo "<?php\n";
  * @contact <?php echo $yaml['contact']."\n";?>
  * @copyright Copyright (c) <?php echo date('Y'); ?> <?php echo $yaml['copyright']."\n";?>
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
-<?php if($generator->useModified):?>
+<?php if($generator->useModified) {?>
  * @modified date <?php echo date('j F Y, H:i')." WIB\n"; ?>
  * @modified by <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
-<?php endif; ?>
+<?php }?>
  * @link <?php echo $generator->link."\n";?>
  *
  */
 
+use Yii;
 use yii\helpers\Html;
 <?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
 use yii\widgets\ActiveForm;
 <?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
-if($redactorCondition): ?>
+if($redactorCondition) {?>
 
 $redactorOptions = [
 	'imageManagerJson' => ['/redactor/upload/image-json'],
@@ -68,7 +64,7 @@ $redactorOptions = [
 	'fileUpload' => ['/redactor/upload/file'],
 	'plugins' => ['clips', 'fontcolor','imagemanager']
 ];
-<?php endif; ?>
+<?php }?>
 ?>
 
 <?= "<?php "?>$form = ActiveForm::begin([
@@ -85,34 +81,34 @@ $redactorOptions = [
 
 <?php
 foreach ($tableSchema->columns as $column) {
-	if($column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
+	$commentArray = explode(',', $column->comment);
+	if($column->autoIncrement || $column->isPrimaryKey || $column->comment == 'trigger' || in_array($column->name, array('creation_id','modified_id','updated_id','slug')) || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || $column->name[0] == '_')
 		continue;
-		
 	if (in_array($column->name, $safeAttributes)) {
 		if($column->comment != 'trigger' && !(in_array($column->name, array('creation_id','modified_id','updated_id','slug'))) && !($column->type == 'text' && $column->comment == 'file')) {
 			echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
-		} else if($column->type == 'text' && $column->comment == 'file') {
+		} else if(in_array('file', $commentArray)) {
 			echo $generator->generateActiveField($column->name)."\n\n";
 		}
 	}
 }
+
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-
 	if($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline']))
 		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 }
+
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-
 	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','headline']))
 		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>
 <div class="ln_solid"></div>
 <div class="form-group">
-	<div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+	<div class="col-md-6 col-sm-9 col-xs-12 col-md-offset-3">
 <?= "\t\t<?php echo " ?>Html::submitButton($model->isNewRecord ? <?= $generator->generateString('Create') ?> : <?= $generator->generateString('Update') ?>, ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']); ?>
 	</div>
 </div>
