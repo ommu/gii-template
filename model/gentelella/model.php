@@ -111,7 +111,8 @@ $relationModel = preg_replace($patternClass, '', $relation[1]);
 $arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelationName($name, true)) : $generator->setRelationName($name));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php endforeach;
-foreach ($tableSchema->columns as $column):
+foreach ($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
 	if($column->dbType == 'tinyint(1)') {
 		$tinyCondition = 1;
 		if(in_array($column->name, ['publish','headline']))
@@ -136,12 +137,11 @@ foreach ($tableSchema->columns as $column):
 		if($column->name == 'member_id') 
 			$memberCondition = 1;
 	} else {
-		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && $column->comment == 'file') 
+		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray)) 
 			$uploadCondition = 1;
-		else if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && $column->comment == 'serialize') 
+		else if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('serialize', $commentArray)) 
 			$serializeCondition = 1;
 		else {
-			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)) {
 				$i18n = 1;
 				$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
@@ -149,7 +149,7 @@ foreach ($tableSchema->columns as $column):
 			}
 		}
 	}
-endforeach;
+}
 endif; ?>
  *
  */
@@ -445,7 +445,9 @@ if($queryClassName):
 <?php 
 $arraySearchPublicVariable = [];
 foreach ($tableSchema->columns as $column):
-	if($column->isPrimaryKey || $column->autoIncrement || $column->dbType == 'tinyint(1)' || $column->name[0] == '_')
+	if($column->name[0] == '_')
+		continue;
+	if($column->isPrimaryKey || $column->autoIncrement || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
 
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
@@ -549,64 +551,65 @@ endif;?>
 	}
 endforeach;
 
-foreach ($tableSchema->columns as $column):
-	if(($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline','permission']) || $column->comment != '')) || $column->name[0] == '_')
+foreach ($tableSchema->columns as $column) {
+	$comment = $column->comment;
+	if($column->name[0] == '_')
+		continue;
+	if($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline','permission']) || ($comment != '' &&  $comment[7] != '[')))
 		continue;
 		
-	if($column->dbType == 'tinyint(1)'):?>
+	if($column->dbType == 'tinyint(1)') {?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
 			'filter' => $this->filterYesNo(),
 			'value' => function($model, $key, $index, $column) {
-				return $model-><?php echo $column->name;?> ? Yii::t('app', 'Yes') : Yii::t('app', 'No');
+				return $this->filterYesNo($model-><?php echo $column->name;?>);
 			},
 			'contentOptions' => ['class'=>'center'],
 		];
-<?php endif;
-endforeach;
+<?php }
+}
 
-foreach ($tableSchema->columns as $column):
-	if(($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','permission'])) || $column->name[0] == '_')
+foreach ($tableSchema->columns as $column) {
+	$comment = $column->comment;
+	if($column->name[0] == '_')
+		continue;
+	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','permission']))
 		continue;
 
-	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || $column->comment != '')):?>
+	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || ($comment != '' && $comment[7] != '['))) {
+		if($column->name == 'headline' && $comment == '')
+			$comment = 'Headline,Unheadline';?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
 			'filter' => $this->filterYesNo(),
 			'value' => function($model, $key, $index, $column) {
 				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
-<?php if($column->name == 'headline'):?>
-				return $this->quickAction($url, $model-><?php echo $column->name;?>, 'Headline,No Headline', true);
-<?php else:?>
-				return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>');
-<?php endif;?>
+				return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $comment;?>'<?php echo $column->name == 'headline' ? ', true' : '';?>);
 			},
 			'contentOptions' => ['class'=>'center'],
 			'format' => 'raw',
 		];
-<?php endif;
-endforeach;
+<?php }
+}
 
-foreach ($tableSchema->columns as $column):
-	if($column->dbType == 'tinyint(1)' && $column->name == 'publish'):?>
+foreach ($tableSchema->columns as $column) {
+	$comment = $column->comment;
+	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {?>
 		if(!Yii::$app->request->get('trash')) {
 			$this->templateColumns['<?php echo $column->name;?>'] = [
 				'attribute' => '<?php echo $column->name;?>',
 				'filter' => $this->filterYesNo(),
 				'value' => function($model, $key, $index, $column) {
 					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
-<?php if($column->comment == ''):?>
-					return $this->quickAction($url, $model-><?php echo $column->name;?>);
-<?php else:?>
-					return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>');
-<?php endif;?>
+					return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
 				},
 				'contentOptions' => ['class'=>'center'],
 				'format' => 'raw',
 			];
 		}
-<?php endif;
-endforeach; ?>
+<?php }
+} ?>
 <?php /*
 		if(count($this->defaultColumns) == 0) {
 foreach ($tableSchema->columns as $column):
@@ -650,7 +653,7 @@ endforeach;
 		}
 	}
 <?php
-if(($tableType != Generator::TYPE_VIEW) && ($generator->useGetFunction || $useGetFunctionCondition)):
+if($tableType != Generator::TYPE_VIEW && ($generator->useGetFunction || $useGetFunctionCondition)) {
 	$functionName = $generator->setRelationName($className, true);
 	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));?>
 
@@ -684,11 +687,10 @@ if($publishCondition) {?>
 		} else 
 			return $model;
 	}
-<?php endif;
-if($uploadCondition):
+<?php }
+
+if($uploadCondition) {
 	$directoryPath = $generator->uploadPath['directory'];
-	//if($generator->uploadPath['subfolder'])
-	//	$directoryPath = join('/', [$directoryPath, $primaryKey]);
 	$returnAlias = join('/', ['@webroot', $directoryPath]);?>
 
 	/**
@@ -699,52 +701,58 @@ if($uploadCondition):
 	{
 		return ($returnAlias ? Yii::getAlias('<?php echo $returnAlias;?>') : '<?php echo $directoryPath;?>');
 	}
-<?php endif;
-if(($tableType != Generator::TYPE_VIEW) && ($i18n || $uploadCondition || $tagCondition || $serializeCondition)):?>
+<?php }
+
+$afEvents = 0;
+if($tagCondition || $uploadCondition || $serializeCondition || $i18n)
+	$afEvents = 1;
+if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 
 	/**
 	 * after find attributes
 	 */
 	public function afterFind()
 	{
-<?php foreach ($tableSchema->columns as $column):
+<?php foreach ($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	
 	if(in_array($column->name, ['tag_id'])) {
 		$relationName = $generator->setRelationName($column->name);
 		$publicAttribute = $relationName.'_i';
 		echo "\t\t\$this->$publicAttribute = isset(\$this->{$relationName}) ? \$this->{$relationName}->body : '';\n";
 
-	} else if($column->type == 'text' && $column->comment == 'file') {
+	} else if($column->type == 'text' && in_array('file', $commentArray)) {
 		$inputPublicVariable = 'old_'.$column->name.'_i';
 		echo "\t\t\$this->$inputPublicVariable = \$this->$column->name;\n";
 
-	} else if($column->type == 'text' && $column->comment == 'serialize') {
+	} else if($column->type == 'text' && in_array('serialize', $commentArray)) {
 		echo "\t\t\$this->$column->name = unserialize(\$this->$column->name);\n";
 
 	} else {
-		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
 			$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
 			echo "\t\t\$this->$publicAttribute = isset(\$this->{$publicAttributeRelation}) ? \$this->{$publicAttributeRelation}->message : '';\n";
 		}
 	}
-endforeach;?>
+}?>
 	}
-<?php endif;
+<?php }
 
-$bsEvents = 0;
+$bvEvents = 0;
+$beforeValidate = 0;
+$creationCondition = 0;
+if($uploadCondition)
+	$bvEvents = 1;
 foreach($tableSchema->columns as $column)
 {
 	$nameArray = explode('_', $column->name);
-
-	if($uploadCondition || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
-		$bsEvents = 1;
-		
+	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']) && $column->comment != 'trigger')
+		$bvEvents = 1;
 	if(in_array('ip', $nameArray))
-		$bsEvents = 1;
+		$bvEvents = 1;
 }
-$beforeValidate = 0;
-if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents)): ?>
+if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $bvEvents)) {?>
 
 	/**
 	 * before validate attributes
@@ -752,11 +760,13 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	public function beforeValidate()
 	{
 		if(parent::beforeValidate()) {
-<?php if($uploadCondition):
-	foreach($tableSchema->columns as $column):
-		if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
-			$beforeValidate = 1;?>
-			$<?php echo $column->name;?>FileType = ['bmp','gif','jpg','png'];
+<?php if($uploadCondition) {
+	$beforeValidate = 1;
+	foreach($tableSchema->columns as $column) {
+		$commentArray = explode(',', $column->comment);
+		if($column->type == 'text' && in_array('file', $commentArray)) {
+			$fileType = Inflector::singularize(Inflector::id2camel($column->name, '_')).'FileType';?>
+			$<?php echo $fileType;?>FileType = ['bmp','gif','jpg','png'];
 			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 
 			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
@@ -772,45 +782,42 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 			} */
 
 <?php 	}
-	endforeach;
-endif;
+	}
+}
 
-$creationCondition = 0;
-foreach($tableSchema->columns as $column):
-	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && $column->comment != 'trigger'):
+foreach($tableSchema->columns as $column) {
+	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && $column->comment != 'trigger') {
 		$beforeValidate = 1;
 		if(in_array($column->name, array('creation_id','user_id'))) {
 			$creationCondition = 1;
 			echo "\t\t\tif(\$this->isNewRecord)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
-
 		} else {
-			if($creationCondition) {
+			if($creationCondition)
 				echo "\t\t\telse\n";
-			}else
+			else
 				echo "\t\t\tif(!\$this->isNewRecord)\n";
 			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		}
-	endif;
-endforeach;
+	}
+}
 
-foreach($tableSchema->columns as $column):
+foreach($tableSchema->columns as $column) {
 	$nameArray = explode('_', $column->name);
-		
-	if(in_array('ip', $nameArray)):
-		$beforeValidate = 1;
-		echo "\n\t\t\t\$this->{$column->name} = \$_SERVER['REMOTE_ADDR'];\n";
-	endif;
-endforeach;
+	if(in_array('ip', $nameArray)) {
+		$beforeValidate = 1;?>
+			$this-><?php echo $column->name;?> = $_SERVER['REMOTE_ADDR'];
+<?php }
+}
 echo !$beforeValidate ? "\t\t\t// Create action\n" : '';?>
 		}
 		return true;
 	}
-<?php 
-endif;
+<?php }
 
-$bsEvents = 0;
-if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents)): ?>
+$avEvents = 0;
+$afterValidate = 0;
+if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $avEvents)): ?>
 
 	/**
 	 * after validate attributes
@@ -827,20 +834,22 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 endif;
 
 $bsEvents = 0;
-foreach($tableSchema->columns as $column)
-{
-	if($i18n || $uploadCondition || (in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')  || ($column->type == 'text' && $column->comment == 'serialize')|| in_array($column->name, ['tag_id']))
+$beforeSave = 0;
+if($i18n || $uploadCondition || $serializeCondition || $tagCondition)
+	$bsEvents = 1;
+foreach($tableSchema->columns as $column) {
+	if((in_array($column->type, ['date','datetime']) && $column->comment != 'trigger'))
 		$bsEvents = 1;
 }
-$beforeSave = 0;
-if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
+if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $bsEvents)): ?>
 
 	/**
 	 * before save attributes
 	 */
 	public function beforeSave($insert)
 	{
-<?php if($i18n) {?>
+<?php if($i18n) {
+$beforeSave = 1;?>
 		$module = strtolower(Yii::$app->controller->module->id);
 		$controller = strtolower(Yii::$app->controller->id);
 		$action = strtolower(Yii::$app->controller->action->id);
@@ -849,19 +858,20 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 
 <?php }?>
 		if(parent::beforeSave($insert)) {
-<?php if($uploadCondition):?>
+<?php if($uploadCondition) {
+$beforeSave = 1;?>
 			if(!$insert) {
-<?php if($generator->uploadPath['subfolder']):?>
+<?php if($generator->uploadPath['subfolder']) {?>
 				$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
-<?php else:?>
+<?php } else {?>
 				$uploadPath = self::getUploadPath();
-<?php endif;?>
+<?php }?>
 				$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
 				$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
-<?php foreach($tableSchema->columns as $column):
-	if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
-		$beforeSave = 1;?>
+<?php foreach($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if($column->type == 'text' && in_array('file', $commentArray)) {?>
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
@@ -876,11 +886,11 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 				}
 
 <?php }
-endforeach;?>
+}?>
 			}
-<?php endif;?>
-<?php 
-foreach($tableSchema->columns as $column):
+<?php }
+
+foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
 		$beforeSave = 1;
@@ -892,7 +902,11 @@ foreach($tableSchema->columns as $column):
 				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
 				if($<?php echo $column->name;?>->save())
 					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
-				
+<?php if($slugCondition && $i18n && preg_match('/(name|title)/', $column->name)) {?>
+
+				$this->slug = $this->urlTitle($this-><?php echo $publicAttribute;?>);
+<?php }?>
+
 			} else {
 				$<?php echo $column->name;?> = SourceMessage::findOne($this-><?php echo $column->name;?>);
 				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
@@ -900,14 +914,15 @@ foreach($tableSchema->columns as $column):
 			}
 
 <?php }
-endforeach;
+}
 
-foreach($tableSchema->columns as $column):
+foreach($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
 	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger') {
 		$beforeSave = 1;
 		echo "\t\t\t\$this->$column->name = Yii::\$app->formatter->asDate(\$this->$column->name, 'php:Y-m-d');\n";	//Y-m-d H:i:s
 
-	} else if($column->type == 'text' && $column->comment == 'serialize') {
+	} else if($column->type == 'text' && in_array('serialize', $commentArray)) {
 		$beforeSave = 1;
 		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
 
@@ -933,7 +948,7 @@ foreach($tableSchema->columns as $column):
 				}
 			}
 <?php }
-endforeach;
+}
 echo !$beforeSave ? "\t\t\t// Create action\n" : '';?>
 		}
 		return true;
@@ -941,9 +956,11 @@ echo !$beforeSave ? "\t\t\t// Create action\n" : '';?>
 <?php 
 endif;
 
-$bsEvents = 0;
+$asEvents = 0;
 $afterSave = 0;
-if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
+if($uploadCondition)
+	$asEvents = 1;
+if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $asEvents)) {?>
 
 	/**
 	 * After save attributes
@@ -952,19 +969,20 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	{
 		parent::afterSave($insert, $changedAttributes);
 
-<?php if($uploadCondition):
+<?php if($uploadCondition) {
 $afterSave = 1;
-if($generator->uploadPath['subfolder']):?>
+if($generator->uploadPath['subfolder']) {?>
 		$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
-<?php else:?>
+<?php } else {?>
 		$uploadPath = self::getUploadPath();
-<?php endif;?>
+<?php }?>
 		$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
 		$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
 		if($insert) {
-<?php foreach($tableSchema->columns as $column):
-	if(!in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {?>
+<?php foreach($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if($column->type == 'text'  && in_array('file', $commentArray)) {?>
 			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 				$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
@@ -973,16 +991,16 @@ if($generator->uploadPath['subfolder']):?>
 			}
 
 <?php }
-endforeach;?>
+}?>
 		}
-<?php endif;
+<?php }
 echo !$afterSave ? "\t\t// Create action\n" : '';?>
 	}
-<?php 
-endif;
+<?php }
 
-$bsEvents = 0;
-if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents)): ?>
+$bdEvents = 0;
+$beforeDelete = 0;
+if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $bdEvents)): ?>
 
 	/**
 	 * Before delete attributes
@@ -997,9 +1015,11 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 <?php 
 endif;
 
-$bsEvents = 0;
+$adEvents = 0;
 $afterDelete = 0;
-if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEvents || $uploadCondition)): ?>
+if($uploadCondition)
+	$adEvents = 1;
+if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $adEvents)) {?>
 
 	/**
 	 * After delete attributes
@@ -1008,24 +1028,25 @@ if(($tableType != Generator::TYPE_VIEW) && ($generator->generateEvents || $bsEve
 	{
 		parent::afterDelete();
 
-<?php if($uploadCondition):
-$afterDelete = 1;
-if($generator->uploadPath['subfolder']):?>
+<?php if($uploadCondition) {
+	$afterDelete = 1;
+if($generator->uploadPath['subfolder']) {?>
 		$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
-<?php else:?>
+<?php } else {?>
 		$uploadPath = self::getUploadPath();
-<?php endif;?>
+<?php }?>
 		$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
 
-<?php foreach($tableSchema->columns as $column):
-	if($column->type == 'text' && $column->comment == 'file') {?>
+<?php foreach($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if($column->type == 'text' && in_array('file', $commentArray)) {?>
 		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this-><?php echo $column->name;?>])))
 			rename(join('/', [$uploadPath, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, time().'_deleted_'.$this-><?php echo $column->name;?>]));
 
-<?php }
-endforeach;
-endif;
+<?php 	}
+	}
+}
 echo !$afterDelete ? "\t\t// Create action\n" : '';?>
 	}
-<?php endif; ?>
+<?php }?>
 }
