@@ -100,7 +100,7 @@ class Generator extends \yii\gii\Generator
 	/**
 	 * set name relation with underscore
 	 */
-	public function setRelationName($names, $model=false) 
+	public function setRelation($names, $model=false) 
 	{
 		if($model == true) {
 			$patterns = array();

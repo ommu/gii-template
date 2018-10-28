@@ -20,12 +20,9 @@
 use ommu\gii\model\Generator;
 use yii\helpers\Inflector;
 
-$patternClass = $patternLabel =[];
+$patternClass = [];
 $patternClass[0] = '(Ommu)';
 $patternClass[1] = '(Swt)';
-
-$patternLabel[0] = '(ID)';
-$patternLabel[1] = '(Search)';
 
 /**
  * Condition
@@ -44,8 +41,8 @@ $primaryKeyCondition = 0;
 $memberCondition = 0;
 
 $arrayRelations = [];
-$arrayInputPublicVariable = [];
-$arraySearchPublicVariable = [];
+$inputPublicVariables = [];
+$searchPublicVariables = [];
 $arrayAttributeName = [];
 
 if($tableType == Generator::TYPE_VIEW)
@@ -108,7 +105,7 @@ endforeach; ?>
 <?php 
 foreach ($relations as $name => $relation):
 $relationModel = preg_replace($patternClass, '', $relation[1]);
-$arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelationName($name, true)) : $generator->setRelationName($name));?>
+$arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php endforeach;
 foreach ($tableSchema->columns as $column) {
@@ -120,7 +117,7 @@ foreach ($tableSchema->columns as $column) {
 	} elseif($column->name == 'slug') 
 		$slugCondition = 1;
 	elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
-		$relationName = $generator->setRelationName($column->name);
+		$relationName = $generator->setRelation($column->name);
 		if(!in_array($relationName, $arrayRelations)) {
 			$arrayRelations[] = $relationName;
 			if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
@@ -175,54 +172,61 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 <?php echo $tinyCondition || $i18n || $tagCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
-foreach ($tableSchema->columns as $column): 
+foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($tableType != Generator::TYPE_VIEW && in_array('trigger[delete]', $commentArray)) {
 		$inputPublicVariable = $column->name.'_i';
-		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
-			$arrayInputPublicVariable[] = $inputPublicVariable;
+		if(!in_array($inputPublicVariable, $inputPublicVariables))
+			$inputPublicVariables[$inputPublicVariable] = Inflector::camel2words(Inflector::id2camel($column->name));
 	}
-endforeach;
-foreach ($tableSchema->columns as $column):
-	if(in_array($column->name, ['tag_id'])) {
-		$inputPublicVariable = $generator->setRelationName($column->name).'_i';
-		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
-			$arrayInputPublicVariable[] = $inputPublicVariable;
-	}
-endforeach;
-foreach ($tableSchema->columns as $column):
-	if($tableType != Generator::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
-		$inputPublicVariable = 'old_'.$column->name.'_i';
-		if(!in_array($inputPublicVariable, $arrayInputPublicVariable))
-			$arrayInputPublicVariable[] = $inputPublicVariable;
-	}
-endforeach;
-
-foreach ($tableSchema->columns as $column): 
-if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
-	$searchPublicVariable = $generator->setRelationName($column->name).'_search';
-	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
-		$arraySearchPublicVariable[] = $searchPublicVariable;
-endif;
-endforeach;
-foreach ($tableSchema->columns as $column): 
-if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-	$searchPublicVariable = $generator->setRelationName($column->name).'_search';
-	if(!in_array($searchPublicVariable, $arraySearchPublicVariable))
-		$arraySearchPublicVariable[] = $searchPublicVariable;
-endif;
-endforeach;
-
-if(!empty($arrayInputPublicVariable)) {
-	foreach ($arrayInputPublicVariable as $val):
-		echo "\tpublic $$val;\n";
-	endforeach;
 }
-if(!empty($arraySearchPublicVariable)) {
+foreach ($tableSchema->columns as $column) {
+	if($tableType != Generator::TYPE_VIEW && in_array($column->name, ['tag_id'])) {
+		$relationName = $generator->setRelation($column->name);
+		$inputPublicVariable = $relationName.'_i';
+		if(!in_array($inputPublicVariable, $inputPublicVariables))
+			$inputPublicVariables[$inputPublicVariable] = ucwords(strtolower($relationName));
+	}
+}
+foreach ($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray)) {
+		$inputPublicVariable = 'old_'.$column->name.'_i';
+		if(!in_array($inputPublicVariable, $inputPublicVariables))
+			$inputPublicVariables[$inputPublicVariable] = Inflector::camel2words('old '.Inflector::id2camel($column->name));
+	}
+}
+
+foreach ($tableSchema->columns as $column) {
+	$smallintCondition = 0;
+	if($tableType != Generator::TYPE_VIEW && !empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		if(preg_match('/(smallint)/', $column->type))
+			$smallintCondition = 1;
+		$relationName = $generator->setRelation($column->name);
+		$searchPublicVariable = $relationName.'_search';
+		if(!$smallintCondition && !in_array($searchPublicVariable, $searchPublicVariables))
+			$searchPublicVariables[$searchPublicVariable] = ucwords(strtolower($relationName));
+	}
+}
+foreach ($tableSchema->columns as $column) {
+	if($tableType != Generator::TYPE_VIEW && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		$relationName = $generator->setRelation($column->name);
+		$searchPublicVariable = $relationName.'_search';
+		if(!in_array($searchPublicVariable, $searchPublicVariables))
+			$searchPublicVariables[$searchPublicVariable] = ucwords(strtolower($relationName));
+	}
+}
+
+if(!empty($inputPublicVariables)) {
+	foreach ($inputPublicVariables as $key=>$val) {
+		echo "\tpublic $$key;\n";
+	}
+}
+if(!empty($searchPublicVariables)) {
 	echo "\n\t// Variable Search\n"; 
-foreach ($arraySearchPublicVariable as $val):
-	echo "\tpublic $$val;\n";
-endforeach;
+	foreach ($searchPublicVariables as $key=>$val) {
+		echo "\tpublic $$key;\n";
+	}
 }?>
 
 	/**
@@ -232,9 +236,7 @@ endforeach;
 	{
 		return '<?= $generator->generateTableName($tableName) ?>';
 	}
-<?php
-if($tableType == Generator::TYPE_VIEW || $primaryKeyCondition):
-?>
+<?php if($tableType == Generator::TYPE_VIEW || $primaryKeyCondition) {?>
 
 	/**
 	 * @return string the primarykey column
@@ -243,10 +245,9 @@ if($tableType == Generator::TYPE_VIEW || $primaryKeyCondition):
 	{
 		return ['<?=$viewPrimaryKey?>'];
 	}
-<?php
-endif;
-?>
-<?php if ($generator->db !== 'db'): ?>
+<?php }
+
+if ($generator->db !== 'db') {?>
 
 	/**
 	 * @return \yii\db\Connection the database connection used by this AR class.
@@ -255,9 +256,10 @@ endif;
 	{
 		return Yii::$app->get('<?= $generator->db ?>');
 	}
-<?php endif; ?>
-<?php if ($slugCondition):
-$getNameAttribute = $generator->getNameAttribute();?>
+<?php }
+
+if ($slugCondition) {
+	$tableAttribute = $generator->getNameAttribute(); ?>
 
 	/**
 	 * behaviors model class.
@@ -266,13 +268,13 @@ $getNameAttribute = $generator->getNameAttribute();?>
 		return [
 			[
 				'class' => SluggableBehavior::className(),
-				'attribute' => '<?php echo $i18n && preg_match('/(name|title)/', $getNameAttribute) ? 'title.message' : $getNameAttribute;?>',
+				'attribute' => '<?php echo $i18n && preg_match('/(name|title)/', $tableAttribute) ? 'title.message' : $tableAttribute;?>',
 				'immutable' => true,
 				'ensureUnique' => true,
 			],
 		];
 	}
-<?php endif; ?>
+<?php }?>
 
 	/**
 	 * @return array validation rules for model attributes.
@@ -289,86 +291,29 @@ $getNameAttribute = $generator->getNameAttribute();?>
 	{
 		return [
 <?php 
-foreach ($labels as $name => $label):
-if(count(explode(' ', $label)) > 1)
-	$label = Inflector::camel2words(Inflector::id2camel($generator->setRelationName(trim(preg_replace($patternLabel, '', $label)))));
-	if(!($name[0] == '_')) {
-		$arrayAttributeName[] = $label;
-		echo "\t\t\t'$name' => " . $generator->generateString($label) . ",\n";
-	}
-endforeach;
+foreach ($labels as $name => $label) {
+	if($name[0] == '_')
+		continue;
+	echo "\t\t\t'$name' => " . $generator->generateString($label) . ",\n";
+}
 
-foreach ($tableSchema->columns as $column):
-	$commentArray = explode(',', $column->comment);
-	if($tableType != Generator::TYPE_VIEW && in_array('trigger[delete]', $commentArray)) {
-		$attributeName = $column->name.'_i';
-		if(!in_array($attributeName, $arrayAttributeName)) {
-			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = Inflector::camel2words(Inflector::id2camel($column->name, '_'));
-			if(count(explode(' ', $attributeLabels)) > 1)
-				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
-			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
-		}
+if(!empty($inputPublicVariables)) {
+	foreach ($inputPublicVariables as $key=>$val) {
+		echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
 	}
-endforeach;
+}
 
-foreach ($tableSchema->columns as $column):
-	if(in_array($column->name, ['tag_id'])) {
-		$relationName = $generator->setRelationName($column->name);
-		$attributeName = $relationName.'_i';
-		if(!in_array($attributeName, $arrayAttributeName)) {
-			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = Inflector::camel2words(Inflector::id2camel($relationName, '_'));
-			if(count(explode(' ', $attributeLabels)) > 1)
-				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
-			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
-		}
+if(!empty($searchPublicVariables)) {
+	foreach ($searchPublicVariables as $key=>$val) {
+		echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
 	}
-endforeach;
-
-foreach ($tableSchema->columns as $column):
-	if($tableType != Generator::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id','tag_id']) && $column->type == 'text' && $column->comment == 'file') {
-		$attributeName = 'old_'.$column->name.'_i';
-		if(!in_array($attributeName, $arrayAttributeName)) {
-			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = Inflector::camel2words(Inflector::id2camel('old_'.$column->name, '_'));
-			if(count(explode(' ', $attributeLabels)) > 1)
-				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
-			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
-		}
-	}
-endforeach;
-foreach ($tableSchema->columns as $column):
-	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
-		$attributeName = $generator->setRelationName($column->name).'_search';
-		if(!in_array($attributeName, $arrayAttributeName)) {
-			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = Inflector::camel2words(Inflector::id2camel($attributeName, '_'));
-			if(count(explode(' ', $attributeLabels)) > 1)
-				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
-			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
-		}
-	endif;
-endforeach;
-
-foreach ($tableSchema->columns as $column):
-	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-		$attributeName = $generator->setRelationName($column->name).'_search';
-		if(!in_array($attributeName, $arrayAttributeName)) {
-			$arrayAttributeName[] = $attributeName;
-			$attributeLabels = Inflector::camel2words(Inflector::id2camel($attributeName, '_'));
-			if(count(explode(' ', $attributeLabels)) > 1)
-				$attributeLabels = trim(preg_replace($patternLabel, '', $attributeLabels));
-			echo "\t\t\t'$attributeName' => " . $generator->generateString($attributeLabels) . ",\n";
-		}
-	endif;
-endforeach; ?>
+} ?>
 		];
 	}
 <?php 
 $arrayRelations = [];
 foreach ($relations as $name => $relation):
-	$arrayRelations[] = $relationName = ($relation[2] ? ucfirst($generator->setRelationName($name, true)) : ucfirst($generator->setRelationName($name)));?>
+	$arrayRelations[] = $relationName = ($relation[2] ? ucfirst($generator->setRelation($name, true)) : ucfirst($generator->setRelation($name)));?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
@@ -401,7 +346,7 @@ endif;
 
 foreach ($tableSchema->columns as $column):
 	if(!$column->isPrimaryKey && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
-		$relationName = ucfirst($generator->setRelationName($column->name));
+		$relationName = ucfirst($generator->setRelation($column->name));
 		if(!in_array($relationName, $arrayRelations)) {
 			$arrayRelations[] = $relationName; ?>
 
@@ -443,56 +388,59 @@ if($queryClassName):
 			'contentOptions' => ['class'=>'center'],
 		];
 <?php 
-$arraySearchPublicVariable = [];
-foreach ($tableSchema->columns as $column):
+$publicAttributes = [];
+foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
 	if($column->isPrimaryKey || $column->autoIncrement || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
 
-	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-		$relationTableName = trim($foreignKeys[$column->name]);
-		$relationAttributeName = $generator->getNameAttribute($relationTableName);
-		if(trim($foreignKeys[$column->name]) == 'ommu_users')
-			$relationAttributeName = 'displayname';
-		$relationName = $generator->setRelationName($column->name);
-		$searchPublicVariable = $relationName.'_search';
-		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-			$arraySearchPublicVariable[] = $searchPublicVariable;?>
-		if(!Yii::$app->request->get('<?php echo $relationName;?>')) {
-			$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
-				'attribute' => '<?php echo $searchPublicVariable;?>',
-				'value' => function($model, $key, $index, $column) {
-					return isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?> : '-';
-				},
-			];
+	$commentArray = explode(',', $column->comment);
+
+	if((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		$smallintCondition = 0;
+		$foreignCondition = 0;
+		if(preg_match('/(smallint)/', $column->type))
+			$smallintCondition = 1;
+		$relationName = $generator->setRelation($column->name);
+		$publicAttribute = $relationName.'_search';
+		$relationAttribute = 'displayname';
+		if(array_key_exists($column->name, $foreignKeys)) {
+			$foreignCondition = 1;
+			$relationTableName = trim($foreignKeys[$column->name]);
+			$relationAttribute = $generator->getNameAttribute($relationTableName);
+			if($relationTableName == 'ommu_users')
+				$relationAttribute = 'displayname';
 		}
-<?php 	}
-	} else if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-		$relationName = $generator->setRelationName($column->name);
-		$searchPublicVariable = $relationName.'_search';
-		$searchObjectVariable = 'displayname';
 		if($column->name == 'tag_id') {
-			$searchPublicVariable = $relationName.'_i';
-			$searchObjectVariable = 'body';
+			$publicAttribute = $relationName.'_i';
+			$relationAttribute = 'body';
 		}
-		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-			$arraySearchPublicVariable[] = $searchPublicVariable;?>
+		if($smallintCondition)
+			$publicAttribute = $column->name;
+
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributes[] = $publicAttribute;?>
 		if(!Yii::$app->request->get('<?php echo $relationName;?>')) {
-			$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
-				'attribute' => '<?php echo $searchPublicVariable;?>',
+			$this->templateColumns['<?php echo $publicAttribute;?>'] = [
+				'attribute' => '<?php echo $publicAttribute;?>',
 				'value' => function($model, $key, $index, $column) {
-					return isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $searchObjectVariable;?> : '-';
+					return isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttribute;?> : '-';
 				},
+<?php if($foreignCondition && $smallintCondition) {
+	$relationClassName = $generator->generateClassName($relationTableName);
+	$functionName = Inflector::singularize($generator->setRelation($relationClassName, true));?>
+				'filter' => <?php echo $relationClassName;?>::get<?php echo $functionName;?>(),
+<?php }?>
 			];
 		}
 <?php 	}
 	} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
-		$searchPublicVariable = $column->name;
-		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-			$arraySearchPublicVariable[] = $searchPublicVariable;?>
-		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
-			'attribute' => '<?php echo $searchPublicVariable;?>',
+		$publicAttribute = $column->name;
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributes[] = $publicAttribute;?>
+		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
+			'attribute' => '<?php echo $publicAttribute;?>',
 <?php if($generator->useJuiDatePicker):?>
 			'filter' => \yii\jui\DatePicker::widget([
 				'dateFormat' => 'yyyy-MM-dd',
@@ -509,37 +457,36 @@ foreach ($tableSchema->columns as $column):
 		];
 <?php 	}
 	} else if($column->type == 'text' && $column->comment == 'file') {
-		$searchPublicVariable = $column->name;
-		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-			$arraySearchPublicVariable[] = $searchPublicVariable;?>
-		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
-			'attribute' => '<?php echo $searchPublicVariable;?>',
+		$publicAttribute = $column->name;
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributes[] = $publicAttribute;?>
+		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
+			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => function($model, $key, $index, $column) {
-				return $model-><?php echo $searchPublicVariable;?>;
+				return $model-><?php echo $publicAttribute;?>;
 			},
 		];
 <?php 		}
 	} else {
 		$translateCondition = 0;
-		$commentArray = explode(',', $column->comment);
-		$searchPublicVariable = $column->name;
+		$publicAttribute = $column->name;
 		if(in_array('trigger[delete]', $commentArray)) {
-			$searchPublicVariable = $column->name.'_i';
+			$publicAttribute = $column->name.'_i';
 			$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
 			$translateCondition = 1;
 		}
-		if(!in_array($searchPublicVariable, $arraySearchPublicVariable)) {
-			$arraySearchPublicVariable[] = $searchPublicVariable;?>
-		$this->templateColumns['<?php echo $searchPublicVariable;?>'] = [
-			'attribute' => '<?php echo $searchPublicVariable;?>',
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributes[] = $publicAttribute;?>
+		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
+			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => function($model, $key, $index, $column) {
 <?php if($translateCondition):?>
 				return isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-';
 <?php else:
 	if($column->type == 'text' && $column->comment == 'serialize'):?>
-				return serialize($model-><?php echo $searchPublicVariable;?>);
+				return serialize($model-><?php echo $publicAttribute;?>);
 <?php else:?>
-				return $model-><?php echo $searchPublicVariable;?>;
+				return $model-><?php echo $publicAttribute;?>;
 <?php endif;
 endif;?>
 			},
@@ -549,7 +496,7 @@ endif;?>
 		];
 <?php 		}
 	}
-endforeach;
+}
 
 foreach ($tableSchema->columns as $column) {
 	$comment = $column->comment;
@@ -654,7 +601,7 @@ endforeach;
 	}
 <?php
 if($tableType != Generator::TYPE_VIEW && ($generator->useGetFunction || $useGetFunctionCondition)) {
-	$functionName = $generator->setRelationName($className, true);
+	$functionName = $generator->setRelation($className, true);
 	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));?>
 
 	/**
@@ -717,7 +664,7 @@ if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 	$commentArray = explode(',', $column->comment);
 	
 	if(in_array($column->name, ['tag_id'])) {
-		$relationName = $generator->setRelationName($column->name);
+		$relationName = $generator->setRelation($column->name);
 		$publicAttribute = $relationName.'_i';
 		echo "\t\t\$this->$publicAttribute = isset(\$this->{$relationName}) ? \$this->{$relationName}->body : '';\n";
 
@@ -928,7 +875,7 @@ foreach($tableSchema->columns as $column) {
 
 	} else if($column->name == 'tag_id') {
 		$beforeSave = 1;
-		$relationName =  $generator->setRelationName($column->name);
+		$relationName =  $generator->setRelation($column->name);
 		$publicAttribute = $relationName.'_i';?>
 			if($insert) {
 				$<?php echo $publicAttribute;?> = $this->urlTitle($this-><?php echo $publicAttribute;?>);

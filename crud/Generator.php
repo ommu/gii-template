@@ -298,7 +298,7 @@ class Generator extends \ommu\gii\Generator
 			foreach ($tableSchema->columns as $column) {
 				$relationColumn = [];
 				if($column->name == 'tag_id') {
-					$relationColumn[] = $this->setRelationName($column->name);
+					$relationColumn[] = $this->setRelation($column->name);
 					$relationColumn[] = 'body';
 				}
 				if(!empty($relationColumn))
@@ -311,7 +311,7 @@ class Generator extends \ommu\gii\Generator
 				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
-						$relationColumn[] = $this->setRelationName($column->name);
+						$relationColumn[] = $this->setRelation($column->name);
 						$relationColumn[] = $this->getNameRelationAttribute($relationTableName, $separator);
 						$foreignCondition = 1;
 					}
@@ -483,11 +483,11 @@ class Generator extends \ommu\gii\Generator
 			$i18n = 1;
 
 		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-			$attributeName = $this->setRelationName($column->name).'_search';
+			$attributeName = $this->setRelation($column->name).'_search';
 			return "\$form->field(\$model, '$attributeName')";
 
 		} elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-			$relationName = $this->setRelationName($column->name);
+			$relationName = $this->setRelation($column->name);
 			$attributeName = $relationName.'_search';
 			if($column->name == 'tag_id')
 				$attributeName = $relationName.'_i';
@@ -683,14 +683,14 @@ class Generator extends \ommu\gii\Generator
 					if(in_array($column, array('creation_id','modified_id','user_id','updated_id','tag_id'))) {
 						if(!in_array($column, $arrayHasColumn)) {
 							$arrayHasColumn[] = $column;
-							$relation = $this->setRelationName($column);
+							$relation = $this->setRelation($column);
 							$hashConditions[] = "'t.{$column}' => isset(\$params['$relation']) ? \$params['$relation'] : \$this->{$column},";
 						}
 
 					} else if(!empty($foreignKeys) && array_key_exists($column, $foreignKeys)) {
 						if(!in_array($column, $arrayHasColumn)) {
 							$arrayHasColumn[] = $column;
-							$relation = $this->setRelationName($column);
+							$relation = $this->setRelation($column);
 							$hashConditions[] = "'t.{$column}' => isset(\$params['$relation']) ? \$params['$relation'] : \$this->{$column},";
 						}
 
@@ -743,7 +743,7 @@ class Generator extends \ommu\gii\Generator
 		endforeach;
 		foreach ($tableSchema->columns as $column): 
 			if(in_array($column->name, ['tag_id'])):
-				$relationName = $this->setRelationName($column->name);
+				$relationName = $this->setRelation($column->name);
 				$publicVariable = $relationName.'_i';
 				if(!in_array($publicVariable, $arrayPublicVariable)) {
 					$arrayPublicVariable[] = $publicVariable;
@@ -754,7 +754,7 @@ class Generator extends \ommu\gii\Generator
 		foreach ($tableSchema->columns as $column): 
 			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
 				$relationTableName = trim($foreignKeys[$column->name]);
-				$relationName = $this->setRelationName($column->name);
+				$relationName = $this->setRelation($column->name);
 				$relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameRelationAttribute($relationTableName, '.'));
 				if(trim($foreignKeys[$column->name]) == 'ommu_users')
 					$relationAttributeName = 'displayname';
@@ -767,7 +767,7 @@ class Generator extends \ommu\gii\Generator
 		endforeach;
 		foreach ($tableSchema->columns as $column): 
 			if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
-				$relationName = $this->setRelationName($column->name);
+				$relationName = $this->setRelation($column->name);
 				$publicVariable = $relationName.'_search';
 				if(!in_array($publicVariable, $arrayPublicVariable)) {
 					$arrayPublicVariable[] = $publicVariable;

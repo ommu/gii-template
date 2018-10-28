@@ -310,17 +310,25 @@ class Generator extends \ommu\gii\Generator
      */
     public function generateLabels($table)
     {
-        $labels = [];
+        $labels = $patternLabel =[];
+		
+		$patternLabel[0] = '(ID)';
+		$patternLabel[1] = '(Search)';
+
         foreach ($table->columns as $column) {
             if ($this->generateLabelsFromComments && !empty($column->comment)) {
                 $labels[$column->name] = $column->comment;
             } elseif (!strcasecmp($column->name, 'id')) {
                 $labels[$column->name] = 'ID';
             } else {
-                $label = Inflector::camel2words($column->name);
+				$label = Inflector::camel2words($column->name);
                 if (!empty($label) && substr_compare($label, ' id', -3, 3, true) === 0) {
-                    $label = substr($label, 0, -3) . ' ID';
-                }
+					$label = substr($label, 0, -3) . ' ID';
+				}
+				$label = trim(preg_replace($patternLabel, '', $label));
+				if(strtolower($label) == 'cat')
+					$label = ucwords('category');
+				
                 $labels[$column->name] = $label;
             }
         }
@@ -395,7 +403,7 @@ class Generator extends \ommu\gii\Generator
 					$lengths[$lengthSize][] = $columnName;
 			}
 			if($column->name == 'tag_id') {
-				$columnName = $this->setRelationName($column->name).'_i';
+				$columnName = $this->setRelation($column->name).'_i';
 				if(!empty($types['required']))
 					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['required'][]=$columnName;
@@ -972,9 +980,14 @@ class Generator extends \ommu\gii\Generator
                 $className = $matches[1];
                 break;
             }
-        }
+		}
+		$className = Inflector::id2camel($schemaName.$className, '_');
+		if(preg_match('/Swt/', $className))
+			$className = preg_replace('(Swt)', '', $className);
+		else
+			$className = preg_replace('(Ommu)', '', $className);
 
-        return $this->classNames[$fullTableName] = Inflector::id2camel($schemaName.$className, '_');
+        return $this->classNames[$fullTableName] = $className;
     }
 
     /**
@@ -1028,19 +1041,19 @@ class Generator extends \ommu\gii\Generator
         return false;
     }
 
-    public function getNameAttribute($tableNameRelation=null)
+    public function getNameAttribute($tableRelation=null)
     {
 		$primaryKey = [];
 		$tableSchema = [];
 		$db = $this->getDbConnection();
-		if($tableNameRelation == null) {
+		if($tableRelation == null) {
 			//print_r($this->getTableNames());
 			foreach ($this->getTableNames() as $tableName) {
 				$tableSchema = $db->getTableSchema($tableName);
 			}
 
 		} else
-			$tableSchema = $db->getTableSchema($tableNameRelation);
+			$tableSchema = $db->getTableSchema($tableRelation);
 		
 		$firstKeyCondition = 0;
         foreach ($tableSchema->columns as $key => $column) {

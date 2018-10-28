@@ -86,14 +86,14 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 	$relationAttributeName = $generator->getNameRelationAttribute($relationTableName);
 	if(trim($foreignKeys[$column->name]) == 'ommu_users')
 		$relationAttributeName = 'displayname';
-	$relationName = $generator->setRelationName($column->name);
+	$relationName = $generator->setRelation($column->name);
 	$publicVariable = $relationName.'_search';?>
 		[
 			'attribute' => '<?php echo $publicVariable;?>',
 			'value' => isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?> : '-',
 		],
 <?php } else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))) {
-	$relationName = $generator->setRelationName($column->name);
+	$relationName = $generator->setRelation($column->name);
 	$publicVariable = $relationName.'_search';
 	$relationAttributeName = 'displayname';
 	if($column->name == 'tag_id') {
