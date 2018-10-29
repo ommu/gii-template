@@ -57,7 +57,7 @@ class Generator extends \ommu\gii\Generator
 	public $useModified = false;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getName()
     {
@@ -65,7 +65,7 @@ class Generator extends \ommu\gii\Generator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getDescription()
     {
@@ -73,17 +73,14 @@ class Generator extends \ommu\gii\Generator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules()
     {
         return array_merge(parent::rules(), [
-			[['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass',
-				'link'], 'filter', 'filter' => 'trim'],
-            [['ns', 'queryNs'], 'filter', 'filter' => function($value) { return trim($value, '\\'); }],
-
-            [['db', 'ns', 'tableName', 'baseClass', 'queryNs', 'queryBaseClass',
-				'uploadPath', 'link'], 'required'],
+            [['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass', 'link'], 'filter', 'filter' => 'trim'],
+            [['ns', 'queryNs'], 'filter', 'filter' => function ($value) { return trim($value, '\\'); }],
+            [['db', 'ns', 'tableName', 'baseClass', 'queryNs', 'queryBaseClass', 'uploadPath', 'link'], 'required'],
             [['db', 'modelClass', 'queryClass'], 'match', 'pattern' => '/^\w+$/', 'message' => 'Only word characters are allowed.'],
             [['ns', 'baseClass', 'queryNs', 'queryBaseClass'], 'match', 'pattern' => '/^[\w\\\\]+$/', 'message' => 'Only word characters and backslashes are allowed.'],
             [['tableName'], 'match', 'pattern' => '/^([\w ]+\.)?([\w\* ]+)$/', 'message' => 'Only word characters, and optionally spaces, an asterisk and/or a dot are allowed.'],
@@ -94,15 +91,14 @@ class Generator extends \ommu\gii\Generator
             [['baseClass'], 'validateClass', 'params' => ['extends' => ActiveRecord::className()]],
             [['queryBaseClass'], 'validateClass', 'params' => ['extends' => ActiveQuery::className()]],
             [['generateRelations'], 'in', 'range' => [self::RELATIONS_NONE, self::RELATIONS_ALL, self::RELATIONS_ALL_INVERSE]],
-            [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery', 'generateRelationsFromCurrentSchema',
-                'generateEvents', 'useGetFunction', 'useJuiDatePicker', 'useModified'], 'boolean'],
+            [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery', 'generateRelationsFromCurrentSchema', 'generateEvents', 'useGetFunction', 'useJuiDatePicker', 'useModified'], 'boolean'],
             [['enableI18N'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
         ]);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function attributeLabels()
     {
@@ -132,7 +128,7 @@ class Generator extends \ommu\gii\Generator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function hints()
     {
@@ -177,7 +173,7 @@ class Generator extends \ommu\gii\Generator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function autoCompleteData()
     {
@@ -194,7 +190,7 @@ class Generator extends \ommu\gii\Generator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function requiredTemplates()
     {
@@ -203,11 +199,11 @@ class Generator extends \ommu\gii\Generator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function stickyAttributes()
     {
-		return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass', 'useTablePrefix', 'generateQuery', 'link']);
+        return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass', 'useTablePrefix', 'generateQuery', 'link']);
     }
 
     /**
@@ -228,7 +224,7 @@ class Generator extends \ommu\gii\Generator
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function generate()
     {
@@ -311,7 +307,7 @@ class Generator extends \ommu\gii\Generator
     public function generateLabels($table)
     {
         $labels = $patternLabel =[];
-		
+
 		$patternLabel[0] = '(ID)';
 		$patternLabel[1] = '(Search)';
 
@@ -321,14 +317,14 @@ class Generator extends \ommu\gii\Generator
             } elseif (!strcasecmp($column->name, 'id')) {
                 $labels[$column->name] = 'ID';
             } else {
-				$label = Inflector::camel2words($column->name);
+                $label = Inflector::camel2words($column->name);
                 if (!empty($label) && substr_compare($label, ' id', -3, 3, true) === 0) {
-					$label = substr($label, 0, -3) . ' ID';
-				}
+                    $label = substr($label, 0, -3) . ' ID';
+                }
 				$label = trim(preg_replace($patternLabel, '', $label));
 				if(strtolower($label) == 'cat')
 					$label = ucwords('category');
-				
+
                 $labels[$column->name] = $label;
             }
         }
@@ -344,13 +340,12 @@ class Generator extends \ommu\gii\Generator
     public function generateRules($table)
     {
         $types = [];
-		$lengths = [];
-		
+        $lengths = [];
         foreach ($table->columns as $column) {
-            if ($column->autoIncrement || $column->name[0] == '_')
-				continue;
-				
-			$r=!$column->allowNull && $column->defaultValue === null;
+            if ($column->autoIncrement || $column->name[0] == '_') {
+                continue;
+            }
+            $r=!$column->allowNull && $column->defaultValue === null;
             if ($r && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) {
                 $types['required'][] = $column->name;
             }
@@ -358,13 +353,14 @@ class Generator extends \ommu\gii\Generator
                 case Schema::TYPE_SMALLINT:
                 case Schema::TYPE_INTEGER:
                 case Schema::TYPE_BIGINT:
+                case Schema::TYPE_TINYINT:
                     $types['integer'][] = $column->name;
                     break;
                 case Schema::TYPE_BOOLEAN:
                     $types['boolean'][] = $column->name;
                     break;
                 case Schema::TYPE_FLOAT:
-                case 'double': // Schema::TYPE_DOUBLE, which is available since Yii 2.0.3
+                case Schema::TYPE_DOUBLE:
                 case Schema::TYPE_DECIMAL:
                 case Schema::TYPE_MONEY:
                     $types['number'][] = $column->name;
@@ -373,21 +369,18 @@ class Generator extends \ommu\gii\Generator
                 case Schema::TYPE_TIME:
                 case Schema::TYPE_DATETIME:
                 case Schema::TYPE_TIMESTAMP:
+                case Schema::TYPE_JSON:
                     $types['safe'][] = $column->name;
                     break;
-				default: // strings
-					if ($column->type == 'tinyint') {
-						$types['integer'][] = $column->name;
-					} else {
-						if ($column->size > 0) {
-							$lengths[$column->size][] = $column->name;
-						} else {
-							if($column->comment == 'serialize')
-								$types['serialize'][] = $column->name;
-							else
-								$types['string'][] = $column->name;
-						}
-				}
+                default: // strings
+                    if ($column->size > 0) {
+                        $lengths[$column->size][] = $column->name;
+                    } else {
+						if($column->comment == 'serialize')
+							$types['serialize'][] = $column->name;
+						else
+                            $types['string'][] = $column->name;
+                    }
             }
 
 			$commentArray = explode(',', $column->comment);
@@ -668,6 +661,10 @@ class Generator extends \ommu\gii\Generator
                 foreach ($table->foreignKeys as $refs) {
                     $refTable = $refs[0];
                     $refTableSchema = $db->getTableSchema($refTable);
+                    if ($refTableSchema === null) {
+                        // Foreign key could point to non-existing table: https://github.com/yiisoft/yii2-gii/issues/34
+                        continue;
+                    }
                     unset($refs[0]);
                     $fks = array_keys($refs);
 
@@ -962,8 +959,7 @@ class Generator extends \ommu\gii\Generator
             $tableName = substr($tableName, $pos + 1);
         }
 
-		$db = $this->getDbConnection();
-
+        $db = $this->getDbConnection();
         $patterns = [];
         $patterns[] = "/^{$db->tablePrefix}(.*?)$/";
         $patterns[] = "/^(.*?){$db->tablePrefix}$/";
@@ -980,7 +976,7 @@ class Generator extends \ommu\gii\Generator
                 $className = $matches[1];
                 break;
             }
-		}
+        }
 		$className = Inflector::id2camel($schemaName.$className, '_');
 		if(preg_match('/Swt/', $className))
 			$className = preg_replace('(Swt)', '', $className);
@@ -1041,105 +1037,148 @@ class Generator extends \ommu\gii\Generator
         return false;
     }
 
-    public function getNameAttribute($tableRelation=null)
-    {
-		$primaryKey = [];
+	public function getNameAttributes($table, $separator='->')
+	{
+		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
+		$titleCondition = 0;
+		$foreignCondition = 0;
+
+		foreach ($table->columns as $key => $column) {
+			$relationColumn = [];
+			$commentArray = explode(',', $column->comment);
+			if(preg_match('/(name|title|body)/', $column->name)) {
+				if(in_array('trigger[delete]', $commentArray)) {
+					$relationColumn[$column->name] = $this->i18nRelation($column->name);
+					$relationColumn[] = 'message';
+				} else {
+					if($column->name == 'username')
+						$relationColumn[$column->name] = 'displayname';
+					else
+						$relationColumn[$column->name] = $column->name;
+				}
+				$titleCondition = 1;
+			}
+			if(!empty($relationColumn))
+				return $relationColumn;
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $key => $column) {
+				$relationColumn = [];
+				if($column->name == 'tag_id') {
+					$relationColumn[$column->name] = $this->setRelation($column->name);
+					$relationColumn[] = 'body';
+				}
+				if(!empty($relationColumn))
+					return $relationColumn;
+			}
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $key => $column) {
+				$relationColumn = [];
+				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+					$relationTableName = trim($foreignKeys[$column->name]);
+					if(!$foreignCondition) {
+						$relationColumn[$column->name] = $this->setRelation($column->name);
+						$relationColumn[] = $this->getNameAttribute($relationTableName, $separator);
+						$foreignCondition = 1;
+					}
+				}
+				if(!empty($relationColumn))
+					return $relationColumn;
+			}
+		}
+	}
+
+	public function getNameAttribute($tableName=null, $separator='->')
+	{
 		$tableSchema = [];
 		$db = $this->getDbConnection();
-		if($tableRelation == null) {
-			//print_r($this->getTableNames());
+		if($tableName == null) {
 			foreach ($this->getTableNames() as $tableName) {
 				$tableSchema = $db->getTableSchema($tableName);
 			}
-
 		} else
-			$tableSchema = $db->getTableSchema($tableRelation);
-		
-		$firstKeyCondition = 0;
-        foreach ($tableSchema->columns as $key => $column) {
-			if($column->isPrimaryKey || $column->autoIncrement)
-				$primaryKey[] = $key;
-			if(empty($primaryKey) && !$firstKeyCondition) {
-				$primaryKey[] = key($tableSchema->columns);
-				$firstKeyCondition = 1;
-			}
-			if(preg_match('/(name|title)/', $key))
-				return $key;
-			
-		}
-		
-        /* @var $class \yii\db\ActiveRecord */
-		$class = $this->modelClass;
-		
-		if (class_exists($this->modelClass))
-        	$pk = $class::primaryKey();
+			$tableSchema = $db->getTableSchema($tableName);
+
+		if(!empty($tableSchema->primaryKey))
+			$primaryKey = $tableSchema->primaryKey['0'];
 		else
-			$pk = $primaryKey;
-			
-		return $pk[0];
-    }
+			$primaryKey = key($tableSchema->columns);
 
-    /**
-     * Get tipe tabel, view atau table
-     *
-     * @return constanta TYPE_TABLE or TYPE_VIEW
-     */
-    public function getTableType($tblName) {
-        if($tblName == '') {
-            throw new \Exception('Parameter $tblName wajib ada!.');
-        }
+		$relationColumn = $this->getNameAttributes($tableSchema, $separator);
 
-        $_tblType = null;
+		if(!empty($relationColumn))
+			return implode($separator, $relationColumn);
+
+		return $primaryKey;
+	}
+
+	/**
+	 * Get tipe tabel, view atau table
+	 *
+	 * @return constanta TYPE_TABLE or TYPE_VIEW
+	 */
+	public function getTableType($tblName) {
+		if($tblName == '') {
+			throw new \Exception('Parameter $tblName wajib ada!.');
+		}
+
+		$_tblType = null;
 		$allTables = $this->getAllTableNames();
-        foreach($allTables as $item) {
-            $vars = get_object_vars($item);
-            foreach($vars as $key => $propVal) {
-                if($key != 'Table_type' && $propVal == $tblName) {
-                    if($vars['Table_type'] == 'VIEW') {
-                        $_tblType = self::TYPE_VIEW;
-                    }
-                    break;
-                }
-            }
+		foreach($allTables as $item) {
+			$vars = get_object_vars($item);
+			foreach($vars as $key => $propVal) {
+				if($key != 'Table_type' && $propVal == $tblName) {
+					if($vars['Table_type'] == 'VIEW') {
+						$_tblType = self::TYPE_VIEW;
+					}
+					break;
+				}
+			}
 
-            if($_tblType != null) {
-                break;
-            }
-        }
+			if($_tblType != null) {
+				break;
+			}
+		}
 
-        if($_tblType == self::TYPE_VIEW)
-            return self::TYPE_VIEW;
-        else
-            return self::TYPE_TABLE;
-    }
+		if($_tblType == self::TYPE_VIEW)
+			return self::TYPE_VIEW;
+		else
+			return self::TYPE_TABLE;
+	}
 
-    /**
-     * Get semua tabel dan view
-     *
-     * @return array object.
-     * stdClass Object
-     * (
-     *   [Tables_in_db_sweeto_v2] => demo
-     *   [Table_type] => BASE TABLE
-     * )
-     * Table_type = [BASE TABLE, VIEW]
-     */
-    public function getAllTableNames() {
-        if(self::$_allTableNames == null) {
-            $sql = 'SHOW FULL TABLES';
-            $model = $this->getDbConnection()->createCommand($sql)->queryAll(\PDO::FETCH_OBJ);
-            return $model;
+	/**
+	 * Get semua tabel dan view
+	 *
+	 * @return array object.
+	 * stdClass Object
+	 * (
+	 *   [Tables_in_db_sweeto_v2] => demo
+	 *   [Table_type] => BASE TABLE
+	 * )
+	 * Table_type = [BASE TABLE, VIEW]
+	 */
+	public function getAllTableNames() {
+		if(self::$_allTableNames == null) {
+			$sql = 'SHOW FULL TABLES';
+			$model = $this->getDbConnection()->createCommand($sql)->queryAll(\PDO::FETCH_OBJ);
+			return $model;
 
-        } else {
-            return self::$_allTableNames;
-        }
-    }
+		} else {
+			return self::$_allTableNames;
+		}
+	}
 
 	public function getMysqlViewColumn($viewTableName) 
 	{
-        $db = $this->getDbConnection();
+		$db = $this->getDbConnection();
 		$tableSchema = $db->getTableSchema($viewTableName);
 
-        return key($tableSchema->columns);
-    }
+		return key($tableSchema->columns);
+	}
+
+	public function i18nRelation($column, $relation=true)
+	{
+		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
+	}
 }

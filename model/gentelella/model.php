@@ -141,7 +141,7 @@ foreach ($tableSchema->columns as $column) {
 		else {
 			if(in_array('trigger[delete]', $commentArray)) {
 				$i18n = 1;
-				$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
+				$relationName = $generator->i18nRelation($column->name);
 				echo " * @property SourceMessage \${$relationName}\n";
 			}
 		}
@@ -259,7 +259,7 @@ if ($generator->db !== 'db') {?>
 <?php }
 
 if ($slugCondition) {
-	$tableAttribute = $generator->getNameAttribute(); ?>
+	$tableAttribute = key($generator->getNameAttributes($tableSchema)); ?>
 
 	/**
 	 * behaviors model class.
@@ -327,7 +327,7 @@ if($i18n):
 	foreach ($tableSchema->columns as $column):
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)) {
-			$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
+			$relationName = $generator->i18nRelation($column->name);
 			$relationName = ucfirst($relationName);
 			if(!in_array($relationName, $arrayRelations)) {
 				$arrayRelations[] = $relationName;?>
@@ -472,7 +472,7 @@ foreach ($tableSchema->columns as $column) {
 		$publicAttribute = $column->name;
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
-			$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			$publicAttributeRelation = $generator->i18nRelation($column->name);
 			$translateCondition = 1;
 		}
 		if(!in_array($publicAttribute, $publicAttributes)) {
@@ -601,13 +601,13 @@ endforeach;
 	}
 <?php
 if($tableType != Generator::TYPE_VIEW && ($generator->useGetFunction || $useGetFunctionCondition)) {
-	$functionName = $generator->setRelation($className, true);
-	$attributeName = $generator->getNameAttribute($generator->generateTableName($tableName));?>
+	$functionName = Inflector::singularize($generator->setRelation($className, true));
+	$attributeName = key($generator->getNameAttributes($tableSchema));?>
 
 	/**
-	 * function get<?= $functionName."\n"; ?>
+	 * function get<?php echo $functionName."\n"; ?>
 	 */
-	public static function get<?= Inflector::singularize($functionName) ?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
+	public static function get<?php echo $functionName; ?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
 	{
 		$model = self::find()->alias('t');
 <?php 
@@ -678,7 +678,7 @@ if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 	} else {
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
-			$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');
+			$publicAttributeRelation = $generator->i18nRelation($column->name);
 			echo "\t\t\$this->$publicAttribute = isset(\$this->{$publicAttributeRelation}) ? \$this->{$publicAttributeRelation}->message : '';\n";
 		}
 	}
