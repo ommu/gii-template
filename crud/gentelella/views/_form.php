@@ -15,15 +15,22 @@ $safeAttributes = $model->safeAttributes();
 if(empty($safeAttributes))
 	$safeAttributes = $model->attributes();
 $tableSchema = $generator->tableSchema;
+$foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $redactorCondition = 0;
 $uploadCondition = 0;
+$foreignCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('redactor', $commentArray))
 		$redactorCondition = 1;
 	if(in_array('file', $commentArray))
 		$uploadCondition = 1;
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+		$foreignCondition = 1;
+		if(preg_match('/(smallint)/', $column->type))
+			$smallintCondition = 1;
+	}
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -56,6 +63,13 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 <?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
+foreach ($tableSchema->columns as $column) {
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {
+		$relationTableName = trim($foreignKeys[$column->name]);
+		$relationClassName = $generator->generateClassName($relationTableName);
+		echo "use ".$generator->replaceModel($relationClassName).";\n";
+	}
+}
 if($redactorCondition) {?>
 
 $redactorOptions = [
@@ -86,7 +100,7 @@ foreach ($tableSchema->columns as $column) {
 		continue;
 	if (in_array($column->name, $safeAttributes)) {
 		if($column->comment != 'trigger' && !(in_array($column->name, array('creation_id','modified_id','updated_id','slug'))) && !($column->type == 'text' && $column->comment == 'file')) {
-			echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
+			echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 		} else if(in_array('file', $commentArray)) {
 			echo $generator->generateActiveField($column->name)."\n\n";
 		}
@@ -97,14 +111,14 @@ foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
 	if($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline']))
-		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
+		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 }
 
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
 	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','headline']))
-		echo "<?php echo " . $generator->generateActiveField($column->name) . "; ?>\n\n";
+		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>
 <div class="ln_solid"></div>
 <div class="form-group">
