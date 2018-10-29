@@ -4,8 +4,8 @@
  */
 
 use yii\db\ActiveRecordInterface;
-use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
+use yii\helpers\Inflector;
 
 /* @var $this yii\web\View */
 /* @var $generator yii\gii\generators\crud\Generator */
@@ -13,8 +13,9 @@ use yii\helpers\StringHelper;
 $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $searchModelClass = StringHelper::basename($generator->searchModelClass);
-if($modelClass === $searchModelClass)
+if ($modelClass === $searchModelClass) {
 	$searchModelAlias = $searchModelClass . 'Search';
+}
 
 /* @var $class ActiveRecordInterface */
 $class = $generator->modelClass;
@@ -25,6 +26,7 @@ $actionParamComments = $generator->generateActionParamComments();
 
 $label = ucwords($generator->modelLabel($modelClass));
 $shortLabel = ucwords($generator->shortLabel($modelClass));
+
 $attributeName =  key($generator->getNameAttributes($generator->tableSchema));
 $relationAttributeName = $generator->getNameAttribute();
 
@@ -347,8 +349,8 @@ endforeach;?>
 	/**
 	 * Finds the <?= $modelClass ?> model based on its primary key value.
 	 * If the model is not found, a 404 HTTP exception will be thrown.
-	 * <?= implode("\n   * ", $actionParamComments) . "\n" ?>
-	 * @return <?=				 $modelClass ?> the loaded model
+	 * <?= implode("\n	 * ", $actionParamComments) . "\n" ?>
+	 * @return <?= $modelClass ?> the loaded model
 	 * @throws NotFoundHttpException if the model cannot be found
 	 */
 	protected function findModel(<?= $actionParams ?>)
@@ -364,9 +366,10 @@ if (count($pks) === 1) {
 	$condition = '[' . implode(', ', $condition) . ']';
 }
 ?>
-		if(($model = <?= $modelClass ?>::findOne(<?= $condition ?>)) !== null) 
+		if (($model = <?= $modelClass ?>::findOne(<?= $condition ?>)) !== null) {
 			return $model;
-		else
-			throw new NotFoundHttpException(<?php echo $generator->generateString('The requested page does not exist.');?>);
+		}
+
+		throw new NotFoundHttpException(<?= $generator->generateString('The requested page does not exist.') ?>);
 	}
 }

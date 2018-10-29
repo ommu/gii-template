@@ -460,14 +460,14 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {?>
 				$uploadPath = self::getUploadPath(false);
 <?php }?>
-				return Html::img(join('/', [$uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]);
+				return $model-><?php echo $publicAttribute;?> ? Html::img(join('/', [$uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-'
 			},
 			'format' => 'html',
 		];
 <?php 	}
 	} else {
-		$translateCondition = 0;
 		$publicAttribute = $column->name;
+		$translateCondition = 0;
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
 			$publicAttributeRelation = $generator->i18nRelation($column->name);
@@ -478,19 +478,19 @@ foreach ($tableSchema->columns as $column) {
 		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
 			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => function($model, $key, $index, $column) {
-<?php if($translateCondition):?>
+<?php if($translateCondition) {?>
 				return isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-';
-<?php else:
-	if($column->type == 'text' && $column->comment == 'serialize'):?>
+<?php } else {
+	if($column->type == 'text' && in_array('serialize', $commentArray)) {?>
 				return serialize($model-><?php echo $publicAttribute;?>);
-<?php else:?>
+	<?php } else {?>
 				return $model-><?php echo $publicAttribute;?>;
-<?php endif;
-endif;?>
+<?php }
+}?>
 			},
-<?php if(($translateCondition && in_array('redactor', $commentArray)) || ($column->type == 'text' && $column->comment == 'redactor')):?>
+<?php if(in_array('redactor', $commentArray)) {?>
 			'format' => 'html',
-<?php endif;?>
+<?php }?>
 		];
 <?php 		}
 	}
