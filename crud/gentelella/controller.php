@@ -26,7 +26,7 @@ $actionParamComments = $generator->generateActionParamComments();
 $label = ucwords($generator->modelLabel($modelClass));
 $shortLabel = ucwords($generator->shortLabel($modelClass));
 $attributeName = $generator->getNameAttribute();
-$relationAttributeName = $generator->getNameRelationAttribute();
+$relationAttributeName = $generator->getNameAttribute();
 
 $tableSchema = $generator->tableSchema;
 

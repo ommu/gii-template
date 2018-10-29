@@ -51,15 +51,15 @@ use yii\widgets\ActiveForm;
 
 <div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-search search-form">
 
-    <?= "<?php " ?>$form = ActiveForm::begin([
-        'action' => ['index'],
-        'method' => 'get',
+	<?= "<?php " ?>$form = ActiveForm::begin([
+		'action' => ['index'],
+		'method' => 'get',
 <?php if ($generator->enablePjax): ?>
-        'options' => [
-            'data-pjax' => 1
-        ],
+		'options' => [
+			'data-pjax' => 1
+		],
 <?php endif; ?>
-    ]); ?>
+	]); ?>
 
 <?php
 foreach($tableSchema->columns as $column) {
@@ -85,11 +85,11 @@ foreach($tableSchema->columns as $column) {
 		echo "\t\t<?php ".$generator->generateActiveSearchField($column->name).";?>\n\n";
 }
 ?>
-    <div class="form-group">
-        <?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
-        <?= "<?= " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
-    </div>
+	<div class="form-group">
+		<?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
+		<?= "<?= " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
+	</div>
 
-    <?= "<?php " ?>ActiveForm::end(); ?>
+	<?= "<?php " ?>ActiveForm::end(); ?>
 
 </div>

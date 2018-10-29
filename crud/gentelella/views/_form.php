@@ -10,7 +10,7 @@ use yii\helpers\StringHelper;
 $model = new $generator->modelClass();
 $safeAttributes = $model->safeAttributes();
 if (empty($safeAttributes)) {
-    $safeAttributes = $model->attributes();
+	$safeAttributes = $model->attributes();
 }
 
 $controllerClass = StringHelper::basename($generator->controllerClass);

@@ -62,7 +62,7 @@ if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_
 	$relationName = $generator->setRelation($column->name);
 	$publicVariable = $relationName.'_search';
 	if(!in_array($publicVariable, $arrayPublicVariable)) {
-		$arrayRelations[$relationName] = $generator->getName2ndRelation($relationName, $generator->getNameRelationAttribute($relationTableName,'.'));
+		$arrayRelations[$relationName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTableName,'.'));
 		$arrayPublicVariable[] = $publicVariable;
 	}
 endif;
@@ -204,7 +204,7 @@ foreach ($tableSchema->columns as $column):
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
 		$relationTableName = trim($foreignKeys[$column->name]);
 		$relationName = $generator->setRelation($column->name);
-		$relationAttributeName = $generator->getName2ndAttribute($relationName, $generator->getNameRelationAttribute($relationTableName, '.'));
+		$relationAttributeName = $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTableName, '.'));
 		if(trim($foreignKeys[$column->name]) == 'ommu_users')
 			$relationAttributeName = 'displayname';
 		$publicVariable = $relationName.'_search';

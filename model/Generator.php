@@ -342,7 +342,10 @@ class Generator extends \ommu\gii\Generator
         $types = [];
         $lengths = [];
         foreach ($table->columns as $column) {
-            if ($column->autoIncrement || $column->name[0] == '_') {
+            if ($column->name[0] == '_') {
+                continue;
+            }
+            if ($column->autoIncrement) {
                 continue;
             }
             $r=!$column->allowNull && $column->defaultValue === null;

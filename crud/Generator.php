@@ -628,10 +628,6 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
      */
     public function generateSearchConditions()
     {
-        $patternClass = $patternLabel = array();
-        $patternClass[0] = '(Ommu)';
-        $patternClass[1] = '(Swt)';
-
         $tableSchema = $this->getTableSchema();
         $foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
         $columns = [];
@@ -649,7 +645,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                 $columns[$column->name] = $column->type;
             }
         }
-        
+
         if(!empty($tableSchema->primaryKey))
             $primaryKey = $tableSchema->primaryKey[0];
         else

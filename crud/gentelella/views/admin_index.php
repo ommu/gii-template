@@ -1,16 +1,17 @@
 <?php
-/* @var $this yii\web\View */
-/* @var $generator yii\gii\generators\crud\Generator */
 
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
 
+/* @var $this yii\web\View */
+/* @var $generator yii\gii\generators\crud\Generator */
+
+$urlParams = $generator->generateUrlParams();
+$nameAttribute = $generator->getNameAttribute();
+
 $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
-
-$urlParams = $generator->generateUrlParams();
-$nameAttribute = $generator->getNameRelationAttribute();
 
 $functionLabel = ucwords($generator->shortLabel($modelClass));
 
@@ -23,6 +24,7 @@ echo "<?php\n";
  * @var $this yii\web\View
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
+<?= !empty($generator->searchModelClass) ? " * @var \$searchModel " . ltrim($generator->searchModelClass, '\\') . "\n" : '' ?>
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
@@ -55,6 +57,8 @@ $this->params['menu']['option'] = [
 ];
 <?php endif; ?>
 ?>
+
+<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-index">
 
 <?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n" : ''; ?>
 
@@ -138,4 +142,5 @@ echo GridView::widget([
 ]); ?>
 <?php endif; ?>
 
-<?= $generator->enablePjax ? "<?php Pjax::end(); ?>" : '' ?>
+<?= $generator->enablePjax ? "<?php Pjax::end(); ?>\n" : '' ?>
+</div>
