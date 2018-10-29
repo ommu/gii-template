@@ -259,7 +259,7 @@ if ($generator->db !== 'db') {?>
 <?php }
 
 if ($slugCondition) {
-	$tableAttribute = key($generator->getNameAttributes($tableSchema)); ?>
+	$tableAttribute = $generator->getNameAttribute(null, '.'); ?>
 
 	/**
 	 * behaviors model class.
@@ -268,7 +268,7 @@ if ($slugCondition) {
 		return [
 			[
 				'class' => SluggableBehavior::className(),
-				'attribute' => '<?php echo $i18n && preg_match('/(name|title)/', $tableAttribute) ? 'title.message' : $tableAttribute;?>',
+				'attribute' => '<?php echo $tableAttribute;?>',
 				'immutable' => true,
 				'ensureUnique' => true,
 			],
@@ -392,7 +392,7 @@ $publicAttributes = [];
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-	if($column->isPrimaryKey || $column->autoIncrement || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
+	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
 
 	$commentArray = explode(',', $column->comment);
@@ -429,8 +429,8 @@ foreach ($tableSchema->columns as $column) {
 				},
 <?php if($foreignCondition && $smallintCondition) {
 	$relationClassName = $generator->generateClassName($relationTableName);
-	$functionName = Inflector::singularize($generator->setRelation($relationClassName, true));?>
-				'filter' => <?php echo $relationClassName;?>::get<?php echo $functionName;?>(),
+	$relationFunctionName = Inflector::singularize($generator->setRelation($relationClassName, true));?>
+				'filter' => <?php echo $relationClassName;?>::get<?php echo $relationFunctionName;?>(),
 <?php }?>
 			];
 		}
@@ -441,32 +441,30 @@ foreach ($tableSchema->columns as $column) {
 			$publicAttributes[] = $publicAttribute;?>
 		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
 			'attribute' => '<?php echo $publicAttribute;?>',
-<?php if($generator->useJuiDatePicker):?>
-			'filter' => \yii\jui\DatePicker::widget([
-				'dateFormat' => 'yyyy-MM-dd',
-				'attribute' => '<?php echo $column->name;?>',
-				'model'  => $this,
-			]),
-<?php else:?>
-			'filter' => Html::input('date', '<?php echo $column->name;?>', Yii::$app->request->get('<?php echo $column->name;?>'), ['class'=>'form-control']),
-<?php endif;?>
 			'value' => function($model, $key, $index, $column) {
 				return !in_array($model-><?php echo $column->name;?>, <?php echo $column->type == 'date' ? '[\'0000-00-00\',\'1970-01-01\',\'0002-12-02\',\'-0001-11-30\']' : '[\'0000-00-00 00:00:00\',\'1970-01-01 00:00:00\',\'0002-12-02 07:07:12\',\'-0001-11-30 00:00:00\']';?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-';
 			},
+			'filter' => $this->filterDatepicker($this, '<?php echo $column->name;?>'),
 			'format' => 'html',
 		];
 <?php 	}
-	} else if($column->type == 'text' && $column->comment == 'file') {
+	} else if($column->type == 'text' && in_array('file', $commentArray)) {
 		$publicAttribute = $column->name;
 		if(!in_array($publicAttribute, $publicAttributes)) {
 			$publicAttributes[] = $publicAttribute;?>
 		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
 			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => function($model, $key, $index, $column) {
-				return $model-><?php echo $publicAttribute;?>;
+<?php if($generator->uploadPath['subfolder']) {?>
+				$uploadPath = join('/', [self::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
+<?php } else {?>
+				$uploadPath = self::getUploadPath(false);
+<?php }?>
+				return Html::img(join('/', [$uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]);
 			},
+			'format' => 'html',
 		];
-<?php 		}
+<?php 	}
 	} else {
 		$translateCondition = 0;
 		$publicAttribute = $column->name;
@@ -505,7 +503,7 @@ foreach ($tableSchema->columns as $column) {
 	if($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline','permission']) || ($comment != '' &&  $comment[7] != '[')))
 		continue;
 		
-	if($column->dbType == 'tinyint(1)') {?>
+	if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
 			'filter' => $this->filterYesNo(),
@@ -521,7 +519,7 @@ foreach ($tableSchema->columns as $column) {
 	$comment = $column->comment;
 	if($column->name[0] == '_')
 		continue;
-	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','permission']))
+	if($column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','permission'])))
 		continue;
 
 	if($column->dbType == 'tinyint(1)' && ($column->name == 'headline' || ($comment != '' && $comment[7] != '['))) {

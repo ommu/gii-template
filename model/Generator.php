@@ -52,7 +52,6 @@ class Generator extends \ommu\gii\Generator
 		'directory' => 'public/main',
 	];
 	public $useGetFunction = false;
-	public $useJuiDatePicker = false;
 	public $link='http://opensource.ommu.co';
 	public $useModified = false;
 
@@ -91,7 +90,7 @@ class Generator extends \ommu\gii\Generator
             [['baseClass'], 'validateClass', 'params' => ['extends' => ActiveRecord::className()]],
             [['queryBaseClass'], 'validateClass', 'params' => ['extends' => ActiveQuery::className()]],
             [['generateRelations'], 'in', 'range' => [self::RELATIONS_NONE, self::RELATIONS_ALL, self::RELATIONS_ALL_INVERSE]],
-            [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery', 'generateRelationsFromCurrentSchema', 'generateEvents', 'useGetFunction', 'useJuiDatePicker', 'useModified'], 'boolean'],
+            [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery', 'generateRelationsFromCurrentSchema', 'generateEvents', 'useGetFunction', 'useModified'], 'boolean'],
             [['enableI18N'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
         ]);
@@ -121,7 +120,6 @@ class Generator extends \ommu\gii\Generator
 			'uploadPath[directory]'=>'Upload Path (path location)',
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
 			'useGetFunction'=>'Use Get Function',
-			'useJuiDatePicker' => 'Use JQuery DatePicker',
 			'link'=>'Link Repository',
 			'useModified'=>'Use Modified Info',
         ]);
@@ -167,7 +165,6 @@ class Generator extends \ommu\gii\Generator
 			'generateEvents' => 'Should we generate event afterSave, before/afterDelete, afterValidate etc. <code>default: false</code>',
             'generateMessage' => 'Should we generate messages for multi language support. <code>default: true</code>',
 			'useGetFunction' => 'Use simple GET function in models. <code>default: false</code>',
-			'useJuiDatePicker' => 'Use JUI DatePicker or use html5 date picker. <code>default: false</code>',
 			'useModified' => 'Use generate-source modified info. <code>default: false</code>',
         ]);
     }
@@ -348,8 +345,7 @@ class Generator extends \ommu\gii\Generator
             if ($column->autoIncrement) {
                 continue;
             }
-            $r=!$column->allowNull && $column->defaultValue === null;
-            if ($r && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) {
+            if (!$column->allowNull && $column->defaultValue === null && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) {
                 $types['required'][] = $column->name;
             }
             switch ($column->type) {
@@ -1042,6 +1038,7 @@ class Generator extends \ommu\gii\Generator
 
 	public function getNameAttributes($table, $separator='->')
 	{
+		$db = $this->getDbConnection();
 		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
 		$titleCondition = 0;
 		$foreignCondition = 0;
@@ -1082,7 +1079,7 @@ class Generator extends \ommu\gii\Generator
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
 						$relationColumn[$column->name] = $this->setRelation($column->name);
-						$relationColumn[] = $this->getNameAttribute($relationTableName, $separator);
+						$relationColumn[] = $this->getNameAttributes($db->getTableSchema($relationTableName), $separator);
 						$foreignCondition = 1;
 					}
 				}
@@ -1114,6 +1111,11 @@ class Generator extends \ommu\gii\Generator
 			return implode($separator, $relationColumn);
 
 		return $primaryKey;
+	}
+
+	public function i18nRelation($column, $relation=true)
+	{
+		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 
 	/**
@@ -1178,10 +1180,5 @@ class Generator extends \ommu\gii\Generator
 		$tableSchema = $db->getTableSchema($viewTableName);
 
 		return key($tableSchema->columns);
-	}
-
-	public function i18nRelation($column, $relation=true)
-	{
-		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 }
