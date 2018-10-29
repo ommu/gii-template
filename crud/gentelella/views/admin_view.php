@@ -1,28 +1,27 @@
 <?php
-/* @var $this yii\web\View */
-/* @var $generator yii\gii\generators\crud\Generator */
 
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
 
-$patternClass = array();
-$patternClass[0] = '(Ommu)';
-$patternClass[1] = '(Swt)';
+/* @var $this yii\web\View */
+/* @var $generator yii\gii\generators\crud\Generator */
+
+$urlParams = $generator->generateUrlParams();
 
 $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
 $tableSchema = $generator->getTableSchema();
 
-$urlParams = $generator->generateUrlParams();
+$foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
+$functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass)));
 
 $uploadCondition = 0;
-foreach ($tableSchema->columns as $column):
-	if($column->type == 'text' && $column->comment == 'file') 
+foreach ($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if($column->type == 'text' && in_array('file', $commentArray)) 
 		$uploadCondition = 1;
-endforeach;
-
-$functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass)));
+}
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -55,7 +54,7 @@ echo $uploadCondition ? "use ".ltrim($generator->modelClass)."\n" : '';
 ?>
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
-$this->params['breadcrumbs'][] = $model-><?= $generator->getNameRelationAttribute(); ?>;
+$this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;
 
 $this->params['menu']['content'] = [
 	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['index']), 'icon' => 'table'],
@@ -64,6 +63,8 @@ $this->params['menu']['content'] = [
 ];
 ?>
 
+<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-view">
+
 <?= "<?php echo " ?>DetailView::widget([
 	'model' => $model,
 	'options' => [
@@ -71,7 +72,6 @@ $this->params['menu']['content'] = [
 	],
 	'attributes' => [
 <?php
-$foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 if (($tableSchema = $tableSchema) === false) {
 	foreach ($generator->getColumnNames() as $name) {
 		echo "\t\t'" . $name . "',\n";
@@ -81,28 +81,30 @@ if (($tableSchema = $tableSchema) === false) {
 		if($column->name[0] == '_')
 			continue;
 
-if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-	$relationTableName = trim($foreignKeys[$column->name]);
-	$relationAttributeName = $generator->getNameRelationAttribute($relationTableName);
-	if(trim($foreignKeys[$column->name]) == 'ommu_users')
-		$relationAttributeName = 'displayname';
+if((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+	$smallintCondition = 0;
+	$foreignCondition = 0;
+	if(preg_match('/(smallint)/', $column->type))
+		$smallintCondition = 1;
 	$relationName = $generator->setRelation($column->name);
-	$publicVariable = $relationName.'_search';?>
-		[
-			'attribute' => '<?php echo $publicVariable;?>',
-			'value' => isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?> : '-',
-		],
-<?php } else if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))) {
-	$relationName = $generator->setRelation($column->name);
-	$publicVariable = $relationName.'_search';
-	$relationAttributeName = 'displayname';
+	$publicAttribute = $relationName.'_search';
+	$relationAttribute = 'displayname';
+	if(array_key_exists($column->name, $foreignKeys)) {
+		$foreignCondition = 1;
+		$relationTableName = trim($foreignKeys[$column->name]);
+		$relationAttribute = $generator->getNameAttribute($relationTableName);
+		if($relationTableName == 'ommu_users')
+			$relationAttribute = 'displayname';
+	}
 	if($column->name == 'tag_id') {
-		$publicVariable = $relationName.'_i';
-		$relationAttributeName = 'body';
-	}?>
+		$publicAttribute = $relationName.'_i';
+		$relationAttribute = 'body';
+	}
+	if($smallintCondition)
+		$publicAttribute = $column->name;?>
 		[
-			'attribute' => '<?php echo $publicVariable;?>',
-			'value' => isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttributeName;?> : '-',
+			'attribute' => '<?php echo $publicAttribute;?>',
+			'value' => isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttribute;?> : '-',
 		],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 		[
@@ -149,10 +151,10 @@ if(in_array($column->comment, array('redactor','file'))):?>
 <?php } else {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
-		$publicVariable = $column->name.'_i';
+		$publicAttribute = $column->name.'_i';
 		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');?>
 		[
-			'attribute' => '<?php echo $publicVariable;?>',
+			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-',
 <?php if(in_array('redactor', $commentArray)):?>
 			'format' => 'html',
@@ -168,3 +170,5 @@ if(in_array($column->comment, array('redactor','file'))):?>
 ?>
 	],
 ]) ?>
+
+</div>

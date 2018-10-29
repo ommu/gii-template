@@ -41,7 +41,7 @@ use Yii;
 use yii\helpers\Url;
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model-><?= $generator->getNameRelationAttribute() ?>, 'url' => ['view', <?= $urlParams ?>]];
+$this->params['breadcrumbs'][] = ['label' => $model-><?= $generator->getNameAttribute() ?>, 'url' => ['view', <?= $urlParams ?>]];
 $this->params['breadcrumbs'][] = <?= $generator->generateString('Update') ?>;
 
 $this->params['menu']['content'] = [

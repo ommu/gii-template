@@ -1,20 +1,17 @@
 <?php
-/* @var $this yii\web\View */
-/* @var $generator yii\gii\generators\crud\Generator */
 
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
+
+/* @var $this yii\web\View */
+/* @var $generator yii\gii\generators\crud\Generator */
 
 $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
 
 $tableSchema = $generator->tableSchema;
-
-if(!empty($tableSchema->primaryKey))
-	$primaryKey = $tableSchema->primaryKey[0];
-else
-	$primaryKey = key($tableSchema->columns);
+$foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -43,37 +40,56 @@ echo "<?php\n";
 use Yii;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+<?php foreach ($tableSchema->columns as $column) {
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {
+		$relationTableName = trim($foreignKeys[$column->name]);
+		$relationClassName = $generator->generateClassName($relationTableName);
+		echo "use ".$generator->replaceModel($relationClassName).";\n";
+	}
+}?>
 ?>
 
-<div class="search-form">
-	<?= "<?php " ?>$form = ActiveForm::begin([
-		'action' => ['index'],
-		'method' => 'get',
-	]); ?>
+<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-search search-form">
+
+    <?= "<?php " ?>$form = ActiveForm::begin([
+        'action' => ['index'],
+        'method' => 'get',
+<?php if ($generator->enablePjax): ?>
+        'options' => [
+            'data-pjax' => 1
+        ],
+<?php endif; ?>
+    ]); ?>
+
 <?php
-$count = 0;
 foreach($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-	if($column->isPrimaryKey || $column->autoIncrement || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
+	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
 		
-	echo "\t\t<?php echo ".$generator->generateActiveSearchField($column->name).";?>\n\n";
+	echo "\t\t<?php ".$generator->generateActiveSearchField($column->name).";?>\n\n";
 }
 foreach($tableSchema->columns as $column) {
-	if($column->name == 'publish')
+	if($column->name[0] == '_')
 		continue;
-	if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)')
-		echo "\t\t<?php echo ".$generator->generateActiveSearchField($column->name).";?>\n\n";
+	if ($column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline','permission'])))
+		echo "\t\t<?php ".$generator->generateActiveSearchField($column->name).";?>\n\n";
 }
 foreach($tableSchema->columns as $column) {
-	if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)' && $column->name == 'publish')
-		echo "\t\t<?php echo ".$generator->generateActiveSearchField($column->name).";?>\n\n";
+	if ($column->dbType == 'tinyint(1)' && $column->name == 'headline')
+		echo "\t\t<?php ".$generator->generateActiveSearchField($column->name).";?>\n\n";
+}
+foreach($tableSchema->columns as $column) {
+	if ($column->dbType == 'tinyint(1)' && $column->name == 'publish')
+		echo "\t\t<?php ".$generator->generateActiveSearchField($column->name).";?>\n\n";
 }
 ?>
-		<div class="form-group">
-			<?= "<?php echo " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
-			<?= "<?php echo " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
-		</div>
-	<?= "<?php " ?>ActiveForm::end(); ?>
+    <div class="form-group">
+        <?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
+        <?= "<?= " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
+    </div>
+
+    <?= "<?php " ?>ActiveForm::end(); ?>
+
 </div>

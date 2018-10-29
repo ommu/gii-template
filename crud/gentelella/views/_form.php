@@ -1,19 +1,22 @@
 <?php
-/* @var $this yii\web\View */
-/* @var $generator yii\gii\generators\crud\Generator */
 
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
+
+/* @var $this yii\web\View */
+/* @var $generator yii\gii\generators\crud\Generator */
+
+/* @var $model \yii\db\ActiveRecord */
+$model = new $generator->modelClass();
+$safeAttributes = $model->safeAttributes();
+if (empty($safeAttributes)) {
+    $safeAttributes = $model->attributes();
+}
 
 $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
 
-/* @var $model \yii\db\ActiveRecord */
-$model = new $generator->modelClass();
-$safeAttributes = $model->safeAttributes();
-if(empty($safeAttributes))
-	$safeAttributes = $model->attributes();
 $tableSchema = $generator->tableSchema;
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
@@ -81,6 +84,8 @@ $redactorOptions = [
 <?php }?>
 ?>
 
+<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-form">
+
 <?= "<?php "?>$form = ActiveForm::begin([
 	'options' => [
 		'class' => 'form-horizontal form-label-left',
@@ -96,8 +101,11 @@ $redactorOptions = [
 <?php
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
-	if($column->autoIncrement || $column->isPrimaryKey || $column->comment == 'trigger' || in_array($column->name, array('creation_id','modified_id','updated_id','slug')) || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || $column->name[0] == '_')
+	if($column->name[0] == '_')
 		continue;
+	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || $column->comment == 'trigger' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || in_array($column->name, array('creation_id','modified_id','updated_id','slug')))
+		continue;
+
 	if (in_array($column->name, $safeAttributes)) {
 		if($column->comment != 'trigger' && !(in_array($column->name, array('creation_id','modified_id','updated_id','slug'))) && !($column->type == 'text' && $column->comment == 'file')) {
 			echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
@@ -106,18 +114,18 @@ foreach ($tableSchema->columns as $column) {
 		}
 	}
 }
-
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-	if($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline']))
+	if($column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && !in_array($column->name, ['publish','headline','permission'])))
 		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 }
-
 foreach ($tableSchema->columns as $column) {
-	if($column->name[0] == '_')
-		continue;
-	if($column->dbType == 'tinyint(1)' && in_array($column->name, ['publish','headline']))
+	if($column->dbType == 'tinyint(1)' && $column->name == 'headline')
+		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
+}
+foreach ($tableSchema->columns as $column) {
+	if($column->dbType == 'tinyint(1)' && $column->name == 'publish')
 		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>
 <div class="ln_solid"></div>
@@ -128,3 +136,5 @@ foreach ($tableSchema->columns as $column) {
 </div>
 
 <?= "<?php " ?>ActiveForm::end(); ?>
+
+</div>

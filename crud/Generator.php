@@ -221,132 +221,86 @@ class Generator extends \ommu\gii\Generator
     {
         if (empty($this->viewPath)) {
             return Yii::getAlias('@app/views/' . $this->getControllerID());
-        } else {
-            return Yii::getAlias($this->viewPath);
         }
+
+        return Yii::getAlias($this->viewPath);
     }
 
     /**
      * @return string
      */
-    public function getNameAttribute($tableName=null)
-    {
-        if($tableName != null) {
-            $db = $this->getDbConnection();
-            $tableSchema = $db->getTableSchema($tableName);
+	public function getNameAttributes($table, $separator='->')
+	{
+		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
+		$titleCondition = 0;
+		$foreignCondition = 0;
 
-        } else {
-            $tableSchema = $this->getTableSchema();
-            //$columnNames = $this->getColumnNames();
-        }
-        
-        $foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
-        $foreignCondition = 0;
+		foreach ($table->columns as $key => $column) {
+			$relationColumn = [];
+			$commentArray = explode(',', $column->comment);
+			if(preg_match('/(name|title|body)/', $column->name)) {
+				if(in_array('trigger[delete]', $commentArray)) {
+					$relationColumn[$column->name] = $this->i18nRelation($column->name);
+					$relationColumn[] = 'message';
+				} else {
+					if($column->name == 'username')
+						$relationColumn[$column->name] = 'displayname';
+					else
+						$relationColumn[$column->name] = $column->name;
+				}
+				$titleCondition = 1;
+			}
+			if(!empty($relationColumn))
+				return $relationColumn;
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $key => $column) {
+				$relationColumn = [];
+				if($column->name == 'tag_id') {
+					$relationColumn[$column->name] = $this->setRelation($column->name);
+					$relationColumn[] = 'body';
+				}
+				if(!empty($relationColumn))
+					return $relationColumn;
+			}
+		}
+		if(!$titleCondition) {
+			foreach ($table->columns as $key => $column) {
+				$relationColumn = [];
+				if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+					$relationTableName = trim($foreignKeys[$column->name]);
+					if(!$foreignCondition) {
+						$relationColumn[$column->name] = $this->setRelation($column->name);
+						$relationColumn[] = $this->getNameAttribute($relationTableName, $separator);
+						$foreignCondition = 1;
+					}
+				}
+				if(!empty($relationColumn))
+					return $relationColumn;
+			}
+		}
+	}
 
-        /* @var $class \yii\db\ActiveRecord */
-        foreach ($tableSchema->columns as $column) {
-            if(preg_match('/(name|title)/', $column->name))
-                return $column->name;
-        }
-        foreach ($tableSchema->columns as $column) {
-            if($column->name == 'tag_id')
-                return $column->name;
-        }
-        foreach ($tableSchema->columns as $column) {
-            if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
-                if(!$foreignCondition) {
-                    return $column->name;
-                    $foreignCondition = 1;
-                }
-            }
-        }
-        $pk = $tableSchema->primaryKey;
+	public function getNameAttribute($tableName=null, $separator='->')
+	{
+		$tableSchema = [];
+		if($tableName != null) {
+			$db = $this->getDbConnection();
+			$tableSchema = $db->getTableSchema($tableName);
+		} else
+			$tableSchema = $this->getTableSchema();
 
-        return Inflector::camel2id($pk[0]);
-    }
+		if(!empty($tableSchema->primaryKey))
+			$primaryKey = $tableSchema->primaryKey['0'];
+		else
+			$primaryKey = key($tableSchema->columns);
 
-    public function getNameRelationAttribute($tableName=null, $separator='->')
-    {
-        if($tableName != null) {
-            $db = $this->getDbConnection();
-            $tableSchema = $db->getTableSchema($tableName);
+		$relationColumn = $this->getNameAttributes($tableSchema, $separator);
 
-        } else {
-            $tableSchema = $this->getTableSchema();
-            //$columnNames = $this->getColumnNames();
-        }
+		if(!empty($relationColumn))
+			return implode($separator, $relationColumn);
 
-        $foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
-        $titleCondition = 0;
-        $foreignCondition = 0;
-
-        /* @var $class \yii\db\ActiveRecord */
-        foreach ($tableSchema->columns as $column) {
-            $relationColumn = [];
-            if(preg_match('/(name|title)/', $column->name)) {
-                $commentArray = explode(',', $column->comment);
-                if(in_array('trigger[delete]', $commentArray)) {
-                    $relationColumn[] = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
-                    $relationColumn[] = 'message';
-                } else
-                    $relationColumn[] = $column->name;
-                $titleCondition = 1;
-            }
-            if(!empty($relationColumn))
-                return implode($separator, $relationColumn);
-        }
-        if(!$titleCondition) {
-            foreach ($tableSchema->columns as $column) {
-                $relationColumn = [];
-                if($column->name == 'tag_id') {
-                    $relationColumn[] = $this->setRelation($column->name);
-                    $relationColumn[] = 'body';
-                }
-                if(!empty($relationColumn))
-                    return implode($separator, $relationColumn);
-            }
-        }
-        if(!$titleCondition) {
-            foreach ($tableSchema->columns as $column) {
-                $relationColumn = [];
-                if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
-                    $relationTableName = trim($foreignKeys[$column->name]);
-                    if(!$foreignCondition) {
-                        $relationColumn[] = $this->setRelation($column->name);
-                        $relationColumn[] = $this->getNameRelationAttribute($relationTableName, $separator);
-                        $foreignCondition = 1;
-                    }
-                }
-                if(!empty($relationColumn))
-                    return implode($separator, $relationColumn);
-            }
-        }
-        $pk = $tableSchema->primaryKey;
-
-        return $pk[0];
-    }
-
-    public function getName2ndRelation($st, $nd='')
-    {
-        $relations = [];
-        $relations[] = $st;
-        if($nd != '') {
-            $relations = \yii\helpers\ArrayHelper::merge($relations, explode('.', $nd));
-            array_pop($relations);
-        }
-
-        return implode('.', $relations);
-    }
-
-    public function getName2ndAttribute($st, $nd='')
-    {
-        $relations = [];
-        $relations[] = $st;
-        if($nd != '') {
-            $relations = \yii\helpers\ArrayHelper::merge($relations, explode('.', $nd));
-        }
-
-        return array_pop($relations);
+		return $primaryKey;
     }
 
     /**
@@ -359,53 +313,60 @@ class Generator extends \ommu\gii\Generator
         $tableSchema = $this->getTableSchema();
         if ($tableSchema === false || !isset($tableSchema->columns[$attribute])) {
             if (preg_match('/^(password|pass|passwd|passcode)$/i', $attribute)) {
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->passwordInput()
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-            } else {
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			} else {
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
             }
         }
         $column = $tableSchema->columns[$attribute];
 		$commentArray = explode(',', $column->comment);
-        $foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
-        $i18n = 0;
-        if(in_array('trigger[delete]', $commentArray)) {
-            $attribute = $column->name.'_i';
-            $i18n = 1;
-        }
+		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
+		$i18n = 0;
+		$foreignCondition = 0;
+		$smallintCondition = 0;
+		if(in_array('trigger[delete]', $commentArray)) {
+			$attribute = $column->name.'_i';
+			$i18n = 1;
+		}
+		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+			$foreignCondition = 1;
+			if(preg_match('/(smallint)/', $column->type))
+				$smallintCondition = 1;
+		}
 
-        if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {	// 01 //oke
-            return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
+		if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {	// 01 //oke
+			return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
 \t->checkbox(['label'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 		}
 
 		if ($column->name === 'email') {	// 02 //oke
-            return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textInput(['type'=>'email'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 		}
 
 		if (in_array($column->dbType, array('timestamp','datetime','date'))) {	// 03
-            // Jui datepicker lebih fleksibel terhadap dukungan browser dan dapat diformat tanggalnya
-            // dari pada html5.
-            if($this->useJuiDatePicker) {
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			// Jui datepicker lebih fleksibel terhadap dukungan browser dan dapat diformat tanggalnya
+			// dari pada html5.
+			if($this->useJuiDatePicker) {
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type'=>'date', 'class'=>'form-control']])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-            } else {
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			} else {
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textInput(['type' => 'date'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-            }
+			}
 		}
 		
 		if ($column->type === 'text' || $i18n) {	// 04
-            if(in_array('file', $commentArray)) {	// 04.1
-                $modelClass = StringHelper::basename($this->modelClass);
-                return "<div class=\"form-group field-$attribute\">
+			if(in_array('file', $commentArray)) {	// 04.1
+				$modelClass = StringHelper::basename($this->modelClass);
+				return "<div class=\"form-group field-$attribute\">
 \t<?php echo \$form->field(\$model, '$attribute', ['template' => '{label}', 'options' => ['tag' => null]])
 \t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
 \t<div class=\"col-md-6 col-sm-9 col-xs-12\">
@@ -415,30 +376,30 @@ class Generator extends \ommu\gii\Generator
 \t\t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
 \t</div>\n</div>";
 /*
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->fileInput()
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 */
-            } else if(in_array('redactor', $commentArray)) {	// 04.2
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			} else if(in_array('redactor', $commentArray)) {	// 04.2
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textarea(['rows'=>2,'rows'=>6])
 \t->widget(Redactor::className(), ['clientOptions' => \$redactorOptions])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-            } else if(in_array('text', $commentArray)) {	// 04.3
-                $maxlength = $i18n ? ', \'maxlength\'=>true' : '';
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			} else if(in_array('text', $commentArray)) {	// 04.3
+				$maxlength = $i18n ? ', \'maxlength\'=>true' : '';
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textarea(['rows'=>2, 'rows'=>6$maxlength])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-            } else {	// 04.4
-                if($i18n) {	// 04.4.1
-                    return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			} else {	// 04.4
+				if($i18n) {	// 04.4.1
+					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textInput(['maxlength'=>true])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-                } else {	// 04.4.2
-                    return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				} else {	// 04.4.2
+					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textarea(['rows'=>2, 'rows'=>6])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-                }
+				}
 			}
 		}
 
@@ -452,13 +413,13 @@ class Generator extends \ommu\gii\Generator
 			foreach ($column->enumValues as $enumValue) {
 				$dropDownOptions[$enumValue] = Inflector::humanize($enumValue);
 			}
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->dropDownList(". preg_replace("/\n\s*/", ' ', VarDumper::export($dropDownOptions)).", ['prompt' => ''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 		}
 
 		if ($column->phpType !== 'string' || $column->size === null) {
-			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+			if($foreignCondition && $smallintCondition) {
 				$relationTableName = trim($foreignKeys[$column->name]);
 				$relationClassName = $this->generateClassName($relationTableName);
 				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
@@ -468,13 +429,13 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
 			} else {
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->$input(['type'=>'number', 'min'=>'1'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			}
 		}
 
-                return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->$input(['maxlength'=>true])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
     }
@@ -487,44 +448,59 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
     public function generateActiveSearchField($attribute)
     {
         $tableSchema = $this->getTableSchema();
-        $foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
-        if ($tableSchema === false)
-            return "\$form->field(\$model, '$attribute')";
+        if ($tableSchema === false) {
+            return "echo \$form->field(\$model, '$attribute')";
+        }
 
         $column = $tableSchema->columns[$attribute];
-        $i18n = 0;
-        $commentArray = explode(',', $column->comment);
-        if(in_array('trigger[delete]', $commentArray))
-            $i18n = 1;
+		$commentArray = explode(',', $column->comment);
+		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
+		$i18n = 0;
+		$foreignCondition = 0;
+		$smallintCondition = 0;
+		if(in_array('trigger[delete]', $commentArray)) {
+			$attribute = $column->name.'_i';
+			$i18n = 1;
+		}
+		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+			$foreignCondition = 1;
+			if(preg_match('/(smallint)/', $column->type))
+				$smallintCondition = 1;
+		}
 
-        if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-            $attributeName = $this->setRelation($column->name).'_search';
-            return "\$form->field(\$model, '$attributeName')";
+		if($foreignCondition || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+			$relationName = $this->setRelation($column->name);
+			$attribute = $relationName.'_search';
+			if($column->name == 'tag_id')
+				$attribute = $relationName.'_i';
+			if($smallintCondition) {
+				$attribute = $column->name;
+				$relationTableName = trim($foreignKeys[$column->name]);
+				$relationClassName = $this->generateClassName($relationTableName);
+				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
+				return "\$$column->name = $relationClassName::get$functionName();
+		echo \$form->field(\$model, '$attribute')
+			->dropDownList(\$$column->name, ['prompt'=>''])";
+			}
+			return "echo \$form->field(\$model, '$attribute')";
 
-        } elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
-            $relationName = $this->setRelation($column->name);
-            $attributeName = $relationName.'_search';
-            if($column->name == 'tag_id')
-                $attributeName = $relationName.'_i';
-            return "\$form->field(\$model, '$attributeName')";
+		} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
+			if($this->useJuiDatePicker)
+				return "echo \$form->field(\$model, '$attribute')\n\t\t\t->widget(\yii\jui\DatePicker::classname(), [\n\t\t\t\t'dateFormat' => Yii::\$app->formatter->dateFormat,\n\t\t\t\t'options' => ['class' => 'form-control']\n\t\t\t])";
+			else
+				return "echo \$form->field(\$model, '$attribute')\n\t\t\t->input('date')";
 
-        } elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
-            if($this->useJuiDatePicker)
-                return "\$form->field(\$model, '$attribute')\n\t\t\t->widget(\yii\jui\DatePicker::classname(), [\n\t\t\t\t'dateFormat' => Yii::\$app->formatter->dateFormat,\n\t\t\t\t'options' => ['class' => 'form-control']\n\t\t\t])";
-            else
-                return "\$form->field(\$model, '$attribute')\n\t\t\t->input('date')";
-
-        } else {
-            if($i18n) {
-                $attributeName = $column->name.'_i';
-                return "\$form->field(\$model, '$attributeName')";
-            } else {
-                if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)')
-                    return "\$form->field(\$model, '$attribute')\n\t\t\t->dropDownList(\$this->filterYesNo(), ['prompt'=>''])";
-                else
-                    return "\$form->field(\$model, '$attribute')";
-            }
-        }
+		} else {
+			if($i18n) {
+				$attributeName = $column->name.'_i';
+				return "echo \$form->field(\$model, '$attributeName')";
+			} else {
+				if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)')
+					return "echo \$form->field(\$model, '$attribute')\n\t\t\t->dropDownList(\$this->filterYesNo(), ['prompt'=>''])";
+				else
+					return "echo \$form->field(\$model, '$attribute')";
+			}
+		}
     }
 
     /**
@@ -775,7 +751,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
             if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
                 $relationTableName = trim($foreignKeys[$column->name]);
                 $relationName = $this->setRelation($column->name);
-                $relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameRelationAttribute($relationTableName, '.'));
+                $relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameAttribute($relationTableName, '.'));
                 if(trim($foreignKeys[$column->name]) == 'ommu_users')
                     $relationAttributeName = 'displayname';
                 $publicVariable = $relationName.'_search';
@@ -918,6 +894,29 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         return $model->attributes();
     }
 
+	public function getName2ndRelation($st, $nd='')
+	{
+		$relations = [];
+		$relations[] = $st;
+		if($nd != '') {
+			$relations = \yii\helpers\ArrayHelper::merge($relations, explode('.', $nd));
+			array_pop($relations);
+		}
+
+		return implode('.', $relations);
+	}
+
+	public function getName2ndAttribute($st, $nd='')
+	{
+		$relations = [];
+		$relations[] = $st;
+		if($nd != '') {
+			$relations = \yii\helpers\ArrayHelper::merge($relations, explode('.', $nd));
+		}
+
+		return array_pop($relations);
+	}
+
 	public $tableName;
 	public $useSchemaName = true;
 	protected $classNames;
@@ -1020,5 +1019,10 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			else
 				return $labels;
 		}
+	}
+
+	public function i18nRelation($column, $relation=true)
+	{
+		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 }
