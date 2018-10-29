@@ -1,9 +1,10 @@
 <?php
-/* @var $this yii\web\View */
-/* @var $generator yii\gii\generators\crud\Generator */
 
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
+
+/* @var $this yii\web\View */
+/* @var $generator yii\gii\generators\crud\Generator */
 
 $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
@@ -46,6 +47,10 @@ $this->params['menu']['content'] = [
 ];
 ?>
 
+<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-create">
+
 <?= "<?php echo " ?>$this->render('_form', [
 	'model' => $model,
 ]); ?>
+
+</div>
