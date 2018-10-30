@@ -272,7 +272,7 @@ class Generator extends \ommu\gii\Generator
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
 						$relationColumn[$column->name] = $this->setRelation($column->name);
-						$relationColumn[] = $this->getNameAttributes($db->getTableSchema($relationTableName), $separator);
+						$relationColumn = \yii\helpers\ArrayHelper::merge($relationColumn, $this->getNameAttributes($db->getTableSchema($relationTableName), $separator));
 						$foreignCondition = 1;
 					}
 				}

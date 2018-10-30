@@ -85,10 +85,10 @@ foreach($tableSchema->columns as $column) {
 		echo "\t\t<?php ".$generator->generateActiveSearchField($column->name).";?>\n\n";
 }
 ?>
-	<div class="form-group">
-		<?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
-		<?= "<?= " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
-	</div>
+		<div class="form-group">
+			<?= "<?php echo " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
+			<?= "<?php echo " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
+		</div>
 
 	<?= "<?php " ?>ActiveForm::end(); ?>
 

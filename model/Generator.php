@@ -338,6 +338,7 @@ class Generator extends \ommu\gii\Generator
     {
         $types = [];
         $lengths = [];
+		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
         foreach ($table->columns as $column) {
             if ($column->name[0] == '_') {
                 continue;
@@ -345,7 +346,7 @@ class Generator extends \ommu\gii\Generator
             if ($column->autoIncrement) {
                 continue;
             }
-            if (!$column->allowNull && $column->defaultValue === null && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) {
+            if ((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || (!$column->allowNull && $column->defaultValue === null && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug')))) {
                 $types['required'][] = $column->name;
             }
             switch ($column->type) {
@@ -1079,7 +1080,7 @@ class Generator extends \ommu\gii\Generator
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
 						$relationColumn[$column->name] = $this->setRelation($column->name);
-						$relationColumn[] = $this->getNameAttributes($db->getTableSchema($relationTableName), $separator);
+						$relationColumn = \yii\helpers\ArrayHelper::merge($relationColumn, $this->getNameAttributes($db->getTableSchema($relationTableName), $separator));
 						$foreignCondition = 1;
 					}
 				}
