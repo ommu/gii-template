@@ -24,13 +24,13 @@ $urlParams = $generator->generateUrlParams();
 $actionParams = $generator->generateActionParams();
 $actionParamComments = $generator->generateActionParamComments();
 
+$tableSchema = $generator->tableSchema;
+
 $label = ucwords($generator->modelLabel($modelClass));
 $shortLabel = ucwords($generator->shortLabel($modelClass));
 
-$attributeName =  key($generator->getNameAttributes($generator->tableSchema));
+$attributeName =  key($generator->getNameAttributes($tableSchema));
 $relationAttributeName = $generator->getNameAttribute();
-
-$tableSchema = $generator->tableSchema;
 
 $yaml = $generator->loadYaml('author.yaml');
 
