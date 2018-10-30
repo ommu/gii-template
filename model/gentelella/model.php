@@ -30,17 +30,17 @@ $patternClass[1] = '(Swt)';
 $tinyCondition = 0;
 $publishCondition = 0;
 $slugCondition = 0;
-$userCondition = 0;
 $tagCondition = 0;
+$memberCondition = 0;
+$userCondition = 0;
 $uploadCondition = 0;
 $serializeCondition = 0;
 $i18n = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
 $primaryKeyCondition = 0;
-$memberCondition = 0;
 
-$arrayRelations = [];
+$relationArray = [];
 $inputPublicVariables = [];
 $searchPublicVariables = [];
 $arrayAttributeName = [];
@@ -90,25 +90,30 @@ echo "<?php\n";
  * @property <?= "{$data['type']} \${$property}"  . ($data['comment'] ? ' ' . strtr($data['comment'], ["\n" => ' ']) : '') . "\n" ?>
 <?php endforeach; */?>
 <?php 
-foreach ($tableSchema->columns as $column):
+foreach ($tableSchema->columns as $column) {
+	if($column->name[0] == '_')
+		continue;
 	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id']))
-		$relationCondition = 1;
-
-	if(!($column->name[0] == '_')): ?>
+	if(in_array('trigger[delete]', $commentArray) || in_array('user', $commentArray) || (!in_array($primaryKey, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
+		$relationCondition = 1;?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
-<?php endif;
-endforeach; ?>
-<?php if (!empty($relations) || $relationCondition): ?>
+<?php }
+
+if (!empty($relations) || $relationCondition) {?>
  *
  * The followings are the available model relations:
-<?php 
-foreach ($relations as $name => $relation):
-$relationModel = preg_replace($patternClass, '', $relation[1]);
-$arrayRelations[] = $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));?>
+<?php foreach ($relations as $name => $relation) {
+	$relationModel = preg_replace($patternClass, '', $relation[1]);
+	$relationArray[] = $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
-<?php endforeach;
+<?php }
+
 foreach ($tableSchema->columns as $column) {
+	if($column->autoIncrement || $column->isPrimaryKey)
+		continue;
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+		continue;
+
 	$commentArray = explode(',', $column->comment);
 	if($column->dbType == 'tinyint(1)') {
 		$tinyCondition = 1;
@@ -116,27 +121,30 @@ foreach ($tableSchema->columns as $column) {
 			$publishCondition = 1;
 	} elseif($column->name == 'slug') 
 		$slugCondition = 1;
-	elseif(in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
+	elseif(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 		$relationName = $generator->setRelation($column->name);
-		if(!in_array($relationName, $arrayRelations)) {
-			$arrayRelations[] = $relationName;
-			if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
-				echo " * @property Users \${$relationName}\n";
-			else if($column->name == 'tag_id') 
+		$relationName = $generator->setRelationFixed($relationName, $tableSchema->columns);
+		if(!in_array($relationName, $relationArray)) {
+			$relationArray[] = $relationName;
+			if($column->name == 'tag_id')
 				echo " * @property CoreTags \${$relationName}\n";
-			else if($column->name == 'member_id') 
-			echo " * @property Members \${$relationName}\n";
+			else if($column->name == 'member_id')
+				echo " * @property Members \${$relationName}\n";
+			else if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
+				echo " * @property Users \${$relationName}\n";
+			else if(in_array('user', $commentArray))
+				echo " * @property Users \${$relationName}\n";
 		}
-		if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
-			$userCondition = 1;
-		if($column->name == 'tag_id') 
+		if($column->name == 'tag_id')
 			$tagCondition = 1;
-		if($column->name == 'member_id') 
+		else if($column->name == 'member_id')
 			$memberCondition = 1;
+		else if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
+			$userCondition = 1;
 	} else {
-		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray)) 
+		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray))
 			$uploadCondition = 1;
-		else if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('serialize', $commentArray)) 
+		else if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('serialize', $commentArray))
 			$serializeCondition = 1;
 		else {
 			if(in_array('trigger[delete]', $commentArray)) {
@@ -147,7 +155,7 @@ foreach ($tableSchema->columns as $column) {
 		}
 	}
 }
-endif; ?>
+}?>
  *
  */
 
@@ -167,9 +175,9 @@ echo $memberCondition ? "use ".ltrim('ommu\member\models\Members', '\\').";\n" :
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $tinyCondition || $i18n || $tagCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
+<?php echo $tinyCondition || $tagCondition || $i18n ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition || $i18n || $tagCondition || $uploadCondition ? "\n" : '';?>
+<?php echo $tinyCondition || $tagCondition || $uploadCondition || $i18n ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 foreach ($tableSchema->columns as $column) {
@@ -193,12 +201,13 @@ foreach ($tableSchema->columns as $column) {
 	if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray)) {
 		$inputPublicVariable = 'old_'.$column->name.'_i';
 		if(!in_array($inputPublicVariable, $inputPublicVariables))
-			$inputPublicVariables[$inputPublicVariable] = Inflector::camel2words('old '.Inflector::id2camel($column->name));
+			$inputPublicVariables[$inputPublicVariable] = Inflector::camel2words('Old'.Inflector::id2camel($column->name));
 	}
 }
 
 foreach ($tableSchema->columns as $column) {
-	if($tableType != Generator::TYPE_VIEW && !empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+	$commentArray = explode(',', $column->comment);
+	if($tableType != Generator::TYPE_VIEW && !empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['tag_id'])) {
 		$smallintCondition = 0;
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
@@ -209,7 +218,13 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 foreach ($tableSchema->columns as $column) {
-	if($tableType != Generator::TYPE_VIEW && in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])) {
+	if($column->autoIncrement || $column->isPrimaryKey)
+		continue;
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+		continue;
+
+	$commentArray = explode(',', $column->comment);
+	if($tableType != Generator::TYPE_VIEW && (in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id']))) {
 		$relationName = $generator->setRelation($column->name);
 		$searchPublicVariable = $relationName.'_search';
 		if(!in_array($searchPublicVariable, $searchPublicVariables))
@@ -311,55 +326,72 @@ if(!empty($searchPublicVariables)) {
 		];
 	}
 <?php 
-$arrayRelations = [];
-foreach ($relations as $name => $relation):
-	$arrayRelations[] = $relationName = ($relation[2] ? ucfirst($generator->setRelation($name, true)) : ucfirst($generator->setRelation($name)));?>
+$relationArray = [];
+foreach ($relations as $name => $relation) {
+	$relationArray[] = $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
 	 */
-	public function get<?php echo $relationName;?>()
+	public function get<?php echo ucfirst($relationName);?>()
 	{
 		<?= preg_replace($patternClass, '', $relation[0]) . "\n" ?>
 	}
-<?php endforeach;
-if($i18n):
-	foreach ($tableSchema->columns as $column):
+<?php }
+
+if($i18n) {
+	foreach ($tableSchema->columns as $column) {
 		$commentArray = explode(',', $column->comment);
 		if(in_array('trigger[delete]', $commentArray)) {
 			$relationName = $generator->i18nRelation($column->name);
-			$relationName = ucfirst($relationName);
-			if(!in_array($relationName, $arrayRelations)) {
-				$arrayRelations[] = $relationName;?>
+			if(!in_array($relationName, $relationArray)) {
+				$relationArray[] = $relationName;?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
 	 */
-	public function get<?php echo $relationName;?>()
+	public function get<?php echo ucfirst($relationName);?>()
 	{
 		return $this->hasOne(SourceMessage::className(), ['id' => '<?php echo $column->name;?>']);
 	}
 <?php		}
 		}
-	endforeach;
-endif;
+	}
+}
 
-foreach ($tableSchema->columns as $column):
-	if(!$column->isPrimaryKey && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
-		$relationName = ucfirst($generator->setRelation($column->name));
-		if(!in_array($relationName, $arrayRelations)) {
-			$arrayRelations[] = $relationName; ?>
+foreach ($tableSchema->columns as $column) {
+	if($column->autoIncrement || $column->isPrimaryKey)
+		continue;
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+		continue;
+
+	$commentArray = explode(',', $column->comment);
+	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
+		$relationName = $generator->setRelation($column->name);
+		$relationName = $generator->setRelationFixed($relationName, $tableSchema->columns);
+		if(!in_array($relationName, $relationArray)) {
+			$relationArray[] = $relationName;
+			$relationModelClass = 'Users';
+			$relationAttribute = 'user_id';
+			if($column->name == 'tag_id') {
+				$relationModelClass = 'CoreTags';
+				$relationAttribute = 'tag_id';
+			}
+			if($column->name == 'member_id') {
+				$relationModelClass = 'Members';
+				$relationAttribute = 'member_id';
+			}?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
 	 */
-	public function get<?php echo $relationName;?>()
+	public function get<?php echo ucfirst($relationName);?>()
 	{
-		return $this->hasOne(<?php echo $column->name == 'tag_id' ? 'CoreTags' : 'Users';?>::className(), ['<?php echo $column->name == 'tag_id' ? 'tag_id' : 'user_id';?>' => '<?php echo $column->name;?>']);
+		return $this->hasOne(<?php echo $relationModelClass;?>::className(), ['<?php echo $relationAttribute;?>' => '<?php echo $column->name;?>']);
 	}
 <?php 	}
-	endif;
-endforeach;
+	}
+}
 
 if($queryClassName): 
 	$queryClassFullName = ($generator->ns === $generator->queryNs) ? $queryClassName : '\\' . $generator->queryNs . '\\' . $queryClassName;
@@ -396,17 +428,19 @@ foreach ($tableSchema->columns as $column) {
 		continue;
 
 	$commentArray = explode(',', $column->comment);
+	$foreignCondition = 0;
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+		$foreignCondition = 1;
 
-	if((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+	if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 		$smallintCondition = 0;
-		$foreignCondition = 0;
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
 		$relationName = $generator->setRelation($column->name);
+		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		$publicAttribute = $relationName.'_search';
 		$relationAttribute = 'displayname';
 		if(array_key_exists($column->name, $foreignKeys)) {
-			$foreignCondition = 1;
 			$relationTableName = trim($foreignKeys[$column->name]);
 			$relationAttribute = $generator->getNameAttribute($relationTableName);
 			if($relationTableName == 'ommu_users')
@@ -425,7 +459,7 @@ foreach ($tableSchema->columns as $column) {
 			$this->templateColumns['<?php echo $publicAttribute;?>'] = [
 				'attribute' => '<?php echo $publicAttribute;?>',
 				'value' => function($model, $key, $index, $column) {
-					return isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttribute;?> : '-';
+					return isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
 				},
 <?php if($foreignCondition && $smallintCondition) {
 	$relationClassName = $generator->generateClassName($relationTableName);
@@ -780,7 +814,7 @@ endif;
 
 $bsEvents = 0;
 $beforeSave = 0;
-if($i18n || $uploadCondition || $serializeCondition || $tagCondition)
+if($tagCondition || $uploadCondition || $serializeCondition || $i18n)
 	$bsEvents = 1;
 foreach($tableSchema->columns as $column) {
 	if((in_array($column->type, ['date','datetime']) && $column->comment != 'trigger'))

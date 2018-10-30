@@ -202,4 +202,12 @@ class Generator extends \yii\gii\Generator
 			}
 		}
 	}
+
+	public function setRelationFixed($relation, $tableColumns)
+	{
+		if(array_key_exists($relation, $tableColumns))
+			return join('', [$relation, 'Rltn']);
+
+		return $relation;
+	}
 }
