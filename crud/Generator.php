@@ -231,6 +231,7 @@ class Generator extends \ommu\gii\Generator
      */
 	public function getNameAttributes($table, $separator='->')
 	{
+		$db = $this->getDbConnection();
 		$foreignKeys = $this->getForeignKeys($table->foreignKeys);
 		$titleCondition = 0;
 		$foreignCondition = 0;
@@ -271,7 +272,7 @@ class Generator extends \ommu\gii\Generator
 					$relationTableName = trim($foreignKeys[$column->name]);
 					if(!$foreignCondition) {
 						$relationColumn[$column->name] = $this->setRelation($column->name);
-						$relationColumn[] = $this->getNameAttribute($relationTableName, $separator);
+						$relationColumn[] = $this->getNameAttributes($db->getTableSchema($relationTableName), $separator);
 						$foreignCondition = 1;
 					}
 				}
@@ -671,7 +672,6 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                 case Schema::TYPE_TIME:
                 case Schema::TYPE_DATETIME:
                 case Schema::TYPE_TIMESTAMP:
-                    //echo $column."\n";
                     if(in_array($column, array('creation_id','modified_id','user_id','updated_id','tag_id'))) {
                         if(!in_array($column, $arrayHasColumn)) {
                             $arrayHasColumn[] = $column;
@@ -720,15 +720,15 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
             $publishConditions[] = "if(isset(\$params['trash']))\n\t\t\t\$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);\n\t\telse {\n\t\t\tif(!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == ''))\n\t\t\t\t\$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);\n\t\t\telse\n\t\t\t\t\$query->andFilterWhere(['t.$column->name' => \$this->$column->name]);\n\t\t}";
         }
         endforeach;
-        $arrayPublicVariable = [];
+        $publicVariables = [];
 
         foreach ($tableSchema->columns as $column):
             $commentArray = explode(',', $column->comment);
             if(in_array('trigger[delete]', $commentArray)):
-                $relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
+                $relationName = $this->i18nRelation($column->name);;
                 $publicVariable = $column->name.'_i';
-                if(!in_array($publicVariable, $arrayPublicVariable)) {
-                    $arrayPublicVariable[] = $publicVariable;
+                if(!in_array($publicVariable, $publicVariables)) {
+                    $publicVariables[] = $publicVariable;
                     $likeConditions[] = "->andFilterWhere(['like', '{$relationName}.message', \$this->{$publicVariable}])";
                 }
             endif;
@@ -737,22 +737,25 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
             if(in_array($column->name, ['tag_id'])):
                 $relationName = $this->setRelation($column->name);
                 $publicVariable = $relationName.'_i';
-                if(!in_array($publicVariable, $arrayPublicVariable)) {
-                    $arrayPublicVariable[] = $publicVariable;
+                if(!in_array($publicVariable, $publicVariables)) {
+                    $publicVariables[] = $publicVariable;
                     $likeConditions[] = "->andFilterWhere(['like', '{$relationName}.body', \$this->{$publicVariable}])";
                 }
             endif;
         endforeach;
         foreach ($tableSchema->columns as $column): 
             if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
-                $relationTableName = trim($foreignKeys[$column->name]);
+				$smallintCondition = 0;
+				if(preg_match('/(smallint)/', $column->type))
+					$smallintCondition = 1;
                 $relationName = $this->setRelation($column->name);
-                $relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameAttribute($relationTableName, '.'));
-                if(trim($foreignKeys[$column->name]) == 'ommu_users')
-                    $relationAttributeName = 'displayname';
                 $publicVariable = $relationName.'_search';
-                if(!in_array($publicVariable, $arrayPublicVariable)) {
-                    $arrayPublicVariable[] = $publicVariable;
+                $relationTableName = trim($foreignKeys[$column->name]);
+                $relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameAttribute($relationTableName, '.'));
+                if($relationTableName == 'ommu_users')
+                    $relationAttributeName = 'displayname';
+                if(!$smallintCondition && !in_array($publicVariable, $publicVariables)) {
+                    $publicVariables[] = $publicVariable;
                     $likeConditions[] = "->andFilterWhere(['like', '{$relationName}.{$relationAttributeName}', \$this->{$publicVariable}])";
                 }
             endif;
@@ -761,8 +764,8 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
             if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
                 $relationName = $this->setRelation($column->name);
                 $publicVariable = $relationName.'_search';
-                if(!in_array($publicVariable, $arrayPublicVariable)) {
-                    $arrayPublicVariable[] = $publicVariable;
+                if(!in_array($publicVariable, $publicVariables)) {
+                    $publicVariables[] = $publicVariable;
                     $likeConditions[] = "->andFilterWhere(['like', '{$relationName}.displayname', \$this->{$publicVariable}])";
                 }
             endif;

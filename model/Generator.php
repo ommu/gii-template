@@ -375,7 +375,7 @@ class Generator extends \ommu\gii\Generator
                     if ($column->size > 0) {
                         $lengths[$column->size][] = $column->name;
                     } else {
-						if($column->comment == 'serialize')
+						if(in_array('serialize', $commentArray))
 							$types['serialize'][] = $column->name;
 						else
                             $types['string'][] = $column->name;
@@ -401,7 +401,7 @@ class Generator extends \ommu\gii\Generator
 				$types['required'][]=$columnName;
 				$types['string'][]=$columnName;
 			}
-			if($this->getTableType($this->tableName) != self::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && $column->type == 'text' && $column->comment == 'file') {
+			if($this->getTableType($this->tableName) != self::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && $column->type == 'text' && in_array('file', $commentArray)) {
 				if(!empty($types['required']))
 					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['safe'][]=$column->name;
@@ -418,7 +418,7 @@ class Generator extends \ommu\gii\Generator
             if ($column->autoIncrement || $column->name[0] == '_')
 				continue;
 
-			if($this->getTableType($this->tableName) != self::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && $column->type == 'text' && $column->comment == 'file') {
+			if($this->getTableType($this->tableName) != self::TYPE_VIEW && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && $column->type == 'text' && in_array('file', $commentArray)) {
 				$columnName = 'old_'.$column->name.'_i';
 				$types['string'][]=$columnName;
 				$types['safe'][]=$columnName;

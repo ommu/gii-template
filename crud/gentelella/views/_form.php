@@ -107,7 +107,7 @@ foreach ($tableSchema->columns as $column) {
 		continue;
 
 	if (in_array($column->name, $safeAttributes)) {
-		if($column->comment != 'trigger' && !(in_array($column->name, array('creation_id','modified_id','updated_id','slug'))) && !($column->type == 'text' && $column->comment == 'file')) {
+		if($column->comment != 'trigger' && !(in_array($column->name, array('creation_id','modified_id','updated_id','slug'))) && !($column->type == 'text' && in_array('file', $commentArray))) {
 			echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 		} else if(in_array('file', $commentArray)) {
 			echo $generator->generateActiveField($column->name)."\n\n";

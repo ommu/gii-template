@@ -198,8 +198,8 @@ foreach ($tableSchema->columns as $column) {
 }
 
 foreach ($tableSchema->columns as $column) {
-	$smallintCondition = 0;
 	if($tableType != Generator::TYPE_VIEW && !empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		$smallintCondition = 0;
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
 		$relationName = $generator->setRelation($column->name);
@@ -209,7 +209,7 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 foreach ($tableSchema->columns as $column) {
-	if($tableType != Generator::TYPE_VIEW && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+	if($tableType != Generator::TYPE_VIEW && in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])) {
 		$relationName = $generator->setRelation($column->name);
 		$searchPublicVariable = $relationName.'_search';
 		if(!in_array($searchPublicVariable, $searchPublicVariables))

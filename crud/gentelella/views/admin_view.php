@@ -131,20 +131,20 @@ if((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || in
 			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
 <?php }?>
 		],
-<?php } else if(in_array($column->dbType, array('text'))) {?>
+<?php } else if($column->type == 'text') {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-<?php if($column->comment == 'file'):?>
+<?php if(in_array('file', $commentArray)):?>
 			'value' => function ($model) {
 				$image = join('/', [Url::Base(), <?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $column->name;?>]);
 				return $model-><?php echo $column->name;?> ? Html::img($image, ['width' => '100%']).'<br/><br/>'.$image : '-';
 			},
-<?php elseif($column->comment == 'serialize'):?>
+<?php elseif(in_array('serialize', $commentArray)):?>
 			'value' => serialize($model-><?php echo $column->name;?>),
 <?php else:?>
 			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
 <?php endif;
-if(in_array($column->comment, array('redactor','file'))):?>
+if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 			'format' => 'raw',
 <?php endif;?>
 		],

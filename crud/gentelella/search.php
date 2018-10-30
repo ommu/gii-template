@@ -12,7 +12,7 @@ use yii\helpers\Inflector;
 $modelClass = StringHelper::basename($generator->modelClass);
 $searchModelClass = StringHelper::basename($generator->searchModelClass);
 if ($modelClass === $searchModelClass) {
-	$modelAlias = $modelClass . 'Model';
+    $modelAlias = $modelClass . 'Model';
 }
 $rules = $generator->generateSearchRules();
 $labels = $generator->generateSearchLabels();
@@ -21,62 +21,12 @@ $searchConditions = $generator->generateSearchConditions();
 
 $tableSchema = $generator->tableSchema;
 
-$patternClass = $patternLabel = array();
-$patternClass[0] = '(Ommu)';
-$patternClass[1] = '(Swt)';
-
 if(!empty($tableSchema->primaryKey))
 	$primaryKey = $tableSchema->primaryKey[0];
 else
 	$primaryKey = key($tableSchema->columns);
 
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
-
-$arrayRelations = [];
-$arrayPublicVariable = [];
-
-foreach ($tableSchema->columns as $column):
-	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray)) {
-		$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
-		$publicVariable = $column->name.'_i';
-		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayRelations[$relationName] = $relationName;
-			$arrayPublicVariable[] = $publicVariable;
-		}
-	}
-endforeach;
-foreach ($tableSchema->columns as $column):
-	if(in_array($column->name, ['tag_id'])) {
-		$relationName = $generator->setRelation($column->name);
-		$publicVariable = $relationName.'_i';
-		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayRelations[$relationName] = $relationName;
-			$arrayPublicVariable[] = $publicVariable;
-		}
-	}
-endforeach;
-foreach ($tableSchema->columns as $column):
-if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])):
-	$relationTableName = trim($foreignKeys[$column->name]);
-	$relationName = $generator->setRelation($column->name);
-	$publicVariable = $relationName.'_search';
-	if(!in_array($publicVariable, $arrayPublicVariable)) {
-		$arrayRelations[$relationName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTableName,'.'));
-		$arrayPublicVariable[] = $publicVariable;
-	}
-endif;
-endforeach;
-foreach ($tableSchema->columns as $column):
-if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])):
-	$relationName = $generator->setRelation($column->name);
-	$publicVariable = $relationName.'_search';
-	if(!in_array($publicVariable, $arrayPublicVariable)) {
-		$arrayRelations[$relationName] = $relationName;
-		$arrayPublicVariable[] = $publicVariable;
-	}
-endif;
-endforeach;
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -110,17 +60,79 @@ use <?= ltrim($generator->modelClass, '\\') . (isset($modelAlias) ? " as $modelA
 class <?= $searchModelClass ?> extends <?= (isset($modelAlias) ? $modelAlias : $modelClass). "\n"; ?>
 {
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function rules()
 	{
 		return [
 <?php
+$arrayRelations = [];
+$inputRuleVariables = [];
+$inputSearchVariables = [];
+
+foreach ($tableSchema->columns as $column) {
+	$commentArray = explode(',', $column->comment);
+	if(in_array('trigger[delete]', $commentArray)) {
+		$relationName = $generator->i18nRelation($column->name);
+		$inputRuleVariable = $column->name.'_i';
+		$arrayRelations[$relationName] = $relationName;
+		if(!in_array($inputRuleVariable, $inputRuleVariables)) {
+			$inputRuleVariables[] = $inputRuleVariable;
+		}
+		if(!in_array($inputRuleVariable, $inputSearchVariables)) {
+			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'message']);
+		}
+	}
+}
+foreach ($tableSchema->columns as $column) {
+	if(in_array($column->name, ['tag_id'])) {
+		$relationName = $generator->setRelation($column->name);
+		$inputRuleVariable = $relationName.'_i';
+		$arrayRelations[$relationName] = $relationName;
+		if(!in_array($inputRuleVariable, $inputRuleVariables)) {
+			$inputRuleVariables[] = $inputRuleVariable;
+		}
+		if(!in_array($inputRuleVariable, $inputSearchVariables)) {
+			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'body']);
+		}
+	}
+}
+foreach ($tableSchema->columns as $column) {
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		$smallintCondition = 0;
+		if(preg_match('/(smallint)/', $column->type))
+			$smallintCondition = 1;
+		$relationName = $generator->setRelation($column->name);
+		$inputRuleVariable = $relationName.'_search';
+		$relationTableName = trim($foreignKeys[$column->name]);
+		$arrayRelations[$relationName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTableName,'.'));
+		if(!$smallintCondition && !in_array($inputRuleVariable, $inputRuleVariables)) {
+			$inputRuleVariables[] = $inputRuleVariable;
+		}
+		if(!in_array($column->name, $inputSearchVariables)) {
+			$inputSearchVariables[$column->name] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTableName, '.'))]);
+		}
+	}
+}
+foreach ($tableSchema->columns as $column) {
+	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])) {
+		$relationName = $generator->setRelation($column->name);
+		$inputRuleVariable = $relationName.'_search';
+		$arrayRelations[$relationName] = $relationName;
+		if(!in_array($inputRuleVariable, $inputRuleVariables)) {
+			$inputRuleVariables[] = $inputRuleVariable;
+		}
+		if(!in_array($inputRuleVariable, $inputSearchVariables)) {
+			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'displayname']);
+		}
+	}
+}
+
 foreach($rules as $rule):
 if(!empty($rule->columns)):
 	// Jika public var ada merge ke safe rule columns
-	if($rule->ruleType == 'safe' && !empty($arrayPublicVariable))
-		$rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, $arrayPublicVariable);
+	if($rule->ruleType == 'safe' && !empty($inputRuleVariables))
+		$rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, $inputRuleVariables);
 		
 	echo "\t\t\t[['".implode("', '", $rule->columns)?>'], '<?=$rule->ruleType?>'],
 <?php endif;
@@ -129,7 +141,7 @@ endforeach;?>
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function scenarios()
 	{
@@ -151,12 +163,13 @@ endforeach;?>
 	 * Creates data provider instance with search query applied
 	 *
 	 * @param array $params
+	 *
 	 * @return ActiveDataProvider
 	 */
 	public function search($params)
 	{
 		$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
-<?php 
+<?php
 if(!empty($arrayRelations)):
 foreach ($arrayRelations as $key => $val):
 	$relations[] = $val.' '.$key;
@@ -171,66 +184,14 @@ endforeach;?>
 
 		$attributes = array_keys($this->getTableSchema()->columns);
 <?php 
-if(!empty($arrayPublicVariable)):
-$arrayPublicVariable = [];
-foreach ($tableSchema->columns as $column):
-	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray)):
-		$relationName = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $name.'Rltn') : $column->name.'Rltn');
-		$publicVariable = $column->name.'_i';
-		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayPublicVariable[] = $publicVariable;?>
-		$attributes['<?php echo $publicVariable;?>'] = [
-			'asc' => ['<?php echo $relationName;?>.message' => SORT_ASC],
-			'desc' => ['<?php echo $relationName;?>.message' => SORT_DESC],
+if(!empty($inputSearchVariables)) {
+	foreach ($inputSearchVariables as $key => $val) {?>
+		$attributes['<?php echo $key;?>'] = [
+			'asc' => ['<?php echo $val;?>' => SORT_ASC],
+			'desc' => ['<?php echo $val;?>' => SORT_DESC],
 		];
-<?php	}
-	endif;
-endforeach;
-foreach ($tableSchema->columns as $column): 
-	if(in_array($column->name, ['tag_id'])):
-		$relationName = $generator->setRelation($column->name);
-		$publicVariable = $relationName.'_i';
-		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayPublicVariable[] = $publicVariable;?>
-		$attributes['<?php echo $publicVariable;?>'] = [
-			'asc' => ['<?php echo $relationName;?>.body' => SORT_ASC],
-			'desc' => ['<?php echo $relationName;?>.body' => SORT_DESC],
-		];
-<?php 	}
-	endif;
-endforeach;
-foreach ($tableSchema->columns as $column): 
-	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
-		$relationTableName = trim($foreignKeys[$column->name]);
-		$relationName = $generator->setRelation($column->name);
-		$relationAttributeName = $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTableName, '.'));
-		if(trim($foreignKeys[$column->name]) == 'ommu_users')
-			$relationAttributeName = 'displayname';
-		$publicVariable = $relationName.'_search';
-		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayPublicVariable[] = $publicVariable;?>
-		$attributes['<?php echo $publicVariable;?>'] = [
-			'asc' => ['<?php echo $relationName;?>.<?php echo $relationAttributeName;?>' => SORT_ASC],
-			'desc' => ['<?php echo $relationName;?>.<?php echo $relationAttributeName;?>' => SORT_DESC],
-		];
-<?php 	}
-	endif;
-endforeach;
-foreach ($tableSchema->columns as $column): 
-	if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
-		$relationName = $generator->setRelation($column->name);
-		$publicVariable = $relationName.'_search';
-		if(!in_array($publicVariable, $arrayPublicVariable)) {
-			$arrayPublicVariable[] = $publicVariable;?>
-		$attributes['<?php echo $publicVariable;?>'] = [
-			'asc' => ['<?php echo $relationName;?>.displayname' => SORT_ASC],
-			'desc' => ['<?php echo $relationName;?>.displayname' => SORT_DESC],
-		];
-<?php 	}
-	endif;
-endforeach;
-endif;?>
+<?php }
+}?>
 		$dataProvider->setSort([
 			'attributes' => $attributes,
 			'defaultOrder' => ['<?php echo $primaryKey?>' => SORT_DESC],
