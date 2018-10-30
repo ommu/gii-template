@@ -36,6 +36,7 @@ $userCondition = 0;
 $uploadCondition = 0;
 $serializeCondition = 0;
 $i18n = 0;
+$dateCondition = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
 $primaryKeyCondition = 0;
@@ -141,6 +142,8 @@ foreach ($tableSchema->columns as $column) {
 			$memberCondition = 1;
 		else if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 			$userCondition = 1;
+	} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
+		$dateCondition = 1;
 	} else {
 		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray))
 			$uploadCondition = 1;
@@ -175,9 +178,9 @@ echo $memberCondition ? "use ".ltrim('ommu\member\models\Members', '\\').";\n" :
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $tinyCondition || $tagCondition || $i18n ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
+<?php echo $tinyCondition || $tagCondition || $i18n || $dateCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition || $tagCondition || $uploadCondition || $i18n ? "\n" : '';?>
+<?php echo $tinyCondition || $tagCondition || $uploadCondition || $i18n || $dateCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 foreach ($tableSchema->columns as $column) {
@@ -206,7 +209,6 @@ foreach ($tableSchema->columns as $column) {
 }
 
 foreach ($tableSchema->columns as $column) {
-	$commentArray = explode(',', $column->comment);
 	if($tableType != Generator::TYPE_VIEW && !empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['tag_id'])) {
 		$smallintCondition = 0;
 		if(preg_match('/(smallint)/', $column->type))
@@ -494,7 +496,7 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {?>
 				$uploadPath = self::getUploadPath(false);
 <?php }?>
-				return $model-><?php echo $publicAttribute;?> ? Html::img(join('/', [$uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-'
+				return $model-><?php echo $publicAttribute;?> ? Html::img(join('/', [$uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
 			},
 			'format' => 'html',
 		];

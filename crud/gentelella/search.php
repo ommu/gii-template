@@ -98,7 +98,7 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 foreach ($tableSchema->columns as $column) {
-	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['tag_id'])) {
 		$smallintCondition = 0;
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
@@ -110,12 +110,19 @@ foreach ($tableSchema->columns as $column) {
 			$inputRuleVariables[] = $inputRuleVariable;
 		}
 		if(!in_array($column->name, $inputSearchVariables)) {
-			$inputSearchVariables[$column->name] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTableName, '.'))]);
+			$attribute = $smallintCondition ? $column->name : $inputRuleVariable;
+			$inputSearchVariables[$attribute] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTableName, '.'))]);
 		}
 	}
 }
 foreach ($tableSchema->columns as $column) {
-	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])) {
+	if($column->autoIncrement || $column->isPrimaryKey)
+		continue;
+	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+		continue;
+
+	$commentArray = explode(',', $column->comment);
+	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id'])) {
 		$relationName = $generator->setRelation($column->name);
 		$inputRuleVariable = $relationName.'_search';
 		$arrayRelations[$relationName] = $relationName;
