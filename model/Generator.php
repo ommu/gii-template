@@ -346,7 +346,12 @@ class Generator extends \ommu\gii\Generator
             if ($column->autoIncrement) {
                 continue;
             }
-            if ((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || (!$column->allowNull && $column->defaultValue === null && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug')))) {
+			$foreignCondition = 0;
+			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+				$foreignCondition = 1;
+
+			$commentArray = explode(',', $column->comment);
+            if ($foreignCondition || (!$column->allowNull && $column->defaultValue === null && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) || in_array('user', $commentArray) || in_array($column->name, ['user_id','member_id'])) {
                 $types['required'][] = $column->name;
             }
             switch ($column->type) {

@@ -116,9 +116,9 @@ if((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || in
 			'attribute' => '<?php echo $column->name;?>',
 <?php if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
 	if($column->name == 'publish') {
-		if($column->comment == '') {?>
+if($column->comment == '') {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
-		<?php } else {?>
+<?php } else {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),
 <?php 	}
 	} else if($column->name == 'headline') {?>
