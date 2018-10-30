@@ -500,7 +500,7 @@ foreach ($tableSchema->columns as $column) {
 	$comment = $column->comment;
 	if($column->name[0] == '_')
 		continue;
-	if($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline','permission']) || ($comment != '' &&  $comment[7] != '[')))
+	if($column->dbType == 'tinyint(1)' && (in_array($column->name, ['publish','headline','permission']) || ($comment != '' && $comment[7] != '[')))
 		continue;
 		
 	if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {?>
