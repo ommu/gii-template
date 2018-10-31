@@ -454,8 +454,8 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         }
 
         $column = $tableSchema->columns[$attribute];
-		$commentArray = explode(',', $column->comment);
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
+		$commentArray = explode(',', $column->comment);
 
 		$i18n = 0;
 		$foreignCondition = 0;
