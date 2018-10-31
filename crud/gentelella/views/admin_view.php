@@ -81,7 +81,13 @@ if (($tableSchema = $tableSchema) === false) {
 		if($column->name[0] == '_')
 			continue;
 
-if((!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		$foreignCondition = 0;
+		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+			$foreignCondition = 1;
+
+		$commentArray = explode(',', $column->comment);
+
+if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 	$smallintCondition = 0;
 	$foreignCondition = 0;
 	if(preg_match('/(smallint)/', $column->type))
@@ -149,7 +155,6 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 <?php endif;?>
 		],
 <?php } else {
-	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
 		$publicAttribute = $column->name.'_i';
 		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');?>

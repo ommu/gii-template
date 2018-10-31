@@ -456,6 +456,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         $column = $tableSchema->columns[$attribute];
 		$commentArray = explode(',', $column->comment);
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
+
 		$i18n = 0;
 		$foreignCondition = 0;
 		$smallintCondition = 0;
@@ -469,7 +470,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				$smallintCondition = 1;
 		}
 
-		if($foreignCondition || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id'])) {
+		if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 			$relationName = $this->setRelation($column->name);
 			$attribute = $relationName.'_search';
 			if($column->name == 'tag_id')
