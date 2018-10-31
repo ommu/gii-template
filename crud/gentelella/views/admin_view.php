@@ -93,6 +93,7 @@ if($foreignCondition || in_array('user', $commentArray) || in_array($column->nam
 	if(preg_match('/(smallint)/', $column->type))
 		$smallintCondition = 1;
 	$relationName = $generator->setRelation($column->name);
+	$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 	$publicAttribute = $relationName.'_search';
 	$relationAttribute = 'displayname';
 	if(array_key_exists($column->name, $foreignKeys)) {
@@ -110,7 +111,7 @@ if($foreignCondition || in_array('user', $commentArray) || in_array($column->nam
 		$publicAttribute = $column->name;?>
 		[
 			'attribute' => '<?php echo $publicAttribute;?>',
-			'value' => isset($model-><?php echo $relationName;?>) ? $model-><?php echo $relationName;?>-><?php echo $relationAttribute;?> : '-',
+			'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
 		],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 		[

@@ -658,8 +658,9 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         $publishConditions = [];
 
         $arrayHasColumn = [];
-        $arrayLikeColumn = [];
+		$arrayLikeColumn = [];
         foreach ($columns as $column => $type) {
+			$commentArray = explode(',', $tableSchema->columns[$column]->comment);
             switch ($type) {
                 case Schema::TYPE_SMALLINT:
                 case Schema::TYPE_INTEGER:
@@ -673,14 +674,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                 case Schema::TYPE_TIME:
                 case Schema::TYPE_DATETIME:
                 case Schema::TYPE_TIMESTAMP:
-                    if(in_array($column, array('creation_id','modified_id','user_id','updated_id','tag_id'))) {
-                        if(!in_array($column, $arrayHasColumn)) {
-                            $arrayHasColumn[] = $column;
-                            $relation = $this->setRelation($column);
-                            $hashConditions[] = "'t.{$column}' => isset(\$params['$relation']) ? \$params['$relation'] : \$this->{$column},";
-                        }
-
-                    } else if(!empty($foreignKeys) && array_key_exists($column, $foreignKeys)) {
+                    if((!empty($foreignKeys) && array_key_exists($column, $foreignKeys)) || in_array('user', $commentArray) || in_array($column, array('creation_id','modified_id','user_id','updated_id','tag_id','member_id'))) {
                         if(!in_array($column, $arrayHasColumn)) {
                             $arrayHasColumn[] = $column;
                             $relation = $this->setRelation($column);
@@ -692,7 +686,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                             $arrayHasColumn[] = $column;
                             $hashConditions[] = "'cast(t.{$column} as date)' => \$this->{$column},";
                         }
-                        
+
                     } else {
                         if(!in_array($column, $arrayHasColumn)) {
                             $arrayHasColumn[] = $column;
@@ -745,7 +739,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
             endif;
         endforeach;
         foreach ($tableSchema->columns as $column): 
-            if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('creation_id','modified_id','user_id','updated_id','tag_id'))):
+            if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('tag_id'))):
 				$smallintCondition = 0;
 				if(preg_match('/(smallint)/', $column->type))
 					$smallintCondition = 1;
@@ -762,7 +756,13 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
             endif;
         endforeach;
         foreach ($tableSchema->columns as $column): 
-            if(in_array($column->name, array('creation_id','modified_id','user_id','updated_id'))):
+			if($column->autoIncrement || $column->isPrimaryKey)
+				continue;
+			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+				continue;
+
+			$commentArray = explode(',', $column->comment);
+            if(in_array('user', $commentArray) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))):
                 $relationName = $this->setRelation($column->name);
                 $publicVariable = $relationName.'_search';
                 if(!in_array($publicVariable, $publicVariables)) {
