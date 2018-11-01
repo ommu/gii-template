@@ -746,19 +746,19 @@ if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $bvEvent
 	foreach($tableSchema->columns as $column) {
 		$commentArray = explode(',', $column->comment);
 		if($column->type == 'text' && in_array('file', $commentArray)) {
-			$fileType = Inflector::singularize(Inflector::id2camel($column->name, '_')).'FileType';?>
-			$<?php echo $fileType;?>FileType = ['bmp','gif','jpg','png'];
+			$fileType = lcfirst(Inflector::singularize(Inflector::id2camel($column->name, '_')).'FileType');?>
+			$<?php echo $fileType;?> = ['bmp','gif','jpg','png'];
 			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 
 			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
-				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $column->name;?>FileType)) {
+				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
 					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', array(
 						'{name}'=>$<?php echo $column->name;?>->name,
-						'{extensions}'=>$this->formatFileType($<?php echo $column->name;?>FileType, false),
+						'{extensions}'=>$this->formatFileType($<?php echo $fileType;?>, false),
 					)));
 				}
 			} /* else {
-				//if($this->isNewRecord)
+				if($this->isNewRecord || (!$this->isNewRecord && $this->old_<?php echo $column->name;?>_i == ''))
 					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', array('{attribute}'=>$this->getAttributeLabel('<?php echo $column->name;?>'))));
 			} */
 

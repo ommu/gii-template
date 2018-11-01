@@ -799,18 +799,18 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         $pks = $class::primaryKey();
         if (count($pks) === 1) {
             if (is_subclass_of($class, 'yii\mongodb\ActiveRecord')) {
-                return "'id' => (string)\$model->{$pks[0]}";
+                return "'id'=>(string)\$model->{$pks[0]}";
             }
 
-            return "'id' => \$model->{$pks[0]}";
+            return "'id'=>\$model->{$pks[0]}";
         }
 
         $params = [];
         foreach ($pks as $pk) {
             if (is_subclass_of($class, 'yii\mongodb\ActiveRecord')) {
-                $params[] = "'$pk' => (string)\$model->$pk";
+                $params[] = "'$pk'=>(string)\$model->$pk";
             } else {
-                $params[] = "'$pk' => \$model->$pk";
+                $params[] = "'$pk'=>\$model->$pk";
             }
         }
 

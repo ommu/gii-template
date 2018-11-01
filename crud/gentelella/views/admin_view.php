@@ -48,10 +48,9 @@ echo "<?php\n";
 
 use Yii;
 use yii\helpers\Url;
+<?php echo $uploadCondition ? "use yii\helpers\Html;\n" : '';?>
 use yii\widgets\DetailView;
-<?php 
-echo $uploadCondition ? "use ".ltrim($generator->modelClass)."\n" : '';
-?>
+<?php echo $uploadCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;

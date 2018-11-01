@@ -89,7 +89,6 @@ namespace <?= StringHelper::dirname(ltrim($generator->controllerClass, '\\')) ?>
 
 use Yii;
 use yii\filters\VerbFilter;
-use yii\web\NotFoundHttpException;
 use <?= ltrim($generator->baseControllerClass, '\\') ?>;
 <?php if($generator->attachRBACFilter): ?>
 use mdm\admin\components\AccessControl;
@@ -376,6 +375,6 @@ if (count($pks) === 1) {
 			return $model;
 		}
 
-		throw new NotFoundHttpException(<?= $generator->generateString('The requested page does not exist.') ?>);
+		throw new \yii\web\NotFoundHttpException(<?= $generator->generateString('The requested page does not exist.') ?>);
 	}
 }
