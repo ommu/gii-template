@@ -103,7 +103,7 @@ use yii\data\ActiveDataProvider;
 class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->baseControllerClass) . "\n" ?>
 {
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function behaviors()
 	{
@@ -370,9 +370,8 @@ if (count($pks) === 1) {
 	$condition = '[' . implode(', ', $condition) . ']';
 }
 ?>
-		if (($model = <?= $modelClass ?>::findOne(<?= $condition ?>)) !== null) {
+		if(($model = <?= $modelClass ?>::findOne(<?= $condition ?>)) !== null)
 			return $model;
-		}
 
 		throw new \yii\web\NotFoundHttpException(<?= $generator->generateString('The requested page does not exist.') ?>);
 	}
