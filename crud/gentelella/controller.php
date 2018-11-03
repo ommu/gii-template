@@ -280,7 +280,6 @@ endforeach;?>
 		if($model->save(false, ['publish'])) {
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
 			return $this->redirect(['index']);
-			//return $this->redirect(['view', <?= $urlParams ?>]);
 		}
 <?php else: ?>
 		$this->findModel(<?= $actionParams ?>)->delete();

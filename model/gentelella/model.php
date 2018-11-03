@@ -515,7 +515,7 @@ foreach ($tableSchema->columns as $column) {
 			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => function($model, $key, $index, $column) {
 <?php if($translateCondition) {?>
-				return isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-';
+				return $model-><?php echo $publicAttribute;?>;
 <?php } else {
 	if($column->type == 'text' && in_array('serialize', $commentArray)) {?>
 				return serialize($model-><?php echo $publicAttribute;?>);
@@ -656,17 +656,10 @@ if($publishCondition) {?>
 <?php }?>
 		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : 't.'.$attributeName;?> ASC')->all();
 
-		if($array == true) {
-			$items = [];
-			if($model !== null) {
-				foreach($model as $val) {
-					$items[$val-><?php echo $primaryKey;?>] = $val-><?php echo $i18nRelation ? $i18nRelation.'->message' : $attributeName;?>;
-				}
-				return $items;
-			} else
-				return false;
-		} else 
-			return $model;
+		if($array == true)
+			return \yii\helpers\ArrayHelper::map($model, '<?php echo $primaryKey;?>', '<?php echo $i18n && preg_match('/(name|title)/', $attributeName) ? $attributeName.'_i' : $attributeName;?>');
+
+		return $model;
 	}
 <?php }
 

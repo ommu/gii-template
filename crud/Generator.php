@@ -421,12 +421,13 @@ class Generator extends \ommu\gii\Generator
 
 		if ($column->phpType !== 'string' || $column->size === null) {
 			if($foreignCondition && $smallintCondition) {
+				$relationName = $this->setRelation($column->name);
 				$relationTableName = trim($foreignKeys[$column->name]);
 				$relationClassName = $this->generateClassName($relationTableName);
 				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
-				return "\$$column->name = $relationClassName::get$functionName();
+				return "\$$relationName = $relationClassName::get$functionName();
 echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->dropDownList(\$$column->name, ['prompt'=>''])
+\t->dropDownList(\$$relationName, ['prompt'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
 			} else {
@@ -480,9 +481,9 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				$relationTableName = trim($foreignKeys[$column->name]);
 				$relationClassName = $this->generateClassName($relationTableName);
 				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
-				return "\$$column->name = $relationClassName::get$functionName();
+				return "\$$relationName = $relationClassName::get$functionName();
 		echo \$form->field(\$model, '$attribute')
-			->dropDownList(\$$column->name, ['prompt'=>''])";
+			->dropDownList(\$$relationName, ['prompt'=>''])";
 			}
 			return "echo \$form->field(\$model, '$attribute')";
 
@@ -660,7 +661,8 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         $arrayHasColumn = [];
 		$arrayLikeColumn = [];
         foreach ($columns as $column => $type) {
-			$commentArray = explode(',', $tableSchema->columns[$column]->comment);
+			$col = $tableSchema->columns[$column];
+			$commentArray = explode(',', $col->comment);
             switch ($type) {
                 case Schema::TYPE_SMALLINT:
                 case Schema::TYPE_INTEGER:
@@ -674,7 +676,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                 case Schema::TYPE_TIME:
                 case Schema::TYPE_DATETIME:
                 case Schema::TYPE_TIMESTAMP:
-                    if((!empty($foreignKeys) && array_key_exists($column, $foreignKeys)) || in_array('user', $commentArray) || in_array($column, array('creation_id','modified_id','user_id','updated_id','tag_id','member_id'))) {
+                    if(!$col->isPrimaryKey && ((!empty($foreignKeys) && array_key_exists($column, $foreignKeys)) || in_array('user', $commentArray) || in_array($column, array('creation_id','modified_id','user_id','updated_id','tag_id','member_id')))) {
                         if(!in_array($column, $arrayHasColumn)) {
                             $arrayHasColumn[] = $column;
                             $relation = $this->setRelation($column);
