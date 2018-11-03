@@ -1189,14 +1189,6 @@ class Generator extends \ommu\gii\Generator
 		return key($tableSchema->columns);
 	}
 
-	public function getMysqlViewColumn($viewTableName)
-	{
-		$db = $this->getDbConnection();
-		$tableSchema = $db->getTableSchema($viewTableName);
-
-		return key($tableSchema->columns);
-	}
-
 	public function getPrimaryKey($table)
 	{
 		if(!empty($table->primaryKey))

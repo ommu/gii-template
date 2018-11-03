@@ -20,12 +20,6 @@ $searchAttributes = $generator->getSearchAttributes();
 $searchConditions = $generator->generateSearchConditions();
 
 $tableSchema = $generator->tableSchema;
-
-if(!empty($tableSchema->primaryKey))
-	$primaryKey = $tableSchema->primaryKey[0];
-else
-	$primaryKey = key($tableSchema->columns);
-
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -201,7 +195,7 @@ if(!empty($inputSearchVariables)) {
 }?>
 		$dataProvider->setSort([
 			'attributes' => $attributes,
-			'defaultOrder' => ['<?php echo $primaryKey?>' => SORT_DESC],
+			'defaultOrder' => ['<?php echo $generator->getPrimaryKey($tableSchema);?>' => SORT_DESC],
 		]);
 
 		$this->load($params);

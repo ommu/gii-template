@@ -291,17 +291,12 @@ class Generator extends \ommu\gii\Generator
 		} else
 			$tableSchema = $this->getTableSchema();
 
-		if(!empty($tableSchema->primaryKey))
-			$primaryKey = $tableSchema->primaryKey['0'];
-		else
-			$primaryKey = key($tableSchema->columns);
-
 		$relationColumn = $this->getNameAttributes($tableSchema, $separator);
 
 		if(!empty($relationColumn))
 			return implode($separator, $relationColumn);
 
-		return $primaryKey;
+		return $this->getPrimaryKey($tableSchema);
     }
 
     /**
@@ -647,12 +642,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                     continue;
                 $columns[$column->name] = $column->type;
             }
-        }
-
-        if(!empty($tableSchema->primaryKey))
-            $primaryKey = $tableSchema->primaryKey[0];
-        else
-            $primaryKey = key($tableSchema->columns);
+		}
 
         $likeConditions = [];
         $hashConditions = [];
@@ -1026,5 +1016,15 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 	public function i18nRelation($column, $relation=true)
 	{
 		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
+	}
+
+	public function getPrimaryKey($table)
+	{
+		if(!empty($table->primaryKey))
+			$primaryKey = $table->primaryKey['0'];
+		else
+			$primaryKey = key($table->columns);
+
+		return $primaryKey;
 	}
 }

@@ -39,7 +39,6 @@ $i18n = 0;
 $dateCondition = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
-$primaryKeyCondition = 0;
 
 $relationArray = [];
 $inputPublicVariables = [];
@@ -247,7 +246,7 @@ if(!empty($searchPublicVariables)) {
 	{
 		return '<?= $generator->generateTableName($tableName) ?>';
 	}
-<?php if($tableType == Generator::TYPE_VIEW || $primaryKeyCondition) {?>
+<?php if($tableType == Generator::TYPE_VIEW) {?>
 
 	/**
 	 * @return string the primarykey column
