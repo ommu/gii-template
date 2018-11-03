@@ -601,6 +601,9 @@ class Generator extends \ommu\gii\Generator
         foreach ($schemaNames as $schemaName) {
             foreach ($db->getSchema()->getTableSchemas($schemaName) as $table) {
                 $className = $this->generateClassName($table->fullName);
+				$publishCondition = 0;
+				if(array_key_exists('publish', $table->columns))
+					$publishCondition = 1;
                 foreach ($table->foreignKeys as $refs) {
                     $refTable = $refs[0];
                     $refTableSchema = $db->getTableSchema($refTable);
@@ -625,8 +628,11 @@ class Generator extends \ommu\gii\Generator
                     $hasMany = $this->isHasManyRelation($table, $fks);
                     $link = $this->generateRelationLink($refs);
                     $relationName = $this->generateRelationName($relations, $refTableSchema, $className, $hasMany);
+					$andOnCondition = '';
+					if($hasMany && $publishCondition)
+						$andOnCondition = "\n\t\t\t->andOnCondition(['publish' => 1])";
                     $relations[$refTableSchema->fullName][$relationName] = [
-                        "return \$this->" . ($hasMany ? 'hasMany' : 'hasOne') . "($className::className(), $link);",
+                        "return \$this->" . ($hasMany ? 'hasMany' : 'hasOne') . "($className::className(), $link)$andOnCondition;",
                         $className,
                         $hasMany,
                     ];

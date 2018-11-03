@@ -400,7 +400,7 @@ if($queryClassName):
 	echo "\n";
 ?>
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 * @return <?= $queryClassFullName ?> the active query used by this AR class.
 	 */
 	public static function find()
