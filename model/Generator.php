@@ -1112,17 +1112,12 @@ class Generator extends \ommu\gii\Generator
 		} else
 			$tableSchema = $db->getTableSchema($tableName);
 
-		if(!empty($tableSchema->primaryKey))
-			$primaryKey = $tableSchema->primaryKey['0'];
-		else
-			$primaryKey = key($tableSchema->columns);
-
 		$relationColumn = $this->getNameAttributes($tableSchema, $separator);
 
 		if(!empty($relationColumn))
 			return implode($separator, $relationColumn);
 
-		return $primaryKey;
+		return $this->getPrimaryKey($tableSchema);
 	}
 
 	public function i18nRelation($column, $relation=true)
@@ -1192,5 +1187,23 @@ class Generator extends \ommu\gii\Generator
 		$tableSchema = $db->getTableSchema($viewTableName);
 
 		return key($tableSchema->columns);
+	}
+
+	public function getMysqlViewColumn($viewTableName)
+	{
+		$db = $this->getDbConnection();
+		$tableSchema = $db->getTableSchema($viewTableName);
+
+		return key($tableSchema->columns);
+	}
+
+	public function getPrimaryKey($table)
+	{
+		if(!empty($table->primaryKey))
+			$primaryKey = $table->primaryKey['0'];
+		else
+			$primaryKey = key($table->columns);
+
+		return $primaryKey;
 	}
 }

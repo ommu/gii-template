@@ -48,14 +48,8 @@ $arrayAttributeName = [];
 
 if($tableType == Generator::TYPE_VIEW)
 	$primaryKey = $viewPrimaryKey;
-else {
-	if(!empty($tableSchema->primaryKey))
-		$primaryKey = $tableSchema->primaryKey['0'];
-	else {
-		$primaryKeyCondition = 1;
-		$primaryKey = key($tableSchema->columns);
-	}
-}
+else
+	$primaryKey = $generator->getPrimaryKey($tableSchema);
 
 $primaryKeyColumn = $tableSchema->columns[$primaryKey];
 if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)'))
