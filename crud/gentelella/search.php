@@ -97,9 +97,10 @@ foreach ($tableSchema->columns as $column) {
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
 		$relationName = $generator->setRelation($column->name);
+		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		$inputRuleVariable = $relationName.'_search';
 		$relationTableName = trim($foreignKeys[$column->name]);
-		$arrayRelations[$relationName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTableName,'.'));
+		$arrayRelations[$relationFixedName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTableName,'.'));
 		if(!$smallintCondition && !in_array($inputRuleVariable, $inputRuleVariables)) {
 			$inputRuleVariables[] = $inputRuleVariable;
 		}
@@ -118,13 +119,14 @@ foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id'])) {
 		$relationName = $generator->setRelation($column->name);
+		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		$inputRuleVariable = $relationName.'_search';
-		$arrayRelations[$relationName] = $relationName;
+		$arrayRelations[$relationFixedName] = $relationFixedName;
 		if(!in_array($inputRuleVariable, $inputRuleVariables)) {
 			$inputRuleVariables[] = $inputRuleVariable;
 		}
 		if(!in_array($inputRuleVariable, $inputSearchVariables)) {
-			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'displayname']);
+			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationFixedName, 'displayname']);
 		}
 	}
 }

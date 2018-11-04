@@ -556,10 +556,20 @@ foreach ($tableSchema->columns as $column) {
 			$comment = 'Headline,Unheadline';?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
+<?php if($comment != '' && $comment[0] == '"') {
+	$functionName = ucfirst($generator->setRelation($column->name));?>
+			'filter' => self::get<?php echo $functionName;?>(),
+<?php } else {?>
 			'filter' => $this->filterYesNo(),
+<?php }?>
 			'value' => function($model, $key, $index, $column) {
+<?php if($comment != '' && $comment[0] == '"') {
+	$functionName = ucfirst($generator->setRelation($column->name));?>
+				return self::get<?php echo $functionName;?>($model-><?php echo $column->name;?>);
+<?php } else {?>
 				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
 				return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $comment;?>'<?php echo $column->name == 'headline' ? ', true' : '';?>);
+<?php }?>
 			},
 			'contentOptions' => ['class'=>'center'],
 			'format' => 'raw',
@@ -655,6 +665,35 @@ if($publishCondition) {?>
 		return $model;
 	}
 <?php }
+
+$columnCommentArray = array();
+foreach ($tableSchema->columns as $column) {
+	if($column->dbType == 'tinyint(1)' && $column->comment != '' && $column->comment[0] == '"')
+		$columnCommentArray[$column->name] = trim($column->comment, '"');
+}
+if($tableType != Generator::TYPE_VIEW && !empty($columnCommentArray)) {
+	foreach($columnCommentArray as $key=>$val) {
+		$functionName = ucfirst($generator->setRelation($key));
+		$itemArray = $generator->comment2Array($val);?>
+
+	/**
+	 * function get<?php echo $functionName."\n"; ?>
+	 */
+	public static function get<?php echo $functionName; ?>($value=null)
+	{
+		$items = array(
+<?php foreach($itemArray as $key=>$val) {?>
+			'<?php echo $key;?>'=><?php echo $generator->generateString(ucfirst(strtolower($val)));?>,
+<?php }?>
+		);
+
+		if($value !== null)
+			return $items[$value];
+		else
+			return $items;
+	}
+<?php }
+}
 
 if($uploadCondition) {
 	$directoryPath = $generator->uploadPath['directory'];

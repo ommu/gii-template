@@ -388,7 +388,6 @@ class Generator extends \ommu\gii\Generator
                     }
             }
 
-			$commentArray = explode(',', $column->comment);
 			if(in_array('trigger[delete]', $commentArray)) {
 				$columnName = $column->name.'_i';
 				if(!empty($types['required']))
@@ -601,8 +600,9 @@ class Generator extends \ommu\gii\Generator
         foreach ($schemaNames as $schemaName) {
             foreach ($db->getSchema()->getTableSchemas($schemaName) as $table) {
                 $className = $this->generateClassName($table->fullName);
+				$primaryKey = $this->getPrimaryKey($table);
 				$publishCondition = 0;
-				if(array_key_exists('publish', $table->columns))
+				if(array_key_exists('publish', $table->columns) && $table->columns[$primaryKey]->comment != 'trigger')
 					$publishCondition = 1;
                 foreach ($table->foreignKeys as $refs) {
                     $refTable = $refs[0];
@@ -1197,5 +1197,17 @@ class Generator extends \ommu\gii\Generator
 			$primaryKey = key($table->columns);
 
 		return $primaryKey;
+	}
+
+	public function comment2Array($data, $separator=',') 
+	{
+		$array1 = array_map('trim', explode($separator, $data));
+		$array2 = array();
+		foreach($array1 as $val) {
+			$array_map = array_map('trim', explode('=', $val));
+			$array2[$array_map[0]] = $array_map[1];
+		}
+
+		return $array2; 
 	}
 }

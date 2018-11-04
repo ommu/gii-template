@@ -86,7 +86,7 @@ if (($tableSchema = $tableSchema) === false) {
 
 		$commentArray = explode(',', $column->comment);
 
-if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
+if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncrement || !$column->isPrimaryKey) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']))) {
 	$smallintCondition = 0;
 	$foreignCondition = 0;
 	if(preg_match('/(smallint)/', $column->type))

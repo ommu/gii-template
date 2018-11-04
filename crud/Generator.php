@@ -319,6 +319,7 @@ class Generator extends \ommu\gii\Generator
         }
         $column = $tableSchema->columns[$attribute];
 		$commentArray = explode(',', $column->comment);
+		$modelClass = StringHelper::basename($this->modelClass);
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
 		$i18n = 0;
 		$foreignCondition = 0;
@@ -334,9 +335,18 @@ class Generator extends \ommu\gii\Generator
 		}
 
 		if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {	// 01 //oke
-			return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
+			if($column->comment != '' && $column->comment[0] == '"') {
+				$relationName = $this->setRelation($column->name);
+				$functionName = ucfirst($relationName);
+				return "\$$relationName = $modelClass::get$functionName();
+echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->dropDownList(\$$relationName, ['prompt'=>''])
+\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+			} else {
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
 \t->checkbox(['label'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+			}
 		}
 
 		if ($column->name === 'email') {	// 02 //oke
@@ -361,7 +371,6 @@ class Generator extends \ommu\gii\Generator
 		
 		if ($column->type === 'text' || $i18n) {	// 04
 			if(in_array('file', $commentArray)) {	// 04.1
-				$modelClass = StringHelper::basename($this->modelClass);
 				return "<div class=\"form-group field-$attribute\">
 \t<?php echo \$form->field(\$model, '$attribute', ['template' => '{label}', 'options' => ['tag' => null]])
 \t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
@@ -736,6 +745,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				if(preg_match('/(smallint)/', $column->type))
 					$smallintCondition = 1;
                 $relationName = $this->setRelation($column->name);
+				$relationFixedName = $this->setRelationFixed($relationName, $tableSchema->columns);
                 $publicVariable = $relationName.'_search';
                 $relationTableName = trim($foreignKeys[$column->name]);
                 $relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameAttribute($relationTableName, '.'));
@@ -743,7 +753,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                     $relationAttributeName = 'displayname';
                 if(!$smallintCondition && !in_array($publicVariable, $publicVariables)) {
                     $publicVariables[] = $publicVariable;
-                    $likeConditions[] = "->andFilterWhere(['like', '{$relationName}.{$relationAttributeName}', \$this->{$publicVariable}])";
+                    $likeConditions[] = "->andFilterWhere(['like', '{$relationFixedName}.{$relationAttributeName}', \$this->{$publicVariable}])";
                 }
             endif;
         endforeach;
@@ -756,10 +766,11 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			$commentArray = explode(',', $column->comment);
             if(in_array('user', $commentArray) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))):
                 $relationName = $this->setRelation($column->name);
+				$relationFixedName = $this->setRelationFixed($relationName, $tableSchema->columns);
                 $publicVariable = $relationName.'_search';
                 if(!in_array($publicVariable, $publicVariables)) {
                     $publicVariables[] = $publicVariable;
-                    $likeConditions[] = "->andFilterWhere(['like', '{$relationName}.displayname', \$this->{$publicVariable}])";
+                    $likeConditions[] = "->andFilterWhere(['like', '{$relationFixedName}.displayname', \$this->{$publicVariable}])";
                 }
             endif;
         endforeach;
