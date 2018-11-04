@@ -59,7 +59,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	if($column->name == 'publish'):?>
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function published() 
 	{
@@ -67,7 +67,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function unpublish() 
 	{
@@ -76,7 +76,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 <?php elseif($column->name == 'headline'):?>
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function published() 
 	{
@@ -86,7 +86,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 endforeach;?>
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 * @return <?= $modelFullClassName ?>[]|array
 	 */
 	public function all($db = null)
@@ -95,7 +95,7 @@ endforeach;?>
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 * @return <?= $modelFullClassName ?>|array|null
 	 */
 	public function one($db = null)
