@@ -459,6 +459,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         }
 
         $column = $tableSchema->columns[$attribute];
+		$modelClass = StringHelper::basename($this->modelClass);
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
 		$commentArray = explode(',', $column->comment);
 
@@ -502,9 +503,17 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				$attributeName = $column->name.'_i';
 				return "echo \$form->field(\$model, '$attributeName')";
 			} else {
-				if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)')
-					return "echo \$form->field(\$model, '$attribute')\n\t\t\t->dropDownList(\$this->filterYesNo(), ['prompt'=>''])";
-				else
+				if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {
+					if($column->comment != '' && $column->comment[0] == '"') {
+						$relationName = $this->setRelation($column->name);
+						$functionName = ucfirst($relationName);
+						return "\$$relationName = $modelClass::get$functionName();
+			echo \$form->field(\$model, '$attribute')
+			->dropDownList(\$$relationName, ['prompt'=>''])";
+					} else
+						return "echo \$form->field(\$model, '$attribute')
+			->dropDownList(\$this->filterYesNo(), ['prompt'=>''])";
+				} else
 					return "echo \$form->field(\$model, '$attribute')";
 			}
 		}

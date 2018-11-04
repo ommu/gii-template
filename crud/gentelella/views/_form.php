@@ -23,6 +23,7 @@ $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $redactorCondition = 0;
 $uploadCondition = 0;
 $foreignCondition = 0;
+$getFunctionCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('redactor', $commentArray))
@@ -34,6 +35,9 @@ foreach ($tableSchema->columns as $column) {
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
 	}
+	if($column->comment != '' && $column->comment[0] == '"')
+		$getFunctionCondition = 1;
+
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -65,7 +69,7 @@ use yii\helpers\Html;
 <?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
 use yii\widgets\ActiveForm;
 <?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
-<?php echo $uploadCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
+<?php echo $uploadCondition || $getFunctionCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
 foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {
 		$relationTableName = trim($foreignKeys[$column->name]);

@@ -13,6 +13,12 @@ $label = Inflector::camel2words($modelClass);
 $tableSchema = $generator->tableSchema;
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
+$getFunctionCondition = 0;
+foreach ($tableSchema->columns as $column) {
+	if($column->comment != '' && $column->comment[0] == '"')
+		$getFunctionCondition = 1;
+}
+
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
@@ -40,6 +46,7 @@ echo "<?php\n";
 use Yii;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+<?php echo $getFunctionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 <?php foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {
 		$relationTableName = trim($foreignKeys[$column->name]);

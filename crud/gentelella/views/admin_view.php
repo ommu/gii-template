@@ -17,10 +17,13 @@ $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass)));
 
 $uploadCondition = 0;
+$getFunctionCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) 
 		$uploadCondition = 1;
+	if($column->comment != '' && $column->comment[0] == '"')
+		$getFunctionCondition = 1;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -50,7 +53,7 @@ use Yii;
 use yii\helpers\Url;
 <?php echo $uploadCondition ? "use yii\helpers\Html;\n" : '';?>
 use yii\widgets\DetailView;
-<?php echo $uploadCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
+<?php echo $uploadCondition || $getFunctionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;
@@ -121,19 +124,23 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 		[
 			'attribute' => '<?php echo $column->name;?>',
 <?php if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
-	if($column->name == 'publish') {
-if($column->comment == '') {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+	$comment = $column->comment;
+	if($column->name == 'headline' && $comment == '')
+		$comment = 'Headline,Unheadline';
+	if($comment != '') {
+if($comment[0] == '"') {
+	$functionName = ucfirst($generator->setRelation($column->name));?>
+			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),
-<?php 	}
-	} else if($column->name == 'headline') {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, 'Headline,Unheadline', true),
-<?php } else {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $column->comment;?>'),
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
 <?php }?>
-			'format' => 'raw',
 <?php } else {?>
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+<?php }
+if($comment[0] != '"') {?>
+			'format' => 'raw',
+<?php }
+} else {?>
 			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
 <?php }?>
 		],

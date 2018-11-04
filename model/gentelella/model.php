@@ -668,7 +668,7 @@ if($publishCondition) {?>
 
 $columnCommentArray = array();
 foreach ($tableSchema->columns as $column) {
-	if($column->dbType == 'tinyint(1)' && $column->comment != '' && $column->comment[0] == '"')
+	if(($column->dbType == 'tinyint(1)' && $column->name != 'permission') && $column->comment != '' && $column->comment[0] == '"')
 		$columnCommentArray[$column->name] = trim($column->comment, '"');
 }
 if($tableType != Generator::TYPE_VIEW && !empty($columnCommentArray)) {

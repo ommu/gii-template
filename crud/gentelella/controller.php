@@ -327,7 +327,7 @@ foreach ($tableSchema->columns as $column):
 	if(in_array($column->name, ['publish','headline']))
 		continue;
 		
-	if($column->dbType == 'tinyint(1)' && $column->comment != '' && ($column->comment[7] != '[' && $column->comment[0] != '"')):
+	if($column->dbType == 'tinyint(1)' && $column->comment != '' && $column->comment[7] != '[' && $column->comment[0] != '"'):
 		$actionName = Inflector::id2camel($column->name, '_');?>
 
 	/**
