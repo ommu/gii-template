@@ -1099,6 +1099,11 @@ class Generator extends \ommu\gii\Generator
 					return $relationColumn;
 			}
 		}
+
+		$primaryKey = $this->getPrimaryKey($table);
+		$relationColumn[$primaryKey] = $primaryKey;
+		return $relationColumn;
+		
 	}
 
 	public function getNameAttribute($tableName=null, $separator='->')

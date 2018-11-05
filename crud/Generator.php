@@ -280,6 +280,10 @@ class Generator extends \ommu\gii\Generator
 					return $relationColumn;
 			}
 		}
+
+		$primaryKey = $this->getPrimaryKey($table);
+		$relationColumn[$primaryKey] = $primaryKey;
+		return $relationColumn;
 	}
 
 	public function getNameAttribute($tableName=null, $separator='->')
@@ -343,9 +347,19 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 \t->dropDownList(\$$relationName, ['prompt'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			} else {
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
+				if($attribute == 'permission') {
+					$relationName = $this->setRelation($column->name);
+					$functionName = ucfirst($relationName);
+					$label = $this->generateString('Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');
+					return "\$$relationName = $modelClass::get$functionName();
+echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><span class=\"small-px mb-10\">'.$label.'</span>{input}{error}</div>'])
+\t->radioList(\$$relationName, ['class'=>'desc mt-10', 'separator' => '<br />'])
+\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+				} else {
+					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
 \t->checkbox(['label'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+				}
 			}
 		}
 
@@ -439,6 +453,16 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 \t->$input(['type'=>'number', 'min'=>'1'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 			}
+		}
+
+		if($attribute == 'license') {
+			$label = $this->generateString('Enter the your license key that is provided to you when you purchased this plugin. If you do not know your license key, please contact support team.');
+			$label2 = $this->generateString('Format: XXXX-XXXX-XXXX-XXXX');
+			return "if(\$model->isNewRecord && !\$model->getErrors())
+	\$model->$attribute = \$this->licenseCode();
+echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><span class=\"small-px mb-10\">'.$label.'</span>{input}{error}<span class=\"small-px\">'.$label2.'</span></div>'])
+\t->$input(['maxlength'=>true])
+\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 		}
 
 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])

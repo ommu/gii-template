@@ -668,13 +668,12 @@ if($publishCondition) {?>
 
 $columnCommentArray = array();
 foreach ($tableSchema->columns as $column) {
-	if(($column->dbType == 'tinyint(1)' && $column->name != 'permission') && $column->comment != '' && $column->comment[0] == '"')
+	if($column->dbType == 'tinyint(1)' && ($column->name == 'permission' || ($column->comment != '' && $column->comment[0] == '"')))
 		$columnCommentArray[$column->name] = trim($column->comment, '"');
 }
 if($tableType != Generator::TYPE_VIEW && !empty($columnCommentArray)) {
 	foreach($columnCommentArray as $key=>$val) {
-		$functionName = ucfirst($generator->setRelation($key));
-		$itemArray = $generator->comment2Array($val);?>
+		$functionName = ucfirst($generator->setRelation($key));?>
 
 	/**
 	 * function get<?php echo $functionName."\n"; ?>
@@ -682,9 +681,15 @@ if($tableType != Generator::TYPE_VIEW && !empty($columnCommentArray)) {
 	public static function get<?php echo $functionName; ?>($value=null)
 	{
 		$items = array(
-<?php foreach($itemArray as $key=>$val) {?>
+<?php if($key == 'permission') {?>
+			1 => Yii::t('app', 'Yes, the public can view "module name" unless they are made private.'),
+			0 => Yii::t('app', 'No, the public cannot view "module name".'),
+<?php } else {
+	$itemArray = $generator->comment2Array($val);
+	foreach($itemArray as $key=>$val) {?>
 			'<?php echo $key;?>'=><?php echo $generator->generateString(ucfirst(strtolower($val)));?>,
-<?php }?>
+<?php }
+}?>
 		);
 
 		if($value !== null)
