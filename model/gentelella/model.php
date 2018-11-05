@@ -512,7 +512,10 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {
 	if($column->type == 'text' && in_array('serialize', $commentArray)) {?>
 				return serialize($model-><?php echo $publicAttribute;?>);
-	<?php } else {?>
+<?php } else if($column->name == 'permission') {
+		$functionName = ucfirst($generator->setRelation($column->name));?>
+				return self::get<?php echo $functionName;?>($model-><?php echo $publicAttribute;?>);
+<?php } else {?>
 				return $model-><?php echo $publicAttribute;?>;
 <?php }
 }?>

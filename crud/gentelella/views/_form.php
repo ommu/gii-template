@@ -40,7 +40,6 @@ foreach ($tableSchema->columns as $column) {
 		$getFunctionCondition = 1;
 	if($column->name == 'permission')
 		$permissionCondition = 1;
-
 }
 
 $yaml = $generator->loadYaml('author.yaml');

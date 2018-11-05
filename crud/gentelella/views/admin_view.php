@@ -18,12 +18,15 @@ $functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass
 
 $uploadCondition = 0;
 $getFunctionCondition = 0;
+$permissionCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) 
 		$uploadCondition = 1;
 	if($column->comment != '' && $column->comment[0] == '"')
 		$getFunctionCondition = 1;
+	if($column->name == 'permission')
+		$permissionCondition = 1;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -53,7 +56,7 @@ use Yii;
 use yii\helpers\Url;
 <?php echo $uploadCondition ? "use yii\helpers\Html;\n" : '';?>
 use yii\widgets\DetailView;
-<?php echo $uploadCondition || $getFunctionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
+<?php echo $uploadCondition || $getFunctionCondition || $permissionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;
@@ -140,7 +143,10 @@ if($comment[0] == '"') {
 if($comment[0] != '"') {?>
 			'format' => 'raw',
 <?php }
-} else {?>
+} else if($column->name == 'permission') {
+	$functionName = ucfirst($generator->setRelation($column->name));?>
+			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+<?php } else {?>
 			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
 <?php }?>
 		],
