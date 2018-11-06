@@ -169,11 +169,10 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 		],
 <?php } else {
 	if(in_array('trigger[delete]', $commentArray)) {
-		$publicAttribute = $column->name.'_i';
-		$publicAttributeRelation = preg_match('/(name|title)/', $column->name) ? 'title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? 'description' : $column->name.'Rltn') : $column->name.'Rltn');?>
+		$publicAttribute = $column->name.'_i';?>
 		[
 			'attribute' => '<?php echo $publicAttribute;?>',
-			'value' => isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '-',
+			'value' => $model-><?php echo $publicAttribute;?>,
 <?php if(in_array('redactor', $commentArray)):?>
 			'format' => 'html',
 <?php endif;?>
