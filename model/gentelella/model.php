@@ -236,7 +236,7 @@ if(!empty($inputPublicVariables)) {
 	}
 }
 if(!empty($searchPublicVariables)) {
-	echo "\n\t// Variable Search\n"; 
+	echo "\n\t// Search Variable\n"; 
 	foreach ($searchPublicVariables as $key=>$val) {
 		echo "\tpublic $$key;\n";
 	}
