@@ -29,6 +29,7 @@ $patternClass[1] = '(Swt)';
  */
 $tinyCondition = 0;
 $publishCondition = 0;
+$permissionCondition = 0;
 $slugCondition = 0;
 $tagCondition = 0;
 $memberCondition = 0;
@@ -49,10 +50,6 @@ if($tableType == Generator::TYPE_VIEW)
 	$primaryKey = $viewPrimaryKey;
 else
 	$primaryKey = $generator->getPrimaryKey($tableSchema);
-
-$primaryKeyColumn = $tableSchema->columns[$primaryKey];
-if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)'))
-	$useGetFunctionCondition = 1;
 
 /**
  * foreignKeys Column
@@ -113,6 +110,8 @@ foreach ($tableSchema->columns as $column) {
 		$tinyCondition = 1;
 		if(in_array($column->name, ['publish','headline']))
 			$publishCondition = 1;
+		if($column->name == 'permission')
+			$permissionCondition = 1;
 	} elseif($column->name == 'slug') 
 		$slugCondition = 1;
 	elseif(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
@@ -151,6 +150,10 @@ foreach ($tableSchema->columns as $column) {
 		}
 	}
 }
+
+$primaryKeyColumn = $tableSchema->columns[$primaryKey];
+if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)' && !$permissionCondition))
+	$useGetFunctionCondition = 1;
 }?>
  *
  */
@@ -416,6 +419,7 @@ if($queryClassName):
 		];
 <?php 
 $publicAttributes = [];
+$enumArray = [];
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
@@ -492,6 +496,24 @@ foreach ($tableSchema->columns as $column) {
 				return $model-><?php echo $publicAttribute;?> ? Html::img(join('/', [$uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
 			},
 			'format' => 'html',
+		];
+<?php 	}
+	} else if(is_array($column->enumValues)) {
+		$publicAttribute = $column->name;
+		if(!in_array($publicAttribute, $publicAttributes)) {
+			$publicAttributes[] = $publicAttribute;
+			if(!in_array($column->dbType, $enumArray)) {
+				$enumArray[$column->name] = $column->dbType;
+				$functionName = ucfirst($generator->setRelation($column->name));
+			} else {
+				$enumKey = array_flip($enumArray)[$column->dbType];
+				$functionName = ucfirst($generator->setRelation($enumKey));
+			}?>
+		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
+			'attribute' => '<?php echo $publicAttribute;?>',
+			'value' => function($model, $key, $index, $column) {
+				return self::get<?php echo $functionName;?>($model-><?php echo $publicAttribute;?>);
+			},
 		];
 <?php 	}
 	} else {
@@ -669,14 +691,11 @@ if($publishCondition) {?>
 	}
 <?php }
 
-$columnCommentArray = array();
 foreach ($tableSchema->columns as $column) {
-	if($column->dbType == 'tinyint(1)' && ($column->name == 'permission' || ($column->comment != '' && $column->comment[0] == '"')))
-		$columnCommentArray[$column->name] = trim($column->comment, '"');
-}
-if($tableType != Generator::TYPE_VIEW && !empty($columnCommentArray)) {
-	foreach($columnCommentArray as $key=>$val) {
-		$functionName = ucfirst($generator->setRelation($key));?>
+	if(!($column->dbType == 'tinyint(1)' && $column->name == 'permission'))
+		continue;
+
+	$functionName = ucfirst($generator->setRelation($column->name));?>
 
 	/**
 	 * function get<?php echo $functionName."\n"; ?>
@@ -684,13 +703,41 @@ if($tableType != Generator::TYPE_VIEW && !empty($columnCommentArray)) {
 	public static function get<?php echo $functionName; ?>($value=null)
 	{
 		$items = array(
-<?php if($key == 'permission') {?>
 			1 => Yii::t('app', 'Yes, the public can view "module name" unless they are made private.'),
 			0 => Yii::t('app', 'No, the public cannot view "module name".'),
-<?php } else {
-	$itemArray = $generator->comment2Array($val);
-	foreach($itemArray as $key=>$val) {?>
-			'<?php echo $key;?>'=><?php echo $generator->generateString(ucfirst(strtolower($val)));?>,
+		);
+
+		if($value !== null)
+			return $items[$value];
+		else
+			return $items;
+	}
+<?php }
+
+$enumArray = [];
+foreach ($tableSchema->columns as $column) {
+	if((is_array($column->enumValues) && !in_array($column->dbType, $enumArray)) || ($column->dbType == 'tinyint(1)' && $column->comment != '' && $column->comment[0] == '"')) {
+		$functionName = ucfirst($generator->setRelation($column->name));
+		if(is_array($column->enumValues))
+			$enumArray[$column->name] = $column->dbType;?>
+
+	/**
+	 * function get<?php echo $functionName."\n"; ?>
+	 */
+	public static function get<?php echo $functionName; ?>($value=null)
+	{
+		$items = array(
+<?php $comment = trim($column->comment, '"');
+if($comment != '')
+	$dropDownOptions = $generator->comment2Array($comment);
+
+if(is_array($column->enumValues)) {
+	foreach($column->enumValues as $enumValue) {?>
+			'<?php echo $enumValue;?>' => <?php echo $generator->generateString(ucfirst(strtolower($comment != '' ? $dropDownOptions[$enumValue] : $enumValue)));?>,
+<?php }
+} else {
+	foreach($dropDownOptions as $key=>$val) {?>
+			'<?php echo $key;?>' => <?php echo $generator->generateString(ucfirst(strtolower($val)));?>,
 <?php }
 }?>
 		);

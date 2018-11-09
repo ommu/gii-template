@@ -28,6 +28,7 @@ foreach ($tableSchema->columns as $column) {
 	if($column->name == 'permission')
 		$permissionCondition = 1;
 }
+$dropDownOptions = $generator->dropDownOptions($tableSchema);
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -149,6 +150,13 @@ if($comment[0] != '"') {?>
 <?php } else {?>
 			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
 <?php }?>
+		],
+<?php } else if (is_array($column->enumValues) && count($column->enumValues) > 0) {
+			$dropDownOptionKey = $dropDownOptions[$column->dbType];
+			$functionName = ucfirst($generator->setRelation($dropDownOptionKey));?>
+		[
+			'attribute' => '<?php echo $column->name;?>',
+			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 		],
 <?php } else if($column->type == 'text') {?>
 		[

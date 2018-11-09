@@ -337,29 +337,30 @@ class Generator extends \ommu\gii\Generator
 			if(preg_match('/(smallint)/', $column->type))
 				$smallintCondition = 1;
 		}
+		$dropDownOptions = $this->dropDownOptions($tableSchema);
 
 		if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {	// 01 //oke
-			if($column->comment != '' && $column->comment[0] == '"') {
+			if($attribute == 'permission') {
+				$relationName = $this->setRelation($column->name);
+				$functionName = ucfirst($relationName);
+				$label = $this->generateString('Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');
+				return "\$$relationName = $modelClass::get$functionName();
+echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><span class=\"small-px mb-10\">'.$label.'</span>{input}{error}</div>'])
+\t->radioList(\$$relationName, ['class'=>'desc mt-10', 'separator' => '<br />'])
+\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+
+			} elseif($column->comment != '' && $column->comment[0] == '"') {
 				$relationName = $this->setRelation($column->name);
 				$functionName = ucfirst($relationName);
 				return "\$$relationName = $modelClass::get$functionName();
 echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->dropDownList(\$$relationName, ['prompt'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+
 			} else {
-				if($attribute == 'permission') {
-					$relationName = $this->setRelation($column->name);
-					$functionName = ucfirst($relationName);
-					$label = $this->generateString('Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');
-					return "\$$relationName = $modelClass::get$functionName();
-echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><span class=\"small-px mb-10\">'.$label.'</span>{input}{error}</div>'])
-\t->radioList(\$$relationName, ['class'=>'desc mt-10', 'separator' => '<br />'])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-				} else {
-					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
 \t->checkbox(['label'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-				}
 			}
 		}
 
@@ -421,21 +422,21 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				}
 			}
 		}
+			
+		if (is_array($column->enumValues) && count($column->enumValues) > 0) {
+			$dropDownOptionKey = $dropDownOptions[$column->dbType];
+			$relationName = $this->setRelation($column->name);
+			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
+			return "\$$relationName = $modelClass::get$functionName();
+echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+\t->dropDownList(\$$relationName, ['prompt' => ''])
+\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+		}
 
 		if (preg_match('/^(password|pass|passwd|passcode)$/i', $column->name))
 			$input = 'passwordInput';
 		else
 			$input = 'textInput';
-			
-		if (is_array($column->enumValues) && count($column->enumValues) > 0) {
-			$dropDownOptions = [];
-			foreach ($column->enumValues as $enumValue) {
-				$dropDownOptions[$enumValue] = Inflector::humanize($enumValue);
-			}
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->dropDownList(". preg_replace("/\n\s*/", ' ', VarDumper::export($dropDownOptions)).", ['prompt' => ''])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-		}
 
 		if ($column->phpType !== 'string' || $column->size === null) {
 			if($foreignCondition && $smallintCondition) {
@@ -499,6 +500,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			if(preg_match('/(smallint)/', $column->type))
 				$smallintCondition = 1;
 		}
+		$dropDownOptions = $this->dropDownOptions($tableSchema);
 
 		if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 			$relationName = $this->setRelation($column->name);
@@ -522,13 +524,21 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			else
 				return "echo \$form->field(\$model, '$attribute')\n\t\t\t->input('date')";
 
+		} elseif (is_array($column->enumValues) && count($column->enumValues) > 0) {
+			$dropDownOptionKey = $dropDownOptions[$column->dbType];
+			$relationName = $this->setRelation($column->name);
+			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
+			return "\$$relationName = $modelClass::get$functionName();
+			echo \$form->field(\$model, '$attribute')
+			->dropDownList(\$$relationName, ['prompt'=>''])";
+
 		} else {
 			if($i18n) {
 				$attributeName = $column->name.'_i';
 				return "echo \$form->field(\$model, '$attributeName')";
 			} else {
 				if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {
-					if($column->comment != '' && $column->comment[0] == '"') {
+					if($attribute == 'permission' || ($column->comment != '' && $column->comment[0] == '"')) {
 						$relationName = $this->setRelation($column->name);
 						$functionName = ucfirst($relationName);
 						return "\$$relationName = $modelClass::get$functionName();
@@ -714,13 +724,12 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                             $relation = $this->setRelation($column);
                             $hashConditions[] = "'t.{$column}' => isset(\$params['$relation']) ? \$params['$relation'] : \$this->{$column},";
                         }
-
-                    } if(in_array($type, array('timestamp','datetime','date'))) {
+					}
+					if(in_array($type, array('timestamp','datetime','date'))) {
                         if(!in_array($column, $arrayHasColumn)) {
                             $arrayHasColumn[] = $column;
                             $hashConditions[] = "'cast(t.{$column} as date)' => \$this->{$column},";
                         }
-
                     } else {
                         if(!in_array($column, $arrayHasColumn)) {
                             $arrayHasColumn[] = $column;
@@ -736,6 +745,9 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
                                 $hashConditions[] = "'t.{$column}' => \$this->{$column},";
                             }
                         }
+					} else if(is_array($col->enumValues)) {
+						$arrayHasColumn[] = $column;
+						$hashConditions[] = "'t.{$column}' => \$this->{$column},";
                     } else
                         if(!in_array($column, $arrayLikeColumn)) {
                             $arrayLikeColumn[] = $column;
@@ -1070,5 +1082,16 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			$primaryKey = key($table->columns);
 
 		return $primaryKey;
+	}
+
+	public function dropDownOptions($table)
+	{
+		$dropDownOptions = [];
+		foreach ($table->columns as $column) {
+			if(is_array($column->enumValues) && !in_array($column->dbType, $dropDownOptions))
+				$dropDownOptions[$column->name] = $column->dbType;
+		}
+
+		return array_flip($dropDownOptions);
 	}
 }
