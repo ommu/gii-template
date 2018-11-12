@@ -23,7 +23,6 @@ echo "<?php\n";
  *
  */
 
-use Yii;
 use yii\helpers\Html;
 <?= "?>\n" ?>
 
