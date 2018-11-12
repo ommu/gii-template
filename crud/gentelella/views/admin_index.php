@@ -39,7 +39,6 @@ echo "<?php\n";
  *
  */
 
-use Yii;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use <?= ($generator->indexWidgetType === 'grid' ? "app\\libraries\\grid\\GridView" : "yii\\widgets\\ListView"); ?>;

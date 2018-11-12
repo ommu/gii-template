@@ -66,7 +66,6 @@ echo "<?php\n";
  *
  */
 
-use Yii;
 use yii\helpers\Html;
 <?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
 use yii\widgets\ActiveForm;

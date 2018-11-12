@@ -36,7 +36,6 @@ echo "<?php\n";
  *
  */
 
-use Yii;
 use yii\helpers\Url;
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];

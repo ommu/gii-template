@@ -53,7 +53,6 @@ echo "<?php\n";
  *
  */
 
-use Yii;
 use yii\helpers\Url;
 <?php echo $uploadCondition ? "use yii\helpers\Html;\n" : '';?>
 use yii\widgets\DetailView;

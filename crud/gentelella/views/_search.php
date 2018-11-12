@@ -43,7 +43,6 @@ echo "<?php\n";
  *
  */
 
-use Yii;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 <?php echo $getFunctionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
