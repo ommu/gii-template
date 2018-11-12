@@ -132,7 +132,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 	if($column->name == 'headline' && $comment == '')
 		$comment = 'Headline,Unheadline';
 	if($comment != '') {
-if($comment[0] == '"') {
+if($comment != '' && $comment[0] == '"') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
 			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
@@ -141,7 +141,7 @@ if($comment[0] == '"') {
 <?php } else {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
 <?php }
-if($comment[0] != '"') {?>
+if($comment != '' && $comment[0] != '"') {?>
 			'format' => 'raw',
 <?php }
 } else if($column->name == 'permission') {

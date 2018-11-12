@@ -59,7 +59,6 @@ $this->params['menu']['option'] = [
 ?>
 
 <div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-index">
-
 <?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n" : ''; ?>
 
 <?php if(!empty($generator->searchModelClass)): ?>
