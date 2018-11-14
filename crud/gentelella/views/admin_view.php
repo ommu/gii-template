@@ -154,7 +154,7 @@ if($comment != '' && $comment[0] == '"') {
 <?php } else {?>
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
 <?php }
-if($comment != '' && $comment[0] != '"') {?>
+if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 			'format' => 'raw',
 <?php }
 } else if($column->name == 'permission') {
