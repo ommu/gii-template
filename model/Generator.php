@@ -411,12 +411,10 @@ class Generator extends \ommu\gii\Generator
 					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['safe'][]=$column->name;
 			}
-			/*
 			if($column->comment == 'trigger') {
 				if(!empty($types['safe']))
 					$types['safe'] = array_diff($types['safe'], array($column->name));
 			}
-			*/
         }
 		foreach($table->columns as $column)
 		{
@@ -442,6 +440,11 @@ class Generator extends \ommu\gii\Generator
 					$rules[] = "//[['" . implode("', '", $types[$rule]) . "'], '$rule']";
 				else
 					$rules[] = "[['" . implode("', '", $types[$rule]) . "'], '$rule']";
+			} else {
+				if($this->getTableType($this->tableName) != self::TYPE_VIEW) {
+					if($rule == 'safe')
+						$rules[] = "//[['" . implode("', '", $types[$rule]) . "'], '$rule']";
+				}
 			}
 		}
 		/*
