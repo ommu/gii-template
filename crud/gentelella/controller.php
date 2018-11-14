@@ -25,12 +25,19 @@ $actionParams = $generator->generateActionParams();
 $actionParamComments = $generator->generateActionParamComments();
 
 $tableSchema = $generator->tableSchema;
+$primaryKey = $generator->getPrimaryKey($tableSchema);
 
 $label = ucwords($generator->modelLabel($modelClass));
 $shortLabel = ucwords($generator->shortLabel($modelClass));
 
 $attributeName =  key($generator->getNameAttributes($tableSchema));
 $relationAttributeName = $generator->getNameAttribute();
+
+$primaryKeyTriggerCondition = 0;
+
+$primaryKeyColumn = $tableSchema->columns[$primaryKey];
+if($primaryKeyColumn->comment == 'trigger')
+	$primaryKeyTriggerCondition = 1;
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -49,7 +56,8 @@ echo "<?php\n";
  *	Update
  *	View
  *	Delete
-<?php if(array_key_exists('publish', $tableSchema->columns)): ?>
+<?php if(!$primaryKeyTriggerCondition) {
+if(array_key_exists('publish', $tableSchema->columns)): ?>
  *	RunAction
 <?php endif;
 foreach ($tableSchema->columns as $column): 
@@ -68,7 +76,8 @@ foreach ($tableSchema->columns as $column):
 		$actionName = Inflector::id2camel($column->name, '_');
 		echo " *	$actionName\n";
 	endif;
-endforeach;?>
+endforeach;
+}?>
  *
  *	findModel
  *
@@ -117,7 +126,8 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 				'class' => VerbFilter::className(),
 				'actions' => [
 					'delete' => ['POST'],
-<?php foreach ($tableSchema->columns as $column): 
+<?php if(!$primaryKeyTriggerCondition) {
+foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::camel2id($column->name);
 		echo "\t\t\t\t\t'$actionName' => ['POST'],\n";
@@ -133,7 +143,8 @@ foreach ($tableSchema->columns as $column):
 		$actionName = Inflector::camel2id($column->name);
 		echo "\t\t\t\t\t'$actionName' => ['POST'],\n";
 	endif;
-endforeach;?>
+endforeach;
+}?>
 				],
 			],
 		];
@@ -289,6 +300,7 @@ endforeach;?>
 <?php endif; ?>
 	}
 <?php 
+if(!$primaryKeyTriggerCondition) {
 foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::id2camel($column->name, '_');?>
@@ -348,7 +360,8 @@ foreach ($tableSchema->columns as $column):
 		}
 	}
 <?php endif;
-endforeach;?>
+endforeach;
+}?>
 
 	/**
 	 * Finds the <?= $modelClass ?> model based on its primary key value.

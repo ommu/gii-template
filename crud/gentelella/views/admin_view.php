@@ -13,12 +13,14 @@ $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
 $tableSchema = $generator->getTableSchema();
 
+$primaryKey = $generator->getPrimaryKey($tableSchema);
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass)));
 
 $uploadCondition = 0;
 $getFunctionCondition = 0;
 $permissionCondition = 0;
+$primaryKeyTriggerCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) 
@@ -28,6 +30,10 @@ foreach ($tableSchema->columns as $column) {
 	if($column->name == 'permission')
 		$permissionCondition = 1;
 }
+$primaryKeyColumn = $tableSchema->columns[$primaryKey];
+if($primaryKeyColumn->comment == 'trigger')
+	$primaryKeyTriggerCondition = 1;
+
 $dropDownOptions = $generator->dropDownOptions($tableSchema);
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -126,7 +132,15 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 <?php } else if($column->dbType == 'tinyint(1)') {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-<?php if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
+<?php if($primaryKeyTriggerCondition) {
+if($column->comment != '') {
+	$commentArray = explode(',', $column->comment);?>
+			'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
+<?php } else {?>
+			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
+<?php }
+} else {
+if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
 	$comment = $column->comment;
 	if($column->name == 'headline' && $comment == '')
 		$comment = 'Headline,Unheadline';
@@ -148,7 +162,8 @@ if($comment != '' && $comment[0] != '"') {?>
 			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
 			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
-<?php }?>
+<?php }
+}?>
 		],
 <?php } else if (is_array($column->enumValues) && count($column->enumValues) > 0) {
 			$dropDownOptionKey = $dropDownOptions[$column->dbType];

@@ -40,6 +40,7 @@ $i18n = 0;
 $dateCondition = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
+$primaryKeyTriggerCondition = 0;
 
 $relationArray = [];
 $inputPublicVariables = [];
@@ -86,7 +87,10 @@ foreach ($tableSchema->columns as $column) {
 		continue;
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray) || in_array('user', $commentArray) || (!in_array($primaryKey, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
-		$relationCondition = 1;?>
+		$relationCondition = 1;
+
+	if(in_array($column->dbType, ['timestamp','datetime','date']))
+		$dateCondition = 1;?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php }
 
@@ -134,8 +138,6 @@ foreach ($tableSchema->columns as $column) {
 			$memberCondition = 1;
 		else if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
 			$userCondition = 1;
-	} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
-		$dateCondition = 1;
 	} else {
 		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray))
 			$uploadCondition = 1;
@@ -151,10 +153,15 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 
-$primaryKeyColumn = $tableSchema->columns[$primaryKey];
-if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)' && !$permissionCondition))
-	$useGetFunctionCondition = 1;
-}?>
+if($tableType != Generator::TYPE_VIEW) {
+	$primaryKeyColumn = $tableSchema->columns[$primaryKey];
+	if($primaryKeyColumn->type == 'smallint' || ($primaryKeyColumn->type == 'tinyint' && $primaryKeyColumn->dbType != 'tinyint(1)' && !$permissionCondition))
+		$useGetFunctionCondition = 1;
+	}
+	if($primaryKeyColumn->comment == 'trigger')
+		$primaryKeyTriggerCondition = 1;
+}
+?>
  *
  */
 
@@ -813,7 +820,7 @@ foreach($tableSchema->columns as $column)
 	if(in_array('ip', $nameArray))
 		$bvEvents = 1;
 }
-if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $bvEvents)) {?>
+if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($generator->generateEvents || $bvEvents)) {?>
 
 	/**
 	 * before validate attributes
@@ -878,7 +885,7 @@ echo !$beforeValidate ? "\t\t\t// Create action\n" : '';?>
 
 $avEvents = 0;
 $afterValidate = 0;
-if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $avEvents)): ?>
+if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($generator->generateEvents || $avEvents)): ?>
 
 	/**
 	 * after validate attributes
@@ -902,7 +909,7 @@ foreach($tableSchema->columns as $column) {
 	if((in_array($column->type, ['date','datetime']) && $column->comment != 'trigger'))
 		$bsEvents = 1;
 }
-if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $bsEvents)): ?>
+if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($generator->generateEvents || $bsEvents)): ?>
 
 	/**
 	 * before save attributes
@@ -1021,7 +1028,7 @@ $asEvents = 0;
 $afterSave = 0;
 if($uploadCondition)
 	$asEvents = 1;
-if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $asEvents)) {?>
+if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($generator->generateEvents || $asEvents)) {?>
 
 	/**
 	 * After save attributes
@@ -1061,7 +1068,7 @@ echo !$afterSave ? "\t\t// Create action\n" : '';?>
 
 $bdEvents = 0;
 $beforeDelete = 0;
-if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $bdEvents)): ?>
+if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($generator->generateEvents || $bdEvents)): ?>
 
 	/**
 	 * Before delete attributes
@@ -1080,7 +1087,7 @@ $adEvents = 0;
 $afterDelete = 0;
 if($uploadCondition)
 	$adEvents = 1;
-if($tableType != Generator::TYPE_VIEW && ($generator->generateEvents || $adEvents)) {?>
+if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($generator->generateEvents || $adEvents)) {?>
 
 	/**
 	 * After delete attributes
