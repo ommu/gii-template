@@ -288,7 +288,7 @@ endforeach;
 		$model = $this->findModel(<?= $actionParams ?>);
 		$model->publish = 2;
 
-		if($model->save(false, ['publish'])) {
+		if($model->save(false, ['publish'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
 			return $this->redirect(['index']);
 		}
@@ -323,9 +323,9 @@ foreach ($tableSchema->columns as $column):
 <?php endif;?>
 
 <?php if($column->name == 'headline'):?>
-		if($model->save(false, ['publish', '<?php echo $column->name;?>'])) {
+		if($model->save(false, ['publish','<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 <?php else:?>
-		if($model->save(false, ['<?php echo $column->name;?>'])) {
+		if($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 <?php endif;?>
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
 			return $this->redirect(['index']);
@@ -354,7 +354,7 @@ foreach ($tableSchema->columns as $column):
 		$replace = $model-><?php echo $column->name;?> == 1 ? 0 : 1;
 		$model-><?php echo $column->name;?> = $replace;
 		
-		if($model->save(false, ['<?php echo $column->name;?>'])) {
+		if($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
 			return $this->redirect(['index']);
 		}

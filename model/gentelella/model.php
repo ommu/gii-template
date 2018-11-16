@@ -438,7 +438,7 @@ foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
 		$foreignCondition = 1;
 
-	if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
+	if($tableType != Generator::TYPE_VIEW && ($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']))) {
 		$smallintCondition = 0;
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
