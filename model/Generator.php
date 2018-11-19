@@ -440,11 +440,6 @@ class Generator extends \ommu\gii\Generator
 					$rules[] = "//[['" . implode("', '", $types[$rule]) . "'], '$rule']";
 				else
 					$rules[] = "[['" . implode("', '", $types[$rule]) . "'], '$rule']";
-			} else {
-				if($this->getTableType($this->tableName) != self::TYPE_VIEW) {
-					if($rule == 'safe')
-						$rules[] = "//[['" . implode("', '", $types[$rule]) . "'], '$rule']";
-				}
 			}
 		}
 		/*
