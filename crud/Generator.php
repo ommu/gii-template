@@ -343,7 +343,7 @@ class Generator extends \ommu\gii\Generator
 
 		if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {	// 01 //oke
 			if($attribute == 'permission') {
-				$relationName = $this->setRelation($column->name);
+				$relationName = $this->setRelation($attribute);
 				$functionName = ucfirst($relationName);
 				$label = $this->generateString('Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');
 				return "\$$relationName = $modelClass::get$functionName();
@@ -352,7 +352,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
 			} elseif($column->comment != '' && $column->comment[0] == '"') {
-				$relationName = $this->setRelation($column->name);
+				$relationName = $this->setRelation($attribute);
 				$functionName = ucfirst($relationName);
 				return "\$$relationName = $modelClass::get$functionName();
 echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
@@ -388,32 +388,26 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 		
 		if ($column->type === 'text' || $i18n) {	// 04
 			if(in_array('file', $commentArray)) {	// 04.1
+				$relationName = $this->setRelation($attribute);
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [$modelClass::getUploadPath(false), \$model->$primaryKey])" : "$modelClass::getUploadPath(false)";
-				return "<div class=\"form-group field-$attribute\">
-\t<?php echo \$form->field(\$model, '$attribute', ['template' => '{label}', 'options' => ['tag' => null]])
-\t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
-\t<div class=\"col-md-6 col-sm-9 col-xs-12\">
-\t\t<?php \$uploadPath = $uploadPath;
-\t\techo !\$model->isNewRecord && \$model->old_{$attribute}_i != '' ? Html::img(join('/', [Url::Base(), \$uploadPath, \$model->old_{$attribute}_i]), ['class'=>'mb-15', 'width'=>'100%']) : '';?>
-\t\t<?php echo \$form->field(\$model, '$attribute', ['template' => '{input}{error}'])
-\t\t\t->fileInput()
-\t\t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
-\t</div>\n</div>";
-/*
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "\$uploadPath = $uploadPath;
+\$$relationName = !\$model->isNewRecord && \$model->old_{$attribute}_i != '' ? Html::img(join('/', [Url::Base(), \$uploadPath, \$model->old_{$attribute}_i]), ['class'=>'mb-15', 'width'=>'100%']) : '';
+echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><div>'.\$$relationName.'</div>{input}{error}</div>'])
 \t->fileInput()
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-*/
+
 			} else if(in_array('redactor', $commentArray)) {	// 04.2
 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textarea(['rows'=>2,'rows'=>6])
 \t->widget(Redactor::className(), ['clientOptions' => \$redactorOptions])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+
 			} else if(in_array('text', $commentArray)) {	// 04.3
 				$maxlength = $i18n ? ', \'maxlength\'=>true' : '';
 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textarea(['rows'=>2, 'rows'=>6$maxlength])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+
 			} else {	// 04.4
 				if($i18n) {	// 04.4.1
 					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])

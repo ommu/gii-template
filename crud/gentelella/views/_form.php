@@ -111,13 +111,8 @@ foreach ($tableSchema->columns as $column) {
 	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || $column->comment == 'trigger' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || in_array($column->name, array('creation_id','modified_id','updated_id','slug')))
 		continue;
 
-	if (in_array($column->name, $safeAttributes)) {
-		if($column->comment != 'trigger' && !(in_array($column->name, array('creation_id','modified_id','updated_id','slug'))) && !($column->type == 'text' && in_array('file', $commentArray))) {
-			echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
-		} else if(in_array('file', $commentArray)) {
-			echo $generator->generateActiveField($column->name)."\n\n";
-		}
-	}
+	if (in_array($column->name, $safeAttributes))
+		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 }
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
