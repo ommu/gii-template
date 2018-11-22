@@ -41,7 +41,6 @@ echo "<?php\n";
 
 namespace <?= $generator->getControllerNamespace() ?>;
 
-use Yii;
 use <?= ltrim($generator->baseClass, '\\') ?>;
 <?php if($generator->attachRBACFilter): ?>
 use mdm\admin\components\AccessControl;
@@ -51,7 +50,7 @@ class <?= $controllerClass ?> extends <?= $controller. "\n" ?>
 {
 <?php if($generator->attachRBACFilter): ?>
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function behaviors()
 	{
@@ -61,11 +60,11 @@ class <?= $controllerClass ?> extends <?= $controller. "\n" ?>
 			],
 		];
 	}
-	
+
 <?php endif; ?>
 <?php foreach ($generator->getActionIDs() as $action): ?>
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function action<?= Inflector::id2camel($action) ?>()
 	{
@@ -75,5 +74,13 @@ class <?= $controllerClass ?> extends <?= $controller. "\n" ?>
 		return $this->render('<?= $action ?>');
 	}
 
-<?php endforeach; ?>
+<?php endforeach;
+if($generator->attachRBACFilter): ?>
+	/**
+	 * {@inheritdoc}
+	 */
+	public function allowAction(): array {
+		return [];
+	}
+<?php endif; ?>
 }

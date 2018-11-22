@@ -43,7 +43,7 @@ class Generator extends \ommu\gii\Generator
      */
 	public $actions = 'index';
 	
-	public $attachRBACFilter = false;
+	public $attachRBACFilter = true;
 	public $link='http://opensource.ommu.co';
 	public $useModified = false;
 
@@ -70,18 +70,14 @@ class Generator extends \ommu\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['controllerClass', 'actions', 'baseClass',
-				'link'], 'filter', 'filter' => 'trim'],
-            [['controllerClass', 'baseClass',
-				'link'], 'required'],
+            [['controllerClass', 'actions', 'baseClass', 'link'], 'filter', 'filter' => 'trim'],
+            [['controllerClass', 'baseClass', 'link'], 'required'],
             ['controllerClass', 'match', 'pattern' => '/^[\w\\\\]*Controller$/', 'message' => 'Only word characters and backslashes are allowed, and the class name must end with "Controller".'],
             ['controllerClass', 'validateNewClass'],
             ['baseClass', 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
             ['actions', 'match', 'pattern' => '/^[a-z][a-z0-9\\-,\\s]*$/', 'message' => 'Only a-z, 0-9, dashes (-), spaces and commas are allowed.'],
-			[['viewPath',
-				'attachRBACFilter'], 'safe'],
-            [[
-				'attachRBACFilter', 'useModified'], 'boolean'],
+			[['viewPath', 'attachRBACFilter'], 'safe'],
+            [['attachRBACFilter', 'useModified'], 'boolean'],
         ]);
     }
 
@@ -140,8 +136,9 @@ class Generator extends \ommu\gii\Generator
                 <code>/var/www/basic/controllers/views/order</code>, <code>@app/views/order</code>. If not set, it will default
                 to <code>@app/views/ControllerID</code>',
             'baseClass' => 'This is the class that the new controller class will extend from. Please make sure the class exists and can be autoloaded.',
-			'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: false</code>',
-			'useModified' => 'Use generate-source modified info. <code>default: false</code>',
+            'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: true</code>',
+            'link' => 'This is link (URL Address) your repository.',
+            'useModified' => 'Use source-code modified info in generator. <code>default: false</code>',
         ];
     }
 

@@ -85,7 +85,7 @@ class Generator extends \ommu\gii\Generator
             [['controllerClass', 'searchModelClass'], 'validateNewClass'],
             [['indexWidgetType'], 'in', 'range' => ['grid', 'list']],
             [['modelClass'], 'validateModelClass'],
-            [['enableI18N', 'enablePjax', 'useModified'], 'boolean'],
+            [['enableI18N', 'enablePjax', 'attachRBACFilter', 'useModified'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
             [['viewPath', 'attachRBACFilter', 'uploadPathSubfolder'], 'safe'],
         ]);
