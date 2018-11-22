@@ -39,8 +39,8 @@ class Generator extends \ommu\gii\Generator
     public $baseControllerClass = '\app\components\Controller';
     public $indexWidgetType = 'grid';
     public $searchModelClass = '';
-    public $useJuiDatePicker = false;
-    public $attachRBACFilter = false;
+    public $attachRBACFilter = true;
+	public $uploadPathSubfolder = false;
     public $link='http://opensource.ommu.co';
     public $useModified = false;
     
@@ -87,7 +87,7 @@ class Generator extends \ommu\gii\Generator
             [['modelClass'], 'validateModelClass'],
             [['enableI18N', 'enablePjax', 'useModified'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
-            [['viewPath', 'useJuiDatePicker', 'attachRBACFilter'], 'safe'],
+            [['viewPath', 'attachRBACFilter', 'uploadPathSubfolder'], 'safe'],
         ]);
     }
 
@@ -104,8 +104,8 @@ class Generator extends \ommu\gii\Generator
             'indexWidgetType' => 'Widget Used in Index Page',
             'searchModelClass' => 'Search Model Class',
             'enablePjax' => 'Enable Pjax',
-            'useJuiDatePicker' => 'Use JQuery DatePicker',
             'attachRBACFilter' => 'Attach RBAC filter',
+			'uploadPathSubfolder'=>'Use Subfolder with PrimaryKey',
             'link'=>'Link Repository',
             'useModified'=>'Use Modified Info',
         ]);
@@ -135,9 +135,10 @@ class Generator extends \ommu\gii\Generator
             'enablePjax' => 'This indicates whether the generator should wrap the <code>GridView</code> or <code>ListView</code>
                 widget on the index page with <code>yii\widgets\Pjax</code> widget. Set this to <code>true</code> if you want to get
                 sorting, filtering and pagination without page refreshing.',
-            'useJuiDatePicker' => 'Use JUI DatePicker or use html5 date picker. <code>default: false</code>',
-            'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: false</code>',
-            'useModified' => 'Use generate-source modified info. <code>default: false</code>',
+            'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: true</code>',
+			'uploadPathSubfolder' => '...',
+            'link' => 'This is link (URL Address) your repository.',
+            'useModified' => 'Use source-code modified info in generator. <code>default: false</code>',
         ]);
     }
 
@@ -324,6 +325,7 @@ class Generator extends \ommu\gii\Generator
         $column = $tableSchema->columns[$attribute];
 		$commentArray = explode(',', $column->comment);
 		$modelClass = StringHelper::basename($this->modelClass);
+		$primaryKey = $this->getPrimaryKey($tableSchema);
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
 		$i18n = 0;
 		$foreignCondition = 0;
@@ -373,24 +375,26 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 		if (in_array($column->dbType, array('timestamp','datetime','date'))) {	// 03
 			// Jui datepicker lebih fleksibel terhadap dukungan browser dan dapat diformat tanggalnya
 			// dari pada html5.
-			if($this->useJuiDatePicker) {
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type'=>'date', 'class'=>'form-control']])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-			} else {
+// 			if($this->useJuiDatePicker) {
+// 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+// \t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type'=>'date', 'class'=>'form-control']])
+// \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+// 			} else {
 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
 \t->textInput(['type' => 'date'])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
-			}
+			// }
 		}
 		
 		if ($column->type === 'text' || $i18n) {	// 04
 			if(in_array('file', $commentArray)) {	// 04.1
+				$uploadPath = $this->uploadPathSubfolder ? "join('/', [$modelClass::getUploadPath(false), \$model->$primaryKey])" : "$modelClass::getUploadPath(false)";
 				return "<div class=\"form-group field-$attribute\">
 \t<?php echo \$form->field(\$model, '$attribute', ['template' => '{label}', 'options' => ['tag' => null]])
 \t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
 \t<div class=\"col-md-6 col-sm-9 col-xs-12\">
-\t\t<?php echo !\$model->isNewRecord && \$model->old_{$attribute}_i != '' ? Html::img(join('/', [Url::Base(), $modelClass::getUploadPath(false), \$model->old_{$attribute}_i]), ['class'=>'mb-15', 'width'=>'100%']) : '';?>
+\t\t<?php \$uploadPath = $uploadPath;
+\t\techo !\$model->isNewRecord && \$model->old_{$attribute}_i != '' ? Html::img(join('/', [Url::Base(), \$uploadPath, \$model->old_{$attribute}_i]), ['class'=>'mb-15', 'width'=>'100%']) : '';?>
 \t\t<?php echo \$form->field(\$model, '$attribute', ['template' => '{input}{error}'])
 \t\t\t->fileInput()
 \t\t\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']); ?>
@@ -519,9 +523,9 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			return "echo \$form->field(\$model, '$attribute')";
 
 		} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
-			if($this->useJuiDatePicker)
-				return "echo \$form->field(\$model, '$attribute')\n\t\t\t->widget(\yii\jui\DatePicker::classname(), [\n\t\t\t\t'dateFormat' => Yii::\$app->formatter->dateFormat,\n\t\t\t\t'options' => ['class' => 'form-control']\n\t\t\t])";
-			else
+			// if($this->useJuiDatePicker)
+			// 	return "echo \$form->field(\$model, '$attribute')\n\t\t\t->widget(\yii\jui\DatePicker::classname(), [\n\t\t\t\t'dateFormat' => Yii::\$app->formatter->dateFormat,\n\t\t\t\t'options' => ['class' => 'form-control']\n\t\t\t])";
+			// else
 				return "echo \$form->field(\$model, '$attribute')\n\t\t\t->input('date')";
 
 		} elseif (is_array($column->enumValues) && count($column->enumValues) > 0) {

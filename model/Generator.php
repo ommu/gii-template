@@ -117,7 +117,7 @@ class Generator extends \ommu\gii\Generator
             'useSchemaName' => 'Use Schema Name',
 			'generateEvents' => 'Generate Events',
             'generateMessage' => 'Generate Message',
-			'uploadPath[directory]'=>'Upload Path (path location)',
+			'uploadPath[directory]'=>'Upload Path (Directories)',
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
 			'useGetFunction'=>'Use Get Function',
 			'link'=>'Link Repository',
@@ -164,8 +164,11 @@ class Generator extends \ommu\gii\Generator
             'queryBaseClass' => 'This is the base class of the new ActiveQuery class. It should be a fully qualified namespaced class name.',
 			'generateEvents' => 'Should we generate event afterSave, before/afterDelete, afterValidate etc. <code>default: false</code>',
             'generateMessage' => 'Should we generate messages for multi language support. <code>default: true</code>',
+			'uploadPath[directory]' => '...',
+			'uploadPath[subfolder]' => '...',
 			'useGetFunction' => 'Use simple GET function in models. <code>default: false</code>',
-			'useModified' => 'Use generate-source modified info. <code>default: false</code>',
+            'link' => 'This is link (URL Address) your repository.',
+            'useModified' => 'Use source-code modified info in generator. <code>default: false</code>',
         ]);
     }
 

@@ -501,7 +501,7 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {?>
 				$uploadPath = self::getUploadPath(false);
 <?php }?>
-				return $model-><?php echo $publicAttribute;?> ? Html::img(join('/', [$uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
+				return $model-><?php echo $publicAttribute;?> ? Html::img(join('/', [Url::Base(), $uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
 			},
 			'format' => 'html',
 		];

@@ -177,8 +177,12 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 			'attribute' => '<?php echo $column->name;?>',
 <?php if(in_array('file', $commentArray)):?>
 			'value' => function ($model) {
-				$image = join('/', [Url::Base(), <?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $column->name;?>]);
-				return $model-><?php echo $column->name;?> ? Html::img($image, ['width' => '100%']).'<br/><br/>'.$image : '-';
+<?php if($generator->uploadPathSubfolder) {?>
+				$uploadPath = join('/', [<?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
+<?php } else {?>
+				$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
+<?php }?>
+				return $model-><?php echo $column->name;?> ? Html::img(join('/', [Url::Base(), $uploadPath, $model-><?php echo $column->name;?>]), ['width' => '100%']).'<br/><br/>'.$model-><?php echo $column->name;?> : '-';
 			},
 <?php elseif(in_array('serialize', $commentArray)):?>
 			'value' => serialize($model-><?php echo $column->name;?>),
