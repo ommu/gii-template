@@ -172,6 +172,7 @@ use yii\helpers\Url;
 use yii\helpers\Html;
 <?php 
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
+echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
@@ -942,7 +943,11 @@ $beforeSave = 1;?>
 	if($column->type == 'text' && in_array('file', $commentArray)) {?>
 				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
-					$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+<?php if($generator->uploadPath['subfolder']) {?>
+					$fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+<?php } else {?>
+					$fileName = join('-', [time(), UuidHelper::uuid(), $this-><?php echo $primaryKey;?>]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+<?php }?>
 					if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName]))) {
 						if($this->old_<?php echo $column->name;?>_i != '' && file_exists(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>_i])))
 							rename(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>_i]), join('/', [$verwijderenPath, time().'_change_'.$this->old_<?php echo $column->name;?>_i]));
@@ -1053,7 +1058,11 @@ if($generator->uploadPath['subfolder']) {?>
 	if($column->type == 'text'  && in_array('file', $commentArray)) {?>
 			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
-				$fileName = time().'_'.$this-><?php echo $primaryKey;?>.'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+<?php if($generator->uploadPath['subfolder']) {?>
+				$fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+<?php } else {?>
+				$fileName = join('-', [time(), UuidHelper::uuid(), $this-><?php echo $primaryKey;?>]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+<?php }?>
 				if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName])))
 					self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' => $this-><?php echo $primaryKey;?>]);
 			}
