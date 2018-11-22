@@ -39,9 +39,22 @@ echo "<?php\n";
 namespace <?= $generator->getControllerNamespace() ?>;
 
 use app\components\Controller;
+use mdm\admin\components\AccessControl;
 
 class DefaultController extends Controller
 {
+	/**
+	 * {@inheritdoc}
+	 */
+	public function behaviors()
+	{
+		return [
+			'access' => [
+				'class' => AccessControl::className(),
+			],
+		];
+	}
+
 	/**
 	 * Renders the index view for the module
 	 * @return string
@@ -52,5 +65,12 @@ class DefaultController extends Controller
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('index');
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function allowAction(): array {
+		return ['index'];
 	}
 }

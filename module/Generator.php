@@ -53,15 +53,12 @@ class Generator extends \ommu\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['moduleID', 'moduleClass', 'description', 'keyword',
-				'link'], 'filter', 'filter' => 'trim'],
-			[['moduleID', 'moduleClass',
-				'link'], 'required'],
+            [['moduleID', 'moduleClass', 'description', 'keyword', 'link'], 'filter', 'filter' => 'trim'],
+			[['moduleID', 'moduleClass', 'link'], 'required'],
             [['moduleID'], 'match', 'pattern' => '/^[\w\\-]+$/', 'message' => 'Only word characters and dashes are allowed.'],
             [['moduleClass'], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
             [['moduleClass'], 'validateModuleClass'],
-			[['moduleCore',
-				'useModified'], 'boolean'],
+			[['moduleCore', 'useModified'], 'boolean'],
         ]);
     }
 
@@ -92,6 +89,7 @@ class Generator extends \ommu\gii\Generator
             'moduleCore' => 'Is this core modules?. core modules will placed in <code>app\coremodules</code>.',
             'description' => 'This description will displayed in module manager.',
             'keyword' => 'Keyword to match this module.',
+            'link' => 'This is link (URL Address) your repository.',
 			'useModified' => 'Use generate-source modified info. <code>default: false</code>',
         ];
     }
