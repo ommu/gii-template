@@ -97,7 +97,7 @@ $redactorOptions = [
 		<?php echo $uploadCondition ? '' : '//';?>'enctype' => 'multipart/form-data',
 	],
 	'enableClientValidation' => <?php echo $uploadCondition ? 'false' : 'true';?>,
-	'enableAjaxValidation' => <?php echo $uploadCondition ? 'false' : 'false';?>,
+	'enableAjaxValidation' => false,
 	//'enableClientScript' => true,
 ]); ?>
 

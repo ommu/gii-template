@@ -52,6 +52,7 @@ echo "<?php\n";
  * Reference start
  * TOC :
  *	Index
+ *	Manage
  *	Create
  *	Update
  *	View
@@ -151,10 +152,18 @@ endforeach;
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	public function actionIndex()
+	{
+		return $this->redirect(['manage']);
+	}
+
+	/**
 	 * Lists all <?= $modelClass ?> models.
 	 * @return mixed
 	 */
-	public function actionIndex()
+	public function actionManage()
 	{
 <?php if (!empty($generator->searchModelClass)): ?>
 		$searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
@@ -173,7 +182,7 @@ endforeach;
 		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($shortLabel));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
-		return $this->render('admin_index', [
+		return $this->render('admin_manage', [
 			'searchModel' => $searchModel,
 			'dataProvider' => $dataProvider,
 			'columns' => $columns,
@@ -207,7 +216,11 @@ endforeach;
 				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success created.');?>);
 				return $this->redirect(['index']);
 				//return $this->redirect(['view', <?= $urlParams ?>]);
-			} 
+
+			} else {
+				if(Yii::$app->request->isAjax)
+					return \yii\helpers\Json::encode(\yii\widgets\ActiveForm::validate($model));
+			}
 		}
 
 		$this->view->title = <?php echo $generator->generateString('Create '.$shortLabel);?>;
@@ -234,6 +247,10 @@ endforeach;
 				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
 				return $this->redirect(['index']);
 				//return $this->redirect(['view', <?= $urlParams ?>]);
+
+			} else {
+				if(Yii::$app->request->isAjax)
+					return \yii\helpers\Json::encode(\yii\widgets\ActiveForm::validate($model));
 			}
 		}
 
