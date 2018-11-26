@@ -30,7 +30,7 @@ echo "<?php\n"; ?>
 	'method'=>'get',
 )); ?>
 	<ul>
-<?php foreach($columns as $column):
+<?php foreach($columns as $column) {
 	$field=$this->generateInputField($modelClass,$column);
 	if(strpos($field,'password')!==false || $column->isPrimaryKey || $column->autoIncrement || $column->type==='boolean' || $column->dbType == 'tinyint(1)')
 		continue;
@@ -57,16 +57,16 @@ echo "<?php\n"; ?>
 			<?php echo "<?php ".$this->generateActiveField($modelClass,$column,false)."; ?>\n"; ?>
 		</li>
 
-<?php endforeach;
-foreach($columns as $column):
-	if($column->type==='boolean' || $column->dbType == 'tinyint(1)'): ?>
+<?php }
+foreach($columns as $column) {
+	if($column->type==='boolean' || $column->dbType == 'tinyint(1)') {?>
 		<li>
 			<?php echo "<?php echo \$model->getAttributeLabel('{$column->name}'); ?>\n"; ?>
 			<?php echo "<?php ".$this->generateActiveField($modelClass,$column,false)."; ?>\n"; ?>
 		</li>
 
-<?php endif;
-endforeach; ?>
+<?php }
+} ?>
 		<li class="submit">
 			<?php echo "<?php ";?>echo CHtml::submitButton(Yii::t('phrase', 'Search')); ?>
 		</li>

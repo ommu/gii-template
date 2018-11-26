@@ -230,7 +230,7 @@ foreach($columns as $name=>$column):
 endforeach;
 foreach($columns as $name=>$column):
 	$commentArray = explode(',', $column->comment);
-	if(!in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')) && $column->dbType == 'text' && in_array('file', $commentArray)) {
+	if($column->dbType == 'text' && in_array('file', $commentArray)) {
 		$inputPublicVariable = 'old_'.$column->name.'_i';
 		if(!in_array($inputPublicVariable, $inputPublicVariables))
 			$inputPublicVariables[$inputPublicVariable] = ucwords(strtolower('old '.$column->name));
@@ -675,11 +675,10 @@ foreach($columns as $name=>$column)
 {
 	if($column->name[0] == '_')
 		continue;
-
-	$commentArray = explode(',', $column->comment);
-
 	if($column->isPrimaryKey || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
+
+	$commentArray = explode(',', $column->comment);
 		
 	if($column->isForeignKey || (in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id','tag_id')))) {
 		$smallintCondition = 0;
@@ -838,7 +837,7 @@ foreach($columns as $name=>$column)
 foreach($columns as $name=>$column)
 {
 	$comment = $column->comment;
-	if($column->name == 'headline' && $column->comment == '')
+	if($column->name == 'headline' && $comment == '')
 		$comment = 'Headline,Unheadline';
 
 	if($column->dbType == 'tinyint(1)' && $column->name == 'headline') {
@@ -942,7 +941,7 @@ foreach($columns as $name=>$column) {
 	if($column->comment[0] == '"')
 		$columnFunctionArray[$column->name] = $column->comment;
 }
-if(!$tableViewConditio || !empty($columnFunctionArray)) {
+if(!$tableViewCondition || !empty($columnFunctionArray)) {
 	foreach($columnFunctionArray as $key=>$val) {
 		$functionName = $inflector->singularize($inflector->id2camel($key, '_'));
 		$itemArray = $this->commentToArray($val);?>
@@ -1086,8 +1085,8 @@ foreach($columns as $name=>$column) {
 	}
 }
 foreach($columns as $name=>$column) {
-	$columnArray = explode('_', $column->name);
-	if(in_array('ip', $columnArray)) {?>
+	$nameArray = explode('_', $column->name);
+	if(in_array('ip', $nameArray)) {?>
 			$this-><?php echo $column->name;?> = $_SERVER['REMOTE_ADDR'];
 <?php $beforeValidate = 1;
 	}
@@ -1119,7 +1118,6 @@ $beforeSave = 0;
 if($i18n || $uploadCondition || $serializeCondition || $tagCondition)
 	$bsEvents = 1;
 foreach($columns as $name=>$column) {
-	$columnArray = explode('_', $column->name);
 	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger')
 		$bsEvents = 1;
 }
@@ -1175,9 +1173,9 @@ foreach($columns as $name=>$column) {
 					if($this-><?php echo $column->name;?> == '')
 						$this-><?php echo $column->name;?> = $this->old_<?php echo $column->name;?>_i;
 				}
-<?php $beforeSave = 1;
-	}
-}?>
+<?php }
+}
+$beforeSave = 1;?>
 			}
 
 <?php }
@@ -1281,10 +1279,10 @@ if(!$tableViewCondition && ($this->useEvent || $asEvents)) {?>
 						self::model()->updateByPk($this-><?php echo $primaryKey;?>, array('<?php echo $name;?>'=>$fileName));
 				}
 			}
-			
-<?php 	$afterSave = 1;
-	}
-}?>
+
+<?php }
+}
+$afterSave = 1;?>
 		}
 <?php }
 echo !$afterSave ? "\t\t// Create action\n" : '';?>
@@ -1333,12 +1331,12 @@ if(!$tableViewCondition && ($this->useEvent || $adEvents)) {?>
 	if($column->dbType == 'text' && in_array('file', $commentArray)) {?>
 		if($this-><?php echo $name;?> != '' && file_exists(join('/', array($uploadPath, $this-><?php echo $name;?>))))
 			rename(join('/', array($uploadPath, $this-><?php echo $name;?>)), join('/', array($verwijderenPath, time().'_deleted_'.$this-><?php echo $name;?>)));
-<?php 		$afterDelete = 1;
-		}
+<?php 	}
 	}
+	$afterDelete = 1;
 
-if($this->uploadPathSubfolder)
-	echo "\n\t\t\$this->deleteFolder(\$uploadPath);\n";
+	if($this->uploadPathSubfolder)
+		echo "\n\t\t\$this->deleteFolder(\$uploadPath);\n";
 }
 echo !$afterDelete ? "\t\t// Create action\n" : '';?>
 	}

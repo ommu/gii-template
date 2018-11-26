@@ -735,8 +735,8 @@ class ModelCode extends CCodeModel
 
 		foreach ($table->columns as $column) {
 			$relationColumn = [];
+			$commentArray = explode(',', $column->comment);
 			if(preg_match('/(name|title|body)/', $column->name)) {
-				$commentArray = explode(',', $column->comment);
 				if(in_array('trigger[delete]', $commentArray)) {
 					$relationColumn[$column->name] = $this->i18nRelation($column->name);
 					$relationColumn[] = 'message';
@@ -806,7 +806,7 @@ class ModelCode extends CCodeModel
 
 	public function i18nRelation($column, $relation=true)
 	{
-		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' :  ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
+		return preg_match('/(name|title)/', $column) ? 'title' : (preg_match('/(desc|description)/', $column) ? ($column != 'description' ? 'description' : ($relation == true ? $column.'Rltn' : $column)) : ($relation == true ? $column.'Rltn' : $column));
 	}
 
 	/**
