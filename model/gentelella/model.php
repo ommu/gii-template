@@ -782,6 +782,8 @@ if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 	 */
 	public function afterFind()
 	{
+		parent::afterFind();
+
 <?php foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	
