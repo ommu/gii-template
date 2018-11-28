@@ -631,7 +631,7 @@ class Generator extends \ommu\gii\Generator
                     $relationName = $this->generateRelationName($relations, $refTableSchema, $className, $hasMany);
 					$andOnCondition = '';
 					if($hasMany && $publishCondition)
-						$andOnCondition = "\n\t\t\t->andOnCondition(['publish' => 1])";
+						$andOnCondition = "\n\t\t\t->andOnCondition([sprintf('%s.publish', $className::tableName()) => 1])";
                     $relations[$refTableSchema->fullName][$relationName] = [
                         "return \$this->" . ($hasMany ? 'hasMany' : 'hasOne') . "($className::className(), $link)$andOnCondition;",
                         $className,
