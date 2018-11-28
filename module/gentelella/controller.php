@@ -56,6 +56,13 @@ class DefaultController extends Controller
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	public function allowAction(): array {
+		return ['index'];
+	}
+
+	/**
 	 * Renders the index view for the module
 	 * @return string
 	 */
@@ -65,12 +72,5 @@ class DefaultController extends Controller
 		$this->view->description = '';
 		$this->view->keywords = '';
 		return $this->render('index');
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function allowAction(): array {
-		return ['index'];
 	}
 }

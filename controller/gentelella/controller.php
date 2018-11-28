@@ -61,6 +61,15 @@ class <?= $controllerClass ?> extends <?= $controller. "\n" ?>
 		];
 	}
 
+<?php endif;
+if($generator->attachRBACFilter): ?>
+	/**
+	 * {@inheritdoc}
+	 */
+	public function allowAction(): array {
+		return [];
+	}
+
 <?php endif; ?>
 <?php foreach ($generator->getActionIDs() as $action): ?>
 	/**
@@ -74,13 +83,5 @@ class <?= $controllerClass ?> extends <?= $controller. "\n" ?>
 		return $this->render('<?= $action ?>');
 	}
 
-<?php endforeach;
-if($generator->attachRBACFilter): ?>
-	/**
-	 * {@inheritdoc}
-	 */
-	public function allowAction(): array {
-		return [];
-	}
-<?php endif; ?>
+<?php endforeach; ?>
 }
