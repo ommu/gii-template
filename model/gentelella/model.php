@@ -486,7 +486,6 @@ foreach ($tableSchema->columns as $column) {
 				return !in_array($model-><?php echo $column->name;?>, <?php echo $column->type == 'date' ? '[\'0000-00-00\',\'1970-01-01\',\'0002-12-02\',\'-0001-11-30\']' : '[\'0000-00-00 00:00:00\',\'1970-01-01 00:00:00\',\'0002-12-02 07:07:12\',\'-0001-11-30 00:00:00\']';?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-';
 			},
 			'filter' => $this->filterDatepicker($this, '<?php echo $column->name;?>'),
-			'format' => 'html',
 		];
 <?php 	}
 	} else if($column->type == 'text' && in_array('file', $commentArray)) {
@@ -596,16 +595,20 @@ foreach ($tableSchema->columns as $column) {
 			'filter' => $this->filterYesNo(),
 <?php }?>
 			'value' => function($model, $key, $index, $column) {
-<?php if($comment != '' && $comment[0] == '"') {
+<?php $rawCondition = 0;
+if($comment != '' && $comment[0] == '"') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
 				return self::get<?php echo $functionName;?>($model-><?php echo $column->name;?>);
-<?php } else {?>
+<?php } else {
+	$rawCondition = 1;?>
 				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
 				return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $comment;?>'<?php echo $column->name == 'headline' ? ', true' : '';?>);
 <?php }?>
 			},
 			'contentOptions' => ['class'=>'center'],
-			'format' => 'html',
+<?php if($rawCondition == 1) {?>
+			'format' => 'raw',
+<?php }?>
 		];
 <?php }
 }
@@ -622,7 +625,7 @@ foreach ($tableSchema->columns as $column) {
 					return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
 				},
 				'contentOptions' => ['class'=>'center'],
-				'format' => 'html',
+				'format' => 'raw',
 			];
 		}
 <?php }

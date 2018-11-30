@@ -155,7 +155,7 @@ if($comment != '' && $comment[0] == '"') {
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
 <?php }
 if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
-			'format' => 'html',
+			'format' => 'raw',
 <?php }
 } else if($column->name == 'permission') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
