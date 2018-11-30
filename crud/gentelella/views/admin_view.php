@@ -155,7 +155,7 @@ if($comment != '' && $comment[0] == '"') {
 			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
 <?php }
 if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
-			'format' => 'raw',
+			'format' => 'html',
 <?php }
 } else if($column->name == 'permission') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
@@ -190,7 +190,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
 <?php endif;
 if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
-			'format' => 'raw',
+			'format' => 'html',
 <?php endif;?>
 		],
 <?php } else {

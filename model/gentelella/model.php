@@ -605,7 +605,7 @@ foreach ($tableSchema->columns as $column) {
 <?php }?>
 			},
 			'contentOptions' => ['class'=>'center'],
-			'format' => 'raw',
+			'format' => 'html',
 		];
 <?php }
 }
@@ -622,7 +622,7 @@ foreach ($tableSchema->columns as $column) {
 					return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
 				},
 				'contentOptions' => ['class'=>'center'],
-				'format' => 'raw',
+				'format' => 'html',
 			];
 		}
 <?php }
