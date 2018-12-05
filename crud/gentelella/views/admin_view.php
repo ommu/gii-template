@@ -127,7 +127,11 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-			'value' => !in_array($model-><?php echo $column->name;?>, <?php echo $column->dbType == 'date' ? "['0000-00-00','1970-01-01','0002-12-02','-0001-11-30']" : "['0000-00-00 00:00:00','1970-01-01 00:00:00','0002-12-02 07:07:12','-0001-11-30 00:00:00']";?>) ? Yii::$app->formatter->format($model-><?php echo $column->name;?>, '<?php echo $column->dbType == 'date' ? $column->dbType : 'datetime';?>') : '-',
+<?php if($column->dbType == 'date') {?>
+			'value' => Yii::$app->formatter->asDate($model-><?php echo $column->name;?>, 'medium'),
+<?php } else {?>
+			'value' => Yii::$app->formatter->asDatetime($model-><?php echo $column->name;?>, 'medium'),
+<?php }?>
 		],
 <?php } else if($column->dbType == 'tinyint(1)') {?>
 		[
