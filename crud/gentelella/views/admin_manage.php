@@ -41,7 +41,7 @@ echo "<?php\n";
 
 use yii\helpers\Html;
 use yii\helpers\Url;
-use <?= ($generator->indexWidgetType === 'grid' ? "app\\libraries\\grid\\GridView" : "yii\\widgets\\ListView"); ?>;
+use <?= ($generator->indexWidgetType === 'grid' ? "app\\components\\grid\\GridView" : "yii\\widgets\\ListView"); ?>;
 <?= $generator->enablePjax ? 'use yii\widgets\Pjax;'."\n" : ''; ?>
 
 $this->params['breadcrumbs'][] = $this->title;

@@ -33,7 +33,7 @@ echo "<?php\n";
  *
  */
 
-use app\helpers\Html;
+use yii\helpers\Html;
 use yii\helpers\Url;
 
 $js = <<<JS

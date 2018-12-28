@@ -29,6 +29,7 @@ $patternClass[1] = '(Swt)';
  */
 $tinyCondition = 0;
 $publishCondition = 0;
+$urlCondition = 0;
 $permissionCondition = 0;
 $slugCondition = 0;
 $tagCondition = 0;
@@ -89,12 +90,15 @@ foreach ($tableSchema->columns as $column) {
 	if(in_array('trigger[delete]', $commentArray) || in_array('user', $commentArray) || (!in_array($primaryKey, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
 		$relationCondition = 1;
 
+	if(in_array($column->dbType, ['tinyint(1)']))
+		$tinyCondition = 1;
+
 	if(in_array($column->dbType, ['timestamp','datetime','date']))
 		$dateCondition = 1;?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php }
 
-if (!empty($relations) || $relationCondition) {?>
+if (!empty($relations) || $relationCondition || $tinyCondition || $dateCondition) {?>
  *
  * The followings are the available model relations:
 <?php foreach ($relations as $name => $relation) {
@@ -102,7 +106,6 @@ if (!empty($relations) || $relationCondition) {?>
 	$relationArray[] = $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php }
-
 foreach ($tableSchema->columns as $column) {
 	if($column->autoIncrement || $column->isPrimaryKey)
 		continue;
@@ -111,9 +114,10 @@ foreach ($tableSchema->columns as $column) {
 
 	$commentArray = explode(',', $column->comment);
 	if($column->dbType == 'tinyint(1)') {
-		$tinyCondition = 1;
 		if(in_array($column->name, ['publish','headline']))
 			$publishCondition = 1;
+		if(!in_array($column->name, ['publish','headline']) && $column->comment != '' && $column->comment[0] != '"')
+			$urlCondition = 1;
 		if($column->name == 'permission')
 			$permissionCondition = 1;
 	} elseif($column->name == 'slug') 
@@ -168,12 +172,12 @@ if($tableType != Generator::TYPE_VIEW) {
 namespace <?= $generator->ns ?>;
 
 use Yii;
-use yii\helpers\Url;
-use yii\helpers\Html;
 <?php 
+echo $uploadCondition ? "use ".ltrim('yii\helpers\Html', '\\').";\n" : '';
+echo $publishCondition || $urlCondition || $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
-echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
+echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('ommu\users\models\Users', '\\').";\n" : '';
@@ -184,7 +188,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 {
 <?php echo $tinyCondition || $tagCondition || $i18n || $dateCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition || $tagCondition || $uploadCondition || $i18n || $dateCondition ? "\n" : '';?>
+<?php echo $tinyCondition || $tagCondition || $i18n || $dateCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 foreach ($tableSchema->columns as $column) {
