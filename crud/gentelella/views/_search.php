@@ -44,7 +44,7 @@ echo "<?php\n";
  */
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use app\components\ActiveForm;
 <?php echo $getFunctionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 <?php foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {

@@ -68,7 +68,7 @@ echo "<?php\n";
 
 use yii\helpers\Html;
 <?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
-use yii\widgets\ActiveForm;
+use app\components\ActiveForm;
 <?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
 <?php echo $uploadCondition || $getFunctionCondition || $permissionCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
 foreach ($tableSchema->columns as $column) {
@@ -92,10 +92,11 @@ $redactorOptions = [
 <div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-form">
 
 <?= "<?php "?>$form = ActiveForm::begin([
+<?php if($uploadCondition) {?>
 	'options' => [
-		'class' => 'form-horizontal form-label-left',
-		<?php echo $uploadCondition ? '' : '//';?>'enctype' => 'multipart/form-data',
+		'enctype' => 'multipart/form-data',
 	],
+<?php }?>
 	'enableClientValidation' => <?php echo $uploadCondition ? 'false' : 'true';?>,
 	'enableAjaxValidation' => false,
 	//'enableClientScript' => true,
