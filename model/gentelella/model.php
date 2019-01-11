@@ -98,7 +98,7 @@ foreach ($tableSchema->columns as $column) {
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php }
 
-if (!empty($relations) || $relationCondition || $tinyCondition || $dateCondition) {?>
+if (!empty($relations) || $relationCondition || $tinyCondition) {?>
  *
  * The followings are the available model relations:
 <?php foreach ($relations as $name => $relation) {
@@ -186,9 +186,9 @@ echo $memberCondition ? "use ".ltrim('ommu\member\models\Members', '\\').";\n" :
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $tinyCondition || $tagCondition || $i18n || $dateCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
+<?php echo $tinyCondition || $tagCondition || $i18n ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition || $tagCondition || $i18n || $dateCondition || $uploadCondition ? "\n" : '';?>
+<?php echo $tinyCondition || $tagCondition || $i18n || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 foreach ($tableSchema->columns as $column) {
