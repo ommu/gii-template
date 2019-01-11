@@ -15,10 +15,10 @@ echo "<?php\n";
 ?>
 /**
  * <?php echo Inflector::pluralize($label); ?> (<?php echo Inflector::camel2id($modelClass); ?>)
- * @var $this yii\web\View
+ * @var $this app\components\View
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->searchModelClass)."\n"; ?>
- * @var $form yii\widgets\ActiveForm
+ * @var $form app\components\ActiveForm
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
@@ -51,7 +51,7 @@ $js = <<<JS
 		});
 	});
 JS;
-	$this->registerJs($js, \yii\web\View::POS_READY);
+	$this->registerJs($js, \app\components\View::POS_READY);
 ?>
 
 <div class="grid-form">

@@ -45,7 +45,7 @@ echo "<?php\n";
 ?>
 /**
  * <?php echo $controllerClass."\n"; ?>
- * @var $this yii\web\View
+ * @var $this app\components\View
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
  *
  * <?= $controllerClass ?> implements the CRUD actions for <?= $modelClass ?> model.

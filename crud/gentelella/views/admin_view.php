@@ -42,7 +42,7 @@ echo "<?php\n";
 ?>
 /**
  * <?php echo Inflector::pluralize($label); ?> (<?php echo Inflector::camel2id($modelClass); ?>)
- * @var $this yii\web\View
+ * @var $this app\components\View
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
  *
