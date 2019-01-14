@@ -824,6 +824,7 @@ if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 $bvEvents = 0;
 $beforeValidate = 0;
 $creationCondition = 0;
+$userValidateCondition = 0;
 if($uploadCondition)
 	$bvEvents = 1;
 foreach($tableSchema->columns as $column)
@@ -869,20 +870,26 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 
 foreach($tableSchema->columns as $column) {
 	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && $column->comment != 'trigger') {
+		$userValidateCondition = 1;
 		$beforeValidate = 1;
 		if(in_array($column->name, array('creation_id','user_id'))) {
 			$creationCondition = 1;
-			echo "\t\t\tif(\$this->isNewRecord)\n";
-			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
+			echo "\t\t\tif(\$this->isNewRecord) {\n";
+			echo "\t\t\t\tif(\$this->{$column->name} == null)\n";
+			echo "\t\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		} else {
 			if($creationCondition)
-				echo "\t\t\telse\n";
+				echo "\t\t\t} else {\n";
 			else
-				echo "\t\t\tif(!\$this->isNewRecord)\n";
-			echo "\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
+				echo "\t\t\tif(!\$this->isNewRecord) {\n";
+			echo "\t\t\t\tif(\$this->{$column->name} == null)\n";
+			echo "\t\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		}
 	}
 }
+if($userValidateCondition)
+	echo "\t\t\t}\n";
+
 
 foreach($tableSchema->columns as $column) {
 	$nameArray = explode('_', $column->name);
