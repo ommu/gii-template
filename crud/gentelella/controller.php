@@ -195,7 +195,7 @@ endforeach;
 		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($shortLabel));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
-		return $this->render('admin_index', [
+		return $this->render('admin_manage', [
 			'dataProvider' => $dataProvider,
 		]);
 <?php endif; ?>
@@ -214,7 +214,7 @@ endforeach;
 			$model->load(Yii::$app->request->post());
 			if($model->save()) {
 				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success created.');?>);
-				return $this->redirect(['index']);
+				return $this->redirect(['manage']);
 				//return $this->redirect(['view', <?= $urlParams ?>]);
 
 			} else {
@@ -245,8 +245,7 @@ endforeach;
 
 			if($model->save()) {
 				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
-				return $this->redirect(['index']);
-				//return $this->redirect(['view', <?= $urlParams ?>]);
+				return $this->redirect(['manage']);
 
 			} else {
 				if(Yii::$app->request->isAjax)
@@ -307,13 +306,13 @@ endforeach;
 
 		if($model->save(false, ['publish'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
-			return $this->redirect(['index']);
+			return $this->redirect(['manage']);
 		}
 <?php else: ?>
 		$this->findModel(<?= $actionParams ?>)->delete();
 		
 		Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
-		return $this->redirect(['index']);
+		return $this->redirect(['manage']);
 <?php endif; ?>
 	}
 <?php 
@@ -345,7 +344,7 @@ foreach ($tableSchema->columns as $column):
 		if($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 <?php endif;?>
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
-			return $this->redirect(['index']);
+			return $this->redirect(['manage']);
 		}
 	}
 <?php endif;
@@ -373,7 +372,7 @@ foreach ($tableSchema->columns as $column):
 		
 		if($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
-			return $this->redirect(['index']);
+			return $this->redirect(['manage']);
 		}
 	}
 <?php endif;
