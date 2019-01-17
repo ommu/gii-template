@@ -18,7 +18,7 @@ echo "<?php\n";
 ?>
 /**
  * <?php echo $controllerClass."\n"; ?>
- * @var $this yii\web\View
+ * @var $this app\components\View
  *
  * Reference start
  * TOC :

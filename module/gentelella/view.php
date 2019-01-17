@@ -7,7 +7,7 @@ $yaml = $generator->loadYaml('author.yaml');
 echo "<?php\n";
 ?>
 /**
- * @var $this yii\web\View
+ * @var $this app\components\View
  * @var $this <?php echo ltrim($generator->getControllerNamespace().'\DefaultController')."\n"; ?>
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>

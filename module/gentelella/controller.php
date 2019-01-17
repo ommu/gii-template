@@ -16,7 +16,7 @@ echo "<?php\n";
 /**
 <?php // FIX: unknown $controllerClass variabel?>
  * DefaultController<?php echo "\n";//echo $controllerClass."\n"; ?>
- * @var $this yii\web\View
+ * @var $this app\components\View
  *
  * Default controller for the `<?= $generator->moduleID ?>` module
  * Reference start

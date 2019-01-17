@@ -398,14 +398,14 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 
 			} else if(in_array('redactor', $commentArray)) {	// 04.2
 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->textarea(['rows'=>2,'rows'=>6])
+\t->textarea(['rows'=>6, 'cols'=>50])
 \t->widget(Redactor::className(), ['clientOptions' => \$redactorOptions])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
 			} else if(in_array('text', $commentArray)) {	// 04.3
 				$maxlength = $i18n ? ', \'maxlength\'=>true' : '';
 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->textarea(['rows'=>2, 'rows'=>6$maxlength])
+\t->textarea(['rows'=>6, 'cols'=>50$maxlength])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
 			} else {	// 04.4
@@ -415,7 +415,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 				} else {	// 04.4.2
 					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->textarea(['rows'=>2, 'rows'=>6])
+\t->textarea(['rows'=>6, 'cols'=>50])
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 				}
 			}
