@@ -87,6 +87,7 @@ echo "<?php\n";
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
+
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray) || in_array('user', $commentArray) || (!in_array($primaryKey, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
 		$relationCondition = 1;
@@ -95,11 +96,14 @@ foreach ($tableSchema->columns as $column) {
 		$tinyCondition = 1;
 
 	if(in_array($column->dbType, ['timestamp','datetime','date']))
-		$dateCondition = 1;?>
+		$dateCondition = 1;
+
+	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
+		$userCondition = 1;?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php }
 
-if (!empty($relations) || $relationCondition || $tinyCondition) {?>
+if (!empty($relations) || $relationCondition || $tinyCondition || $userCondition) {?>
  *
  * The followings are the available model relations:
 <?php foreach ($relations as $name => $relation) {
@@ -141,8 +145,6 @@ foreach ($tableSchema->columns as $column) {
 			$tagCondition = 1;
 		else if($column->name == 'member_id')
 			$memberCondition = 1;
-		else if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
-			$userCondition = 1;
 	} else {
 		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray))
 			$uploadCondition = 1;
