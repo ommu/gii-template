@@ -223,6 +223,14 @@ class Generator extends \ommu\gii\Generator
         return '';
     }
 
+	public function getRelations()
+	{
+		$relations = $this->generateRelations();
+		$tableName = $this->tableName;
+
+		return isset($relations[$tableName]) ? $relations[$tableName] : [];
+	}
+
     /**
      * {@inheritdoc}
      */
@@ -230,7 +238,7 @@ class Generator extends \ommu\gii\Generator
     {
         $files = [];
         $relations = $this->generateRelations();
-        $db = $this->getDbConnection();
+		$db = $this->getDbConnection();
         foreach ($this->getTableNames() as $tableName) {
             // model :
             $modelClassName = $this->generateClassName($tableName);
@@ -631,7 +639,7 @@ class Generator extends \ommu\gii\Generator
                     $relationName = $this->generateRelationName($relations, $refTableSchema, $className, $hasMany);
 					$andOnCondition = '';
 					if($hasMany && $publishCondition)
-						$andOnCondition = "\n\t\t\t->andOnCondition([sprintf('%s.publish', $className::tableName()) => 1])";
+						$andOnCondition = "\n\t\t\t->andOnCondition([sprintf('%s.publish', $className::tableName()) => \$publish])";
                     $relations[$refTableSchema->fullName][$relationName] = [
                         "return \$this->" . ($hasMany ? 'hasMany' : 'hasOne') . "($className::className(), $link)$andOnCondition;",
                         $className,

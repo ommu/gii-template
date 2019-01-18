@@ -42,6 +42,7 @@ $dateCondition = 0;
 $useGetFunctionCondition = 0;
 $relationCondition = 0;
 $primaryKeyTriggerCondition = 0;
+$relationCondition = 0;
 
 $relationArray = [];
 $inputPublicVariables = [];
@@ -165,6 +166,11 @@ if($tableType != Generator::TYPE_VIEW) {
 	if($primaryKeyColumn->comment == 'trigger')
 		$primaryKeyTriggerCondition = 1;
 }
+
+foreach ($relations as $name => $relation) {
+	if($relation[2])
+		$relationCondition = 1;
+}
 ?>
  *
  */
@@ -173,8 +179,8 @@ namespace <?= $generator->ns ?>;
 
 use Yii;
 <?php 
-echo $uploadCondition ? "use ".ltrim('yii\helpers\Html', '\\').";\n" : '';
 echo $publishCondition || $urlCondition || $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';
+echo $uploadCondition || $relationCondition ? "use ".ltrim('yii\helpers\Html', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
@@ -322,6 +328,13 @@ foreach ($labels as $name => $label) {
 	echo "\t\t\t'$name' => " . $generator->generateString($label) . ",\n";
 }
 
+foreach ($relations as $name => $relation) {
+	if(!$relation[2])
+		continue;
+	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
+	echo "\t\t\t'$relationName' => " . $generator->generateString(ucwords($relationName)) . ",\n";
+}
+
 if(!empty($inputPublicVariables)) {
 	foreach ($inputPublicVariables as $key=>$val) {
 		echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
@@ -338,13 +351,30 @@ if(!empty($searchPublicVariables)) {
 <?php 
 $relationArray = [];
 foreach ($relations as $name => $relation) {
-	$relationArray[] = $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));?>
+	$relationArray[] = $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
+	$publishRltnCondition = 0;
+	if(preg_match('/(%s.publish)/', $relation[0]))
+		$publishRltnCondition = 1;?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
 	 */
+<?php if($relation[2]) {?>
+	public function get<?php echo ucfirst($relationName);?>($count=true<?php echo $publishRltnCondition ? ', $publish=1' : ''?>)
+<?php } else {?>
 	public function get<?php echo ucfirst($relationName);?>()
+<?php }?>
 	{
+<?php if($relation[2]) {?>
+		if($count == true) {
+			$model = <?php echo $relation[1];?>::find();
+<?php if($publishRltnCondition) {?>
+			$model->where(['publish' => $publish]);
+<?php }?>
+			return $model->count();
+		}
+
+<?php }?>
 		<?= preg_replace($patternClass, '', $relation[0]) . "\n" ?>
 	}
 <?php }
@@ -564,6 +594,25 @@ foreach ($tableSchema->columns as $column) {
 <?php 		}
 	}
 }
+
+foreach ($relations as $name => $relation) {
+	if(!$relation[2])
+		continue;
+
+	$publishRltnCondition = 0;
+	if(preg_match('/(%s.publish)/', $relation[0]))
+		$publishRltnCondition = 1;
+	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name)); ?>
+		$this->templateColumns['<?php echo $relationName;?>'] = [
+			'attribute' => '<?php echo $relationName;?>',
+			'filter' => false,
+			'value' => function($model, $key, $index, $column) {
+				return Html::a($model-><?php echo $relationName;?>, ['<?php echo Inflector::singularize($relationName);?>/manage', '<?php echo $generator->setRelation($primaryKey);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$model-><?php echo $relationName;?>])]);
+			},
+			'contentOptions' => ['class'=>'center'],
+			'format' => 'html',
+		];
+<?php }
 
 foreach ($tableSchema->columns as $column) {
 	$comment = $column->comment;

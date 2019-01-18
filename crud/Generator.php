@@ -176,6 +176,10 @@ class Generator extends \ommu\gii\Generator
      */
     public function generate()
     {
+		$tableSchema = $this->getTableSchema();
+		$relation = new \ommu\gii\model\Generator();
+		$relation->tableName = $tableSchema->name;
+
         $controllerFile = Yii::getAlias('@' . str_replace('\\', '/', ltrim($this->controllerClass, '\\')) . '.php');
 
         $files = [
@@ -197,7 +201,7 @@ class Generator extends \ommu\gii\Generator
                 continue;
             }
             if (is_file($templatePath . '/' . $file) && pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                $files[] = new CodeFile("$viewPath/$file", $this->render("views/$file"));
+                $files[] = new CodeFile("$viewPath/$file", $this->render("views/$file", array('relations'=>$relation->getRelations())));
             }
         }
 

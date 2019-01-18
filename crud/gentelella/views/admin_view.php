@@ -21,6 +21,7 @@ $uploadCondition = 0;
 $getFunctionCondition = 0;
 $permissionCondition = 0;
 $primaryKeyTriggerCondition = 0;
+$relationCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) 
@@ -33,6 +34,11 @@ foreach ($tableSchema->columns as $column) {
 $primaryKeyColumn = $tableSchema->columns[$primaryKey];
 if($primaryKeyColumn->comment == 'trigger')
 	$primaryKeyTriggerCondition = 1;
+
+foreach ($relations as $name => $relation) {
+	if($relation[2])
+		$relationCondition = 1;
+}
 
 $dropDownOptions = $generator->dropDownOptions($tableSchema);
 
@@ -60,7 +66,7 @@ echo "<?php\n";
  */
 
 use yii\helpers\Url;
-<?php echo $uploadCondition ? "use yii\helpers\Html;\n" : '';?>
+<?php echo $uploadCondition || $relationCondition ? "use yii\helpers\Html;\n" : '';?>
 use yii\widgets\DetailView;
 <?php echo $uploadCondition || $getFunctionCondition || $permissionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
@@ -70,7 +76,7 @@ $this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;
 $this->params['menu']['content'] = [
 	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['index']), 'icon' => 'table'],
 	['label' => <?= $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?= $urlParams ?>]), 'icon' => 'pencil'],
-	['label' => <?= $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?= $urlParams ?>]), 'htmlOptions' => ['data-confirm' => <?= $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method' => 'post'], 'icon' => 'trash'],
+	['label' => <?= $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?= $urlParams ?>]), 'htmlOptions' => ['data-confirm'=><?= $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method'=>'post'], 'icon' => 'trash'],
 ];
 ?>
 
@@ -214,6 +220,21 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 	}
 	}
 }
+
+foreach ($relations as $name => $relation) {
+	if(!$relation[2])
+		continue;
+
+	$publishRltnCondition = 0;
+	if(preg_match('/(%s.publish)/', $relation[0]))
+		$publishRltnCondition = 1;
+	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name)); ?>
+		[
+			'attribute' => '<?php echo $relationName;?>',
+			'value' => Html::a($model-><?php echo $relationName;?>, ['<?php echo Inflector::singularize($relationName);?>/manage', '<?php echo $generator->setRelation($primaryKey);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$model-><?php echo $relationName;?>])]),
+			'format' => 'html',
+		],
+<?php }
 ?>
 	],
 ]) ?>
