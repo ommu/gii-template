@@ -644,6 +644,7 @@ class Generator extends \ommu\gii\Generator
                         "return \$this->" . ($hasMany ? 'hasMany' : 'hasOne') . "($className::className(), $link)$andOnCondition;",
                         $className,
                         $hasMany,
+                        $this->generateRelationLink($refs, true),
                     ];
                 }
 
@@ -740,11 +741,14 @@ class Generator extends \ommu\gii\Generator
      * @param array $refs reference constraint
      * @return string the generated link parameter.
      */
-    protected function generateRelationLink($refs)
+    protected function generateRelationLink($refs, $forSelect=false)
     {
         $pairs = [];
         foreach ($refs as $a => $b) {
-            $pairs[] = "'$a' => '$b'";
+			if($forSelect == false)
+				$pairs[] = "'$a' => '$b'";
+			else
+				$pairs[] = "'$a' => \$this->$b";
         }
 
         return '[' . implode(', ', $pairs) . ']';

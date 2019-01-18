@@ -367,9 +367,11 @@ foreach ($relations as $name => $relation) {
 	{
 <?php if($relation[2]) {?>
 		if($count == true) {
-			$model = <?php echo $relation[1];?>::find();
+			$model = <?php echo $relation[1];?>::find()
+				->where(<?php echo $relation[3];?>);
 <?php if($publishRltnCondition) {?>
-			$model->where(['publish' => $publish]);
+			if($publish !== null)
+				$model->andWhere(['publish' => $publish]);
 <?php }?>
 			return $model->count();
 		}
