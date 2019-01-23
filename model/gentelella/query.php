@@ -73,6 +73,14 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	{
 		return $this->andWhere(['<?php echo $column->name;?>' => 0]);
 	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function deleted() 
+	{
+		return $this->andWhere(['<?php echo $column->name;?>' => 2]);
+	}
 <?php elseif($column->name == 'headline'):?>
 
 	/**

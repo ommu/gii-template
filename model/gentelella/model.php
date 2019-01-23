@@ -330,17 +330,17 @@ foreach ($labels as $name => $label) {
 	echo "\t\t\t'$name' => " . $generator->generateString($label) . ",\n";
 }
 
+if(!empty($inputPublicVariables)) {
+	foreach ($inputPublicVariables as $key=>$val) {
+		echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
+	}
+}
+
 foreach ($relations as $name => $relation) {
 	if(!$relation[2])
 		continue;
 	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
 	echo "\t\t\t'$relationName' => " . $generator->generateString(ucwords($relationName)) . ",\n";
-}
-
-if(!empty($inputPublicVariables)) {
-	foreach ($inputPublicVariables as $key=>$val) {
-		echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
-	}
 }
 
 if(!empty($searchPublicVariables)) {
