@@ -494,17 +494,19 @@ foreach ($tableSchema->columns as $column) {
 		if(preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
 		$relationName = $generator->setRelation($column->name);
-		$relationAttribute = 'displayname';
-		$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
+		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
+		$relationAttribute = $variableAttribute = 'displayname';
+		$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
 		if(array_key_exists($column->name, $foreignKeys)) {
 			$relationTable = trim($foreignKeys[$column->name]);
+			$relationAttribute = $generator->getNameAttribute($relationTable);
 			$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
-			$relationAttribute = key($generator->getNameAttributes($relationSchema));
+			$variableAttribute = key($generator->getNameAttributes($relationSchema));
 			if($relationTable == 'ommu_users')
-				$relationAttribute = 'displayname';
-			$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
-			if(preg_match('/('.$relationName.')/', $relationAttribute))
-				$publicAttribute = $relationVariable = lcfirst(Inflector::id2camel($relationAttribute, '_'));
+				$relationAttribute = $variableAttribute ='displayname';
+			$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
+			if(preg_match('/('.$relationName.')/', $variableAttribute))
+				$publicAttribute = $relationVariable = lcfirst(Inflector::id2camel($variableAttribute, '_'));
 		}
 		if($column->name == 'tag_id')
 			$publicAttribute = $relationVariable = $relationName.ucwords('body');
@@ -517,7 +519,7 @@ foreach ($tableSchema->columns as $column) {
 			$this->templateColumns['<?php echo $publicAttribute;?>'] = [
 				'attribute' => '<?php echo $publicAttribute;?>',
 				'value' => function($model, $key, $index, $column) {
-					return $model-><?php echo $relationVariable;?>;
+					return isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
 				},
 <?php if($foreignCondition && $smallintCondition) {
 	$relationClassName = $generator->generateClassName($relationTable);
@@ -911,7 +913,7 @@ foreach ($tableSchema->columns as $column) {
 			$publicAttribute = $relationName.ucwords('body');
 			$relationAttribute = 'body';
 		}
-		echo "\t\t\$this->$publicAttribute = isset(\$this->{$relationFixedName}) ? \$this->{$relationFixedName}->{$relationAttribute} : '-';\n";
+		echo "\t\t// \$this->$publicAttribute = isset(\$this->{$relationFixedName}) ? \$this->{$relationFixedName}->{$relationAttribute} : '-';\n";
 	}
 }?>
 	}
