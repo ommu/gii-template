@@ -411,7 +411,7 @@ class Generator extends \ommu\gii\Generator
 					$lengths[$lengthSize][] = $columnName;
 			}
 			if($column->name == 'tag_id') {
-				$columnName = $this->setRelation($column->name).'_i';
+				$columnName = $this->setRelation($column->name).ucwords('body');
 				if(!empty($types['required']))
 					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['required'][]=$columnName;
@@ -433,7 +433,7 @@ class Generator extends \ommu\gii\Generator
 				continue;
 
 			if($this->getTableType($this->tableName) != self::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray)) {
-				$columnName = 'old_'.$column->name.'_i';
+				$columnName = 'old_'.$column->name;
 				$types['string'][]=$columnName;
 				$types['safe'][]=$columnName;
 			}
@@ -1227,5 +1227,13 @@ class Generator extends \ommu\gii\Generator
 		}
 
 		return $array2; 
+	}
+
+	public function getTableSchemaWithTableName($tableName) 
+	{
+		$db = $this->getDbConnection();
+		$tableSchema = $db->getTableSchema($tableName);
+
+		return $tableSchema; 
 	}
 }

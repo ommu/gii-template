@@ -70,43 +70,42 @@ foreach ($tableSchema->columns as $column) {
 		$relationName = $generator->i18nRelation($column->name);
 		$inputRuleVariable = $column->name.'_i';
 		$arrayRelations[$relationName] = $relationName;
-		if(!in_array($inputRuleVariable, $inputRuleVariables)) {
+		if(!in_array($inputRuleVariable, $inputRuleVariables))
 			$inputRuleVariables[] = $inputRuleVariable;
-		}
-		if(!in_array($inputRuleVariable, $inputSearchVariables)) {
+		if(!in_array($inputRuleVariable, $inputSearchVariables))
 			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'message']);
-		}
 	}
 }
 foreach ($tableSchema->columns as $column) {
 	if(in_array($column->name, ['tag_id'])) {
 		$relationName = $generator->setRelation($column->name);
-		$inputRuleVariable = $relationName.'_i';
+		$inputRuleVariable = $relationName.ucwords('body');
 		$arrayRelations[$relationName] = $relationName;
-		if(!in_array($inputRuleVariable, $inputRuleVariables)) {
+		if(!in_array($inputRuleVariable, $inputRuleVariables))
 			$inputRuleVariables[] = $inputRuleVariable;
-		}
-		if(!in_array($inputRuleVariable, $inputSearchVariables)) {
+		if(!in_array($inputRuleVariable, $inputSearchVariables))
 			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'body']);
-		}
 	}
 }
 foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['tag_id'])) {
-		$smallintCondition = 0;
-		if(preg_match('/(smallint)/', $column->type))
-			$smallintCondition = 1;
 		$relationName = $generator->setRelation($column->name);
 		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
-		$inputRuleVariable = $relationName.'_search';
-		$relationTableName = trim($foreignKeys[$column->name]);
-		$arrayRelations[$relationFixedName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTableName,'.'));
-		if(!$smallintCondition && !in_array($inputRuleVariable, $inputRuleVariables)) {
+		$relationTable = trim($foreignKeys[$column->name]);
+		$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
+		$relationAttribute = key($generator->getNameAttributes($relationSchema));
+		if($relationTable == 'ommu_users')
+			$relationAttribute = 'displayname';
+		$inputRuleVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
+		if(preg_match('/('.$relationName.')/', $relationAttribute))
+			$inputRuleVariable = lcfirst(Inflector::id2camel($relationAttribute, '_'));
+		$arrayRelations[$relationFixedName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTable,'.'));
+		if(!in_array($inputRuleVariable, $inputRuleVariables))
 			$inputRuleVariables[] = $inputRuleVariable;
-		}
 		if(!in_array($column->name, $inputSearchVariables)) {
-			$attribute = $smallintCondition ? $column->name : $inputRuleVariable;
-			$inputSearchVariables[$attribute] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTableName, '.'))]);
+			if(preg_match('/(smallint)/', $column->type))
+				$inputSearchVariables[$column->name] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTable, '.'))]);
+			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTable, '.'))]);
 		}
 	}
 }
@@ -120,14 +119,12 @@ foreach ($tableSchema->columns as $column) {
 	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id'])) {
 		$relationName = $generator->setRelation($column->name);
 		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
-		$inputRuleVariable = $relationName.'_search';
+		$inputRuleVariable = $relationName.'Displayname';
 		$arrayRelations[$relationFixedName] = $relationFixedName;
-		if(!in_array($inputRuleVariable, $inputRuleVariables)) {
+		if(!in_array($inputRuleVariable, $inputRuleVariables))
 			$inputRuleVariables[] = $inputRuleVariable;
-		}
-		if(!in_array($inputRuleVariable, $inputSearchVariables)) {
+		if(!in_array($inputRuleVariable, $inputSearchVariables))
 			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationFixedName, 'displayname']);
-		}
 	}
 }
 

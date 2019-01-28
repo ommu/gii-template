@@ -94,7 +94,7 @@ endforeach;
  * @link <?php echo $generator->link."\n";?>
  *
  */
- 
+
 namespace <?= StringHelper::dirname(ltrim($generator->controllerClass, '\\')) ?>;
 
 use Yii;
@@ -212,6 +212,9 @@ endforeach;
 
 		if(Yii::$app->request->isPost) {
 			$model->load(Yii::$app->request->post());
+			// $postData = Yii::$app->request->post();
+			// $model->load($postData);
+
 			if($model->save()) {
 				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success created.');?>);
 				return $this->redirect(['manage']);
@@ -242,6 +245,8 @@ endforeach;
 		$model = $this->findModel(<?= $actionParams ?>);
 		if(Yii::$app->request->isPost) {
 			$model->load(Yii::$app->request->post());
+			// $postData = Yii::$app->request->post();
+			// $model->load($postData);
 
 			if($model->save()) {
 				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);

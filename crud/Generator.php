@@ -395,7 +395,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				$relationName = $this->setRelation($attribute);
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [$modelClass::getUploadPath(false), \$model->$primaryKey])" : "$modelClass::getUploadPath(false)";
 				return "\$uploadPath = $uploadPath;
-\$$relationName = !\$model->isNewRecord && \$model->old_{$attribute}_i != '' ? Html::img(join('/', [Url::Base(), \$uploadPath, \$model->old_{$attribute}_i]), ['class'=>'mb-15', 'width'=>'100%']) : '';
+\$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? Html::img(join('/', [Url::Base(), \$uploadPath, \$model->old_{$attribute}]), ['class'=>'mb-15', 'width'=>'100%']) : '';
 echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><div>'.\$$relationName.'</div>{input}{error}</div>'])
 \t->fileInput()
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
@@ -506,13 +506,24 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 
 		if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 			$relationName = $this->setRelation($column->name);
-			$attribute = $relationName.'_search';
+			$relationAttribute = 'displayname';
+			$attribute = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
+			if($foreignCondition) {
+				$relationTable = trim($foreignKeys[$column->name]);
+				$relationSchema = $this->getTableSchemaWithTableName($relationTable);
+				$relationAttribute = key($this->getNameAttributes($relationSchema));
+				if($relationTable == 'ommu_users')
+					$relationAttribute = 'displayname';
+				$attribute = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
+				if(preg_match('/('.$relationName.')/', $relationAttribute))
+					$attribute = lcfirst(Inflector::id2camel($relationAttribute, '_'));
+			}
 			if($column->name == 'tag_id')
-				$attribute = $relationName.'_i';
+				$attribute = $relationName.ucwords('body');
 			if($smallintCondition) {
 				$attribute = $column->name;
-				$relationTableName = trim($foreignKeys[$column->name]);
-				$relationClassName = $this->generateClassName($relationTableName);
+				$relationTable = trim($foreignKeys[$column->name]);
+				$relationClassName = $this->generateClassName($relationTable);
 				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
 				return "\$$relationName = $relationClassName::get$functionName();
 		echo \$form->field(\$model, '$attribute')
@@ -779,7 +790,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         foreach ($tableSchema->columns as $column): 
             if(in_array($column->name, ['tag_id'])):
                 $relationName = $this->setRelation($column->name);
-                $publicVariable = $relationName.'_i';
+                $publicVariable = $relationName.ucwords('body');
                 if(!in_array($publicVariable, $publicVariables)) {
                     $publicVariables[] = $publicVariable;
                     $likeConditions[] = "->andFilterWhere(['like', '{$relationName}.body', \$this->{$publicVariable}])";
@@ -788,19 +799,21 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
         endforeach;
         foreach ($tableSchema->columns as $column): 
             if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && !in_array($column->name, array('tag_id'))):
-				$smallintCondition = 0;
-				if(preg_match('/(smallint)/', $column->type))
-					$smallintCondition = 1;
                 $relationName = $this->setRelation($column->name);
 				$relationFixedName = $this->setRelationFixed($relationName, $tableSchema->columns);
-                $publicVariable = $relationName.'_search';
-                $relationTableName = trim($foreignKeys[$column->name]);
-                $relationAttributeName = $this->getName2ndAttribute($relationName, $this->getNameAttribute($relationTableName, '.'));
-                if($relationTableName == 'ommu_users')
-                    $relationAttributeName = 'displayname';
-                if(!$smallintCondition && !in_array($publicVariable, $publicVariables)) {
+				$relationTable = trim($foreignKeys[$column->name]);
+				$relationSchema = $this->getTableSchemaWithTableName($relationTable);
+				$relationAttribute = key($this->getNameAttributes($relationSchema));
+				if($relationTable == 'ommu_users')
+					$relationAttribute = 'displayname';
+				$publicVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
+				if(preg_match('/('.$relationName.')/', $relationAttribute))
+					$publicVariable = lcfirst(Inflector::id2camel($relationAttribute, '_'));
+                if($relationTable != 'ommu_users')
+                	$relationAttribute = $this->getName2ndAttribute($relationName, $this->getNameAttribute($relationTable, '.'));
+                if(!in_array($publicVariable, $publicVariables)) {
                     $publicVariables[] = $publicVariable;
-                    $likeConditions[] = "->andFilterWhere(['like', '{$relationFixedName}.{$relationAttributeName}', \$this->{$publicVariable}])";
+                    $likeConditions[] = "->andFilterWhere(['like', '{$relationFixedName}.{$relationAttribute}', \$this->{$publicVariable}])";
                 }
             endif;
         endforeach;
@@ -814,7 +827,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
             if(in_array('user', $commentArray) || in_array($column->name, array('creation_id','modified_id','user_id','updated_id','member_id'))):
                 $relationName = $this->setRelation($column->name);
 				$relationFixedName = $this->setRelationFixed($relationName, $tableSchema->columns);
-                $publicVariable = $relationName.'_search';
+                $publicVariable = $relationName.ucwords('displayname');
                 if(!in_array($publicVariable, $publicVariables)) {
                     $publicVariables[] = $publicVariable;
                     $likeConditions[] = "->andFilterWhere(['like', '{$relationFixedName}.displayname', \$this->{$publicVariable}])";
@@ -1095,5 +1108,13 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 		}
 
 		return array_flip($dropDownOptions);
+	}
+
+	public function getTableSchemaWithTableName($tableName) 
+	{
+		$db = $this->getDbConnection();
+		$tableSchema = $db->getTableSchema($tableName);
+
+		return $tableSchema; 
 	}
 }

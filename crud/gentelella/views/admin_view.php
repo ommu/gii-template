@@ -75,6 +75,7 @@ $this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;
 
 $this->params['menu']['content'] = [
 	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['index']), 'icon' => 'table'],
+	['label' => <?= $generator->generateString('Detail') ?>, 'url' => Url::to(['view', <?= $urlParams ?>]), 'icon' => 'eye'],
 	['label' => <?= $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?= $urlParams ?>]), 'icon' => 'pencil'],
 	['label' => <?= $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?= $urlParams ?>]), 'htmlOptions' => ['data-confirm'=><?= $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method'=>'post'], 'icon' => 'trash'],
 ];
@@ -106,29 +107,28 @@ if (($tableSchema = $tableSchema) === false) {
 
 if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncrement || !$column->isPrimaryKey) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']))) {
 	$smallintCondition = 0;
-	$foreignCondition = 0;
 	if(preg_match('/(smallint)/', $column->type))
 		$smallintCondition = 1;
 	$relationName = $generator->setRelation($column->name);
-	$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
-	$publicAttribute = $relationName.'_search';
 	$relationAttribute = 'displayname';
+	$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
 	if(array_key_exists($column->name, $foreignKeys)) {
-		$foreignCondition = 1;
-		$relationTableName = trim($foreignKeys[$column->name]);
-		$relationAttribute = $generator->getNameAttribute($relationTableName);
-		if($relationTableName == 'ommu_users')
+		$relationTable = trim($foreignKeys[$column->name]);
+		$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
+		$relationAttribute = key($generator->getNameAttributes($relationSchema));
+		if($relationTable == 'ommu_users')
 			$relationAttribute = 'displayname';
+		$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
+		if(preg_match('/('.$relationName.')/', $relationAttribute))
+			$publicAttribute = $relationVariable = lcfirst(Inflector::id2camel($relationAttribute, '_'));
 	}
-	if($column->name == 'tag_id') {
-		$publicAttribute = $relationName.'_i';
-		$relationAttribute = 'body';
-	}
+	if($column->name == 'tag_id')
+		$publicAttribute = $relationVariable = $relationName.ucwords('body');
 	if($smallintCondition)
 		$publicAttribute = $column->name;?>
 		[
 			'attribute' => '<?php echo $publicAttribute;?>',
-			'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
+			'value' => $model-><?php echo $relationVariable;?>,
 		],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 		[
