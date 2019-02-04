@@ -65,8 +65,8 @@ echo "<?php\n";
  *
  */
 
+use yii\helpers\Html;
 use yii\helpers\Url;
-<?php echo $uploadCondition || $relationCondition ? "use yii\helpers\Html;\n" : '';?>
 use yii\widgets\DetailView;
 <?php echo $uploadCondition || $getFunctionCondition || $permissionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
@@ -100,8 +100,12 @@ if (($tableSchema = $tableSchema) === false) {
 			continue;
 
 		$foreignCondition = 0;
-		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
+		$foreignUserCondition = 0;
+		if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
 			$foreignCondition = 1;
+			if($foreignKeys[$column->name] == 'ommu_users')
+				$foreignUserCondition = 1;
+		}
 
 		$commentArray = explode(',', $column->comment);
 
@@ -129,8 +133,18 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 	if($smallintCondition)
 		$publicAttribute = $column->name;?>
 		[
-			'attribute' => '<?php echo $publicAttribute;?>',
+			'attribute' => '<?php echo $relationVariable;?>',
+<?php if($foreignCondition && !$foreignUserCondition):?>
+			'value' => function ($model) {
+				$<?php echo $relationVariable;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+				if($<?php echo $relationVariable;?> != '-')
+					return Html::a($<?php echo $relationVariable;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $relationVariable;?>]);
+				return $<?php echo $relationVariable;?>;
+			},
+			'format' => 'html',
+<?php else:?>
 			'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
+<?php endif;?>
 		],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 		[
@@ -239,6 +253,6 @@ foreach ($relations as $name => $relation) {
 <?php }
 ?>
 	],
-]) ?>
+]); ?>
 
 </div>

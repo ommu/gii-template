@@ -181,8 +181,8 @@ namespace <?= $generator->ns ?>;
 
 use Yii;
 <?php 
-echo $publishCondition || $urlCondition || $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';
 echo $uploadCondition || $relationCondition ? "use ".ltrim('yii\helpers\Html', '\\').";\n" : '';
+echo $publishCondition || $urlCondition || $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';

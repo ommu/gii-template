@@ -39,6 +39,17 @@ $primaryKeyColumn = $tableSchema->columns[$primaryKey];
 if($primaryKeyColumn->comment == 'trigger')
 	$primaryKeyTriggerCondition = 1;
 
+$foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
+$arrayRelation = array();
+$i=0;
+foreach($foreignKeys as $key => $val) {
+	if($key == 'user_id' || $val == 'ommu_users')
+		continue;
+	$arrayRelation[$i]['relation'] = $generator->setRelation($key);
+	$arrayRelation[$i]['table'] = $val;
+	$i++;
+}
+
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
@@ -108,7 +119,10 @@ use <?= ltrim($generator->modelClass, '\\') ?>;
 use <?= ltrim($generator->searchModelClass, '\\') . (isset($searchModelAlias) ? " as $searchModelAlias" : "") ?>;
 <?php else: ?>
 use yii\data\ActiveDataProvider;
-<?php endif; ?>
+<?php endif;
+if(!empty($arrayRelation)): ?>
+use <?= ltrim(str_replace($modelClass, $generator->generateClassName($arrayRelation[0]['table']), $generator->modelClass), '\\') ?>;
+<?php endif;?>
 
 class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->baseControllerClass) . "\n" ?>
 {
@@ -163,7 +177,7 @@ endforeach;
 	 * Lists all <?= $modelClass ?> models.
 	 * @return mixed
 	 */
-	public function actionManage()
+	public function actionManage(<?php echo !empty($arrayRelation) ? '$'.$arrayRelation[0]['relation'].'=null' : '';?>)
 	{
 <?php if (!empty($generator->searchModelClass)): ?>
 		$searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
@@ -178,6 +192,11 @@ endforeach;
 			}
 		}
 		$columns = $searchModel->getGridColumn($cols);
+<?php if(!empty($arrayRelation)) {?>
+
+		if($<?php echo $arrayRelation[0]['relation'];?> != null)
+			$model = <?php echo $generator->generateClassName($arrayRelation[0]['table']);?>::findOne($<?php echo $arrayRelation[0]['relation'];?>);
+<?php }?>
 
 		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($shortLabel));?>;
 		$this->view->description = '';
@@ -186,6 +205,10 @@ endforeach;
 			'searchModel' => $searchModel,
 			'dataProvider' => $dataProvider,
 			'columns' => $columns,
+<?php if(!empty($arrayRelation)) {?>
+			'<?php echo $arrayRelation[0]['relation'];?>' => $<?php echo $arrayRelation[0]['relation'];?>,
+			'model' => $model,
+<?php }?>
 		]);
 <?php else: ?>
 		$dataProvider = new ActiveDataProvider([

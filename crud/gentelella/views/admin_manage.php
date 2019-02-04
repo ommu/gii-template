@@ -15,6 +15,19 @@ $label = Inflector::camel2words($modelClass);
 
 $functionLabel = ucwords($generator->shortLabel($modelClass));
 
+$tableSchema = $generator->getTableSchema();
+
+$foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
+$arrayRelation = array();
+$i=0;
+foreach($foreignKeys as $key => $val) {
+	if($key == 'user_id' || $val == 'ommu_users')
+		continue;
+	$arrayRelation[$i]['relation'] = $generator->setRelation($key);
+	$arrayRelation[$i]['table'] = $val;
+	$i++;
+}
+
 $yaml = $generator->loadYaml('author.yaml');
 
 echo "<?php\n";
@@ -43,6 +56,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use <?= ($generator->indexWidgetType === 'grid' ? "app\\components\\grid\\GridView" : "yii\\widgets\\ListView"); ?>;
 <?= $generator->enablePjax ? 'use yii\widgets\Pjax;'."\n" : ''; ?>
+<?= !empty($arrayRelation) ? 'use yii\widgets\DetailView;'."\n" : ''; ?>
 
 $this->params['breadcrumbs'][] = $this->title;
 
@@ -57,10 +71,181 @@ $this->params['menu']['option'] = [
 <?php endif; ?>
 ?>
 
-<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-index">
-<?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n" : ''; ?>
+<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-manage">
+<?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n\n" : '';
 
-<?php if(!empty($generator->searchModelClass)): ?>
+if(!empty($arrayRelation)) {?>
+<?php echo "<?php ";?>if($<?php echo $arrayRelation[0]['relation'];?> != null) {
+echo DetailView::widget([
+	'model' => $model,
+	'options' => [
+		'class'=>'table table-striped detail-view',
+	],
+	'attributes' => [
+<?php
+$parentTableName = $arrayRelation[0]['table'];
+$parentTableSchema = $generator->getTableSchemaWithTableName($parentTableName);
+$parentPrimaryKey = $generator->getPrimaryKey($parentTableSchema);
+$parentForeignKeys = $generator->getForeignKeys($parentTableSchema->foreignKeys);
+$parentController = strtolower(Inflector::singularize($generator->setRelation($parentTableName, true)));
+
+if (($parentTableSchema = $parentTableSchema) === false) {
+	foreach ($generator->getColumnNames() as $name) {
+		echo "\t\t'" . $name . "',\n";
+	}
+} else {
+	foreach ($parentTableSchema->columns as $column) {
+		if($column->name[0] == '_' || $column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || in_array($column->name, ['modified_date','modified_id','updated_date','updated_id','slug']))
+			continue;
+
+		$foreignCondition = 0;
+		$foreignUserCondition = 0;
+		if(!empty($parentForeignKeys) && array_key_exists($column->name, $parentForeignKeys)) {
+			$foreignCondition = 1;
+			if($parentForeignKeys[$column->name] == 'ommu_users')
+				$foreignUserCondition = 1;
+		}
+
+		$commentArray = explode(',', $column->comment);
+
+if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncrement || !$column->isPrimaryKey) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']))) {
+	$smallintCondition = 0;
+	if(preg_match('/(smallint)/', $column->type))
+		$smallintCondition = 1;
+	$relationName = $generator->setRelation($column->name);
+	$relationFixedName = $generator->setRelationFixed($relationName, $parentTableSchema->columns);
+	$relationAttribute = $variableAttribute = 'displayname';
+	$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
+	if(array_key_exists($column->name, $parentForeignKeys)) {
+		$relationTable = trim($parentForeignKeys[$column->name]);
+		$relationAttribute = $generator->getNameAttribute($relationTable);
+		$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
+		$variableAttribute = key($generator->getNameAttributes($relationSchema));
+		if($relationTable == 'ommu_users')
+			$relationAttribute = $variableAttribute = 'displayname';
+		$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
+		if(preg_match('/('.$relationName.')/', $variableAttribute))
+			$publicAttribute = $relationVariable = lcfirst(Inflector::id2camel($variableAttribute, '_'));
+	}
+	if($column->name == 'tag_id')
+		$publicAttribute = $relationVariable = $relationName.ucwords('body');
+	if($smallintCondition)
+		$publicAttribute = $column->name;?>
+		[
+			'attribute' => '<?php echo $relationVariable;?>',
+<?php if($foreignCondition && !$foreignUserCondition):?>
+			'value' => function ($model) {
+				$<?php echo $relationVariable;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+				if($<?php echo $relationVariable;?> != '-')
+					return Html::a($<?php echo $relationVariable;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $relationVariable;?>]);
+				return $<?php echo $relationVariable;?>;
+			},
+			'format' => 'html',
+<?php else:?>
+			'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
+<?php endif;?>
+		],
+<?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
+		[
+			'attribute' => '<?php echo $column->name;?>',
+<?php if($column->dbType == 'date') {?>
+			'value' => Yii::$app->formatter->asDate($model-><?php echo $column->name;?>, 'medium'),
+<?php } else {?>
+			'value' => Yii::$app->formatter->asDatetime($model-><?php echo $column->name;?>, 'medium'),
+<?php }?>
+		],
+<?php } else if($column->dbType == 'tinyint(1)') {?>
+		[
+			'attribute' => '<?php echo $column->name;?>',
+<?php if($primaryKeyTriggerCondition) {
+if($column->comment != '') {
+	$commentArray = explode(',', $column->comment);?>
+			'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
+<?php } else {?>
+			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
+<?php }
+} else {
+if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
+	$comment = $column->comment;
+	if($column->name == 'headline' && $comment == '')
+		$comment = 'Headline,Unheadline';
+	if($comment != '') {
+if($comment != '' && $comment[0] == '"') {
+	$functionName = ucfirst($generator->setRelation($column->name));?>
+			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+<?php } else {?>
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
+<?php }?>
+<?php } else {?>
+			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+<?php }
+if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
+			'format' => 'raw',
+<?php }
+} else if($column->name == 'permission') {
+	$functionName = ucfirst($generator->setRelation($column->name));?>
+			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+<?php } else {?>
+			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
+<?php }
+}?>
+		],
+<?php } else if (is_array($column->enumValues) && count($column->enumValues) > 0) {
+			$dropDownOptionKey = $dropDownOptions[$column->dbType];
+			$functionName = ucfirst($generator->setRelation($dropDownOptionKey));?>
+		[
+			'attribute' => '<?php echo $column->name;?>',
+			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+		],
+<?php } else if($column->type == 'text') {?>
+		[
+			'attribute' => '<?php echo $column->name;?>',
+<?php if(in_array('file', $commentArray)):?>
+			'value' => function ($model) {
+<?php if($generator->uploadPathSubfolder) {?>
+				$uploadPath = join('/', [<?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
+<?php } else {?>
+				$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
+<?php }?>
+				return $model-><?php echo $column->name;?> ? Html::img(join('/', [Url::Base(), $uploadPath, $model-><?php echo $column->name;?>]), ['width' => '100%']).'<br/><br/>'.$model-><?php echo $column->name;?> : '-';
+			},
+<?php elseif(in_array('serialize', $commentArray)):?>
+			'value' => serialize($model-><?php echo $column->name;?>),
+<?php else:?>
+			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
+<?php endif;
+if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
+			'format' => 'html',
+<?php endif;?>
+		],
+<?php } else {
+	if(in_array('trigger[delete]', $commentArray)) {
+		$publicAttribute = $column->name.'_i';?>
+		[
+			'attribute' => '<?php echo $publicAttribute;?>',
+			'value' => function ($model) {
+				if($model-><?php echo $publicAttribute;?> != '')
+					return Html::a($model-><?php echo $publicAttribute;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $publicAttribute;?>]);
+				return $model-><?php echo $publicAttribute;?>;
+			},
+			'format' => 'html',
+<?php if(in_array('redactor', $commentArray)):?>
+<?php endif;?>
+		],
+<?php } else {
+		$format = $generator->generateColumnFormat($column);
+		echo "\t\t'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+		}
+	}
+	}
+}?>
+	],
+]);
+}?>
+
+<?php }
+
+if(!empty($generator->searchModelClass)): ?>
 <?= "<?php " . ($generator->indexWidgetType === 'grid' ? "//" : "") ?>echo $this->render('_search', ['model'=>$searchModel]); ?>
 
 <?= "<?php " . ($generator->indexWidgetType !== 'grid' ? "//" : "") ?>echo $this->render('_option_form', ['model'=>$searchModel, 'gridColumns'=>$this->activeDefaultColumns($columns), 'route'=>$this->context->route]); ?>
@@ -75,7 +260,7 @@ $columnData = [
 	['class' => 'yii\grid\SerialColumn'],
 <?php
 $count = 0;
-if (($tableSchema = $generator->getTableSchema()) === false) {
+if ($tableSchema === false) {
 	foreach ($generator->getColumnNames() as $name) {
 		if (++$count < 6) {
 			echo "\t\t\t\t'" . $name . "',\n";
