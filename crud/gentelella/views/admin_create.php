@@ -42,7 +42,7 @@ $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($fun
 $this->params['breadcrumbs'][] = <?php echo $generator->generateString('Create')?>;
 
 $this->params['menu']['content'] = [
-	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['index']), 'icon' => 'table'],
+	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['manage']), 'icon' => 'table'],
 ];
 ?>
 
