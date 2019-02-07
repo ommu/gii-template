@@ -43,10 +43,10 @@ $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $arrayRelation = array();
 $i=0;
 foreach($foreignKeys as $key => $val) {
-	if($key == 'user_id' || $val == 'ommu_users')
-		continue;
 	$arrayRelation[$i]['relation'] = $generator->setRelation($key);
 	$arrayRelation[$i]['table'] = $val;
+	$namespace = $val != 'ommu_users' ? str_replace($modelClass, $generator->generateClassName($val), $generator->modelClass) : 'ommu\users\models\Users';
+	$arrayRelation[$i]['namespace'] = $namespace;
 	$i++;
 }
 
@@ -120,9 +120,11 @@ use <?= ltrim($generator->searchModelClass, '\\') . (isset($searchModelAlias) ? 
 <?php else: ?>
 use yii\data\ActiveDataProvider;
 <?php endif;
-if(!empty($arrayRelation)): ?>
-use <?= ltrim(str_replace($modelClass, $generator->generateClassName($arrayRelation[0]['table']), $generator->modelClass), '\\') ?>;
-<?php endif;?>
+if(!empty($arrayRelation)):
+	foreach($arrayRelation as $key => $val) { ?>
+use <?= ltrim($arrayRelation[$key]['namespace'], '\\') ?>;
+<?php }
+endif;?>
 
 class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->baseControllerClass) . "\n" ?>
 {
@@ -177,9 +179,16 @@ endforeach;
 	 * Lists all <?= $modelClass ?> models.
 	 * @return mixed
 	 */
-	public function actionManage(<?php echo !empty($arrayRelation) ? '$'.$arrayRelation[0]['relation'].'=null' : '';?>)
+	public function actionManage()
 	{
-<?php if (!empty($generator->searchModelClass)): ?>
+<?php 
+if(!empty($arrayRelation)) {
+	foreach($arrayRelation as $key => $val) {?>
+		$<?php echo $arrayRelation[$key]['relation'];?> = Yii::$app->request->get('<?php echo $arrayRelation[$key]['relation'];?>');
+<?php }
+	echo "\n";
+}
+if (!empty($generator->searchModelClass)): ?>
 		$searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
 		$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -192,11 +201,13 @@ endforeach;
 			}
 		}
 		$columns = $searchModel->getGridColumn($cols);
-<?php if(!empty($arrayRelation)) {?>
-
-		if($<?php echo $arrayRelation[0]['relation'];?> != null)
-			$model = <?php echo $generator->generateClassName($arrayRelation[0]['table']);?>::findOne($<?php echo $arrayRelation[0]['relation'];?>);
-<?php }?>
+<?php if(!empty($arrayRelation)) {
+	echo "\n";
+	foreach($arrayRelation as $key => $val) {?>
+		if($<?php echo $arrayRelation[$key]['relation'];?> != null)
+			$<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?> = <?php echo $generator->generateClassName($arrayRelation[$key]['table']);?>::findOne($<?php echo $arrayRelation[$key]['relation'];?>);
+<?php }
+}?>
 
 		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($shortLabel));?>;
 		$this->view->description = '';
@@ -205,10 +216,12 @@ endforeach;
 			'searchModel' => $searchModel,
 			'dataProvider' => $dataProvider,
 			'columns' => $columns,
-<?php if(!empty($arrayRelation)) {?>
-			'<?php echo $arrayRelation[0]['relation'];?>' => $<?php echo $arrayRelation[0]['relation'];?>,
-			'model' => $model,
-<?php }?>
+<?php if(!empty($arrayRelation)) {
+	foreach($arrayRelation as $key => $val) {?>
+			'<?php echo $arrayRelation[$key]['relation'];?>' => $<?php echo $arrayRelation[$key]['relation'];?>,
+			'<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>' => $<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>,
+<?php }
+}?>
 		]);
 <?php else: ?>
 		$dataProvider = new ActiveDataProvider([

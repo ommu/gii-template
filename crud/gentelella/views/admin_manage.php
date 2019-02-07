@@ -21,10 +21,10 @@ $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $arrayRelation = array();
 $i=0;
 foreach($foreignKeys as $key => $val) {
-	if($key == 'user_id' || $val == 'ommu_users')
-		continue;
 	$arrayRelation[$i]['relation'] = $generator->setRelation($key);
 	$arrayRelation[$i]['table'] = $val;
+	$namespace = $val != 'ommu_users' ? str_replace($modelClass, $generator->generateClassName($val), $generator->modelClass) : 'ommu\users\models\Users';
+	$arrayRelation[$i]['namespace'] = $namespace;
 	$i++;
 }
 
@@ -57,7 +57,12 @@ use yii\helpers\Url;
 use <?= ($generator->indexWidgetType === 'grid' ? "app\\components\\grid\\GridView" : "yii\\widgets\\ListView"); ?>;
 <?= $generator->enablePjax ? 'use yii\widgets\Pjax;'."\n" : ''; ?>
 use yii\helpers\ArrayHelper;
-<?= !empty($arrayRelation) ? 'use yii\widgets\DetailView;'."\n" : ''; ?>
+<?php if(!empty($arrayRelation)):
+echo 'use yii\widgets\DetailView;'."\n";
+	foreach($arrayRelation as $key => $val) { ?>
+use <?= ltrim($arrayRelation[$key]['namespace'], '\\') ?>;
+<?php }
+endif;?>
 
 $this->params['breadcrumbs'][] = $this->title;
 
@@ -75,17 +80,20 @@ $this->params['menu']['option'] = [
 <div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-manage">
 <?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n\n" : '';
 
-if(!empty($arrayRelation)) {?>
-<?php echo "<?php ";?>if($<?php echo $arrayRelation[0]['relation'];?> != null) {
+if(!empty($arrayRelation)) {
+	foreach($arrayRelation as $key => $val) {?>
+<?php echo "<?php ";?>if($<?php echo $arrayRelation[$key]['relation'];?> != null) {
+$model = $<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>;
 echo DetailView::widget([
-	'model' => $model,
+	'model' => $<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>,
 	'options' => [
 		'class'=>'table table-striped detail-view',
 	],
 	'attributes' => [
 <?php
-$parentTableName = $arrayRelation[0]['table'];
+$parentTableName = $arrayRelation[$key]['table'];
 $parentTableSchema = $generator->getTableSchemaWithTableName($parentTableName);
+$parentClassName = $generator->generateClassName($parentTableName);
 $parentPrimaryKey = $generator->getPrimaryKey($parentTableSchema);
 $parentForeignKeys = $generator->getForeignKeys($parentTableSchema->foreignKeys);
 $parentController = strtolower(Inflector::singularize($generator->setRelation($parentTableName, true)));
@@ -96,8 +104,13 @@ if (($parentTableSchema = $parentTableSchema) === false) {
 	}
 } else {
 	foreach ($parentTableSchema->columns as $column) {
-		if($column->name[0] == '_' || $column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || in_array($column->name, ['modified_date','modified_id','updated_date','updated_id','slug']))
-			continue;
+		if($parentTableName == 'ommu_users') {
+			if(!in_array($column->name, ['enabled','verified','level_id','email','lastlogin_date']))
+				continue;
+		} else {
+			if($column->name[0] == '_' || $column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || in_array($column->name, ['modified_date','modified_id','updated_date','updated_id','slug']))
+				continue;
+		}
 
 		$foreignCondition = 0;
 		$foreignUserCondition = 0;
@@ -134,7 +147,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 		$publicAttribute = $column->name;?>
 		[
 			'attribute' => '<?php echo $relationVariable;?>',
-<?php if($foreignCondition && !$foreignUserCondition):?>
+<?php if($parentTableName != 'ommu_users' && $foreignCondition && !$foreignUserCondition):?>
 			'value' => function ($model) {
 				$<?php echo $relationVariable;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
 				if($<?php echo $relationVariable;?> != '-')
@@ -155,48 +168,28 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 			'value' => Yii::$app->formatter->asDatetime($model-><?php echo $column->name;?>, 'medium'),
 <?php }?>
 		],
-<?php } else if($column->dbType == 'tinyint(1)') {?>
+<?php } else if($column->dbType == 'tinyint(1)') {
+	$comment = $column->comment;?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-<?php if($primaryKeyTriggerCondition) {
-if($column->comment != '') {
-	$commentArray = explode(',', $column->comment);?>
-			'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
-<?php } else {?>
-			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
-<?php }
-} else {
-if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
-	$comment = $column->comment;
-	if($column->name == 'headline' && $comment == '')
-		$comment = 'Headline,Unheadline';
-	if($comment != '') {
+<?php if($comment != '') {
 if($comment != '' && $comment[0] == '"') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
-			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
-<?php } else {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
-<?php }?>
-<?php } else {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+			'value' => <?php echo $parentClassName;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+<?php } else {
+	$commentArray = explode(',', $column->comment);?>
+			'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
 <?php }
-if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
-			'format' => 'raw',
-<?php }
-} else if($column->name == 'permission') {
-	$functionName = ucfirst($generator->setRelation($column->name));?>
-			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
-<?php } else {?>
+} else {?>
 			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
-<?php }
-}?>
+<?php }?>
 		],
 <?php } else if (is_array($column->enumValues) && count($column->enumValues) > 0) {
 			$dropDownOptionKey = $dropDownOptions[$column->dbType];
 			$functionName = ucfirst($generator->setRelation($dropDownOptionKey));?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
-			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+			'value' => <?php echo $parentClassName;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 		],
 <?php } else if($column->type == 'text') {?>
 		[
@@ -204,9 +197,9 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 <?php if(in_array('file', $commentArray)):?>
 			'value' => function ($model) {
 <?php if($generator->uploadPathSubfolder) {?>
-				$uploadPath = join('/', [<?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
+				$uploadPath = join('/', [<?php echo $parentClassName;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
 <?php } else {?>
-				$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
+				$uploadPath = <?php echo $parentClassName;?>::getUploadPath(false);
 <?php }?>
 				return $model-><?php echo $column->name;?> ? Html::img(join('/', [Url::Base(), $uploadPath, $model-><?php echo $column->name;?>]), ['width' => '100%']).'<br/><br/>'.$model-><?php echo $column->name;?> : '-';
 			},
@@ -245,6 +238,7 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 }?>
 
 <?php }
+}
 
 if(!empty($generator->searchModelClass)): ?>
 <?= "<?php " . ($generator->indexWidgetType === 'grid' ? "//" : "") ?>echo $this->render('_search', ['model'=>$searchModel]); ?>

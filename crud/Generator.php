@@ -105,7 +105,7 @@ class Generator extends \ommu\gii\Generator
             'searchModelClass' => 'Search Model Class',
             'enablePjax' => 'Enable Pjax',
             'attachRBACFilter' => 'Attach RBAC filter',
-			'uploadPathSubfolder'=>'Use Subfolder with PrimaryKey',
+			'uploadPathSubfolder'=>'Use Subfolder (PrimaryKey) in Upload Path',
             'link'=>'Link Repository',
             'useModified'=>'Use Modified Info',
         ]);
