@@ -16,6 +16,12 @@ $label = Inflector::camel2words($modelClass);
 $functionLabel = ucwords($generator->shortLabel($modelClass));
 
 $tableSchema = $generator->getTableSchema();
+$primaryKey = $generator->getPrimaryKey($tableSchema);
+
+$primaryKeyTriggerCondition = 0;
+$primaryKeyColumn = $tableSchema->columns[$primaryKey];
+if($primaryKeyColumn->comment == 'trigger')
+	$primaryKeyTriggerCondition = 1;
 
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $arrayRelation = array();
@@ -66,10 +72,12 @@ endif;?>
 
 $this->params['breadcrumbs'][] = $this->title;
 
+<?php if(!$primaryKeyTriggerCondition):?>
 $this->params['menu']['content'] = [
 	['label' => <?= $generator->generateString('Add '.$functionLabel) ?>, 'url' => Url::to(['create']), 'icon' => 'plus-square'],
 ];
-<?php if(!empty($generator->searchModelClass)): ?>
+<?php endif;
+if(!empty($generator->searchModelClass)): ?>
 $this->params['menu']['option'] = [
 <?= ($generator->indexWidgetType === 'grid' ? "\t//" : "\t") ?>['label' => <?php echo $generator->generateString('Search');?>, 'url' => 'javascript:void(0);'],
 <?= ($generator->indexWidgetType !== 'grid' ? "\t//" : "\t") ?>['label' => <?php echo $generator->generateString('Grid Option');?>, 'url' => 'javascript:void(0);'],
