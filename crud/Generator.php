@@ -512,7 +512,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				$relationTable = trim($foreignKeys[$column->name]);
 				$relationSchema = $this->getTableSchemaWithTableName($relationTable);
 				$relationAttribute = key($this->getNameAttributes($relationSchema));
-				if($relationTable == 'ommu_users')
+				if(in_array($relationTable, ['ommu_users', 'ommu_members']))
 					$relationAttribute = 'displayname';
 				$attribute = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
 				if(preg_match('/('.$relationName.')/', $relationAttribute))
@@ -1116,5 +1116,18 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 		$tableSchema = $db->getTableSchema($tableName);
 
 		return $tableSchema; 
+	}
+
+	public function getModuleName() 
+	{
+		$modelClass = explode('models', $this->modelClass);
+		$moduleArray = explode('\\', trim($modelClass[0], '\\'));
+
+		return end($moduleArray);
+	}
+
+	public function getUseModel($module, $modelClass) 
+	{
+		return str_replace([$this->getModuleName(), StringHelper::basename($this->modelClass)], [$module, $modelClass], $this->modelClass);
 	}
 }

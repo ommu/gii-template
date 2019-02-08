@@ -14,9 +14,12 @@ $tableSchema = $generator->tableSchema;
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $getFunctionCondition = 0;
+$enumCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	if($column->comment != '' && $column->comment[0] == '"')
 		$getFunctionCondition = 1;
+	if (is_array($column->enumValues) && count($column->enumValues) > 0)
+		$enumCondition = 1;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -45,7 +48,7 @@ echo "<?php\n";
 
 use yii\helpers\Html;
 use app\components\ActiveForm;
-<?php echo $getFunctionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
+<?php echo $getFunctionCondition || $enumCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 <?php foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {
 		$relationTableName = trim($foreignKeys[$column->name]);

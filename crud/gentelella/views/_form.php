@@ -25,6 +25,7 @@ $uploadCondition = 0;
 $foreignCondition = 0;
 $getFunctionCondition = 0;
 $permissionCondition = 0;
+$enumCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('redactor', $commentArray))
@@ -40,6 +41,8 @@ foreach ($tableSchema->columns as $column) {
 		$getFunctionCondition = 1;
 	if($column->name == 'permission')
 		$permissionCondition = 1;
+	if (is_array($column->enumValues) && count($column->enumValues) > 0)
+		$enumCondition = 1;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -70,7 +73,7 @@ use yii\helpers\Html;
 <?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
 use app\components\ActiveForm;
 <?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
-<?php echo $uploadCondition || $getFunctionCondition || $permissionCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
+<?php echo $uploadCondition || $getFunctionCondition || $permissionCondition || $enumCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
 foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {
 		$relationTableName = trim($foreignKeys[$column->name]);

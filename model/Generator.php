@@ -1236,4 +1236,17 @@ class Generator extends \ommu\gii\Generator
 
 		return $tableSchema; 
 	}
+
+	public function getModuleName() 
+	{
+		$ns = explode('models', $this->ns);
+		$moduleArray = explode('\\', trim($ns[0], '\\'));
+
+		return end($moduleArray);
+	}
+
+	public function getUseModel($module, $modelClass) 
+	{
+		return join('\\', [str_replace($this->getModuleName(), $module, $this->ns), $modelClass]);
+	}
 }

@@ -86,9 +86,10 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	/**
 	 * {@inheritdoc}
 	 */
-	public function published() 
+	public function headlined() 
 	{
-		return $this->andWhere(['publish' => 1])->andWhere(['<?php echo $column->name;?>' => 1]);
+		return $this->andWhere(['publish' => 1])
+			->andWhere(['<?php echo $column->name;?>' => 1]);
 	}
 <?php endif;
 endforeach;?>

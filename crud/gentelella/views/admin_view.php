@@ -22,6 +22,7 @@ $getFunctionCondition = 0;
 $permissionCondition = 0;
 $primaryKeyTriggerCondition = 0;
 $relationCondition = 0;
+$enumCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) 
@@ -30,6 +31,8 @@ foreach ($tableSchema->columns as $column) {
 		$getFunctionCondition = 1;
 	if($column->name == 'permission')
 		$permissionCondition = 1;
+	if (is_array($column->enumValues) && count($column->enumValues) > 0)
+		$enumCondition = 1;
 }
 $primaryKeyColumn = $tableSchema->columns[$primaryKey];
 if($primaryKeyColumn->comment == 'trigger')
@@ -68,7 +71,7 @@ echo "<?php\n";
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
-<?php echo $uploadCondition || $getFunctionCondition || $permissionCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
+<?php echo $uploadCondition || $getFunctionCondition || $permissionCondition || $enumCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;
@@ -116,30 +119,30 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 	$relationName = $generator->setRelation($column->name);
 	$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 	$relationAttribute = $variableAttribute = 'displayname';
-	$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
+	$publicAttribute = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
 	if(array_key_exists($column->name, $foreignKeys)) {
 		$relationTable = trim($foreignKeys[$column->name]);
 		$relationAttribute = $generator->getNameAttribute($relationTable);
 		$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
 		$variableAttribute = key($generator->getNameAttributes($relationSchema));
-		if($relationTable == 'ommu_users')
+		if(in_array($relationTable, ['ommu_users', 'ommu_members']))
 			$relationAttribute = $variableAttribute = 'displayname';
-		$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
+		$publicAttribute = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
 		if(preg_match('/('.$relationName.')/', $variableAttribute))
-			$publicAttribute = $relationVariable = lcfirst(Inflector::id2camel($variableAttribute, '_'));
+			$publicAttribute = lcfirst(Inflector::id2camel($variableAttribute, '_'));
 	}
-	if($column->name == 'tag_id')
-		$publicAttribute = $relationVariable = $relationName.ucwords('body');
-	if($smallintCondition)
-		$publicAttribute = $column->name;?>
+	if($column->name == 'tag_id') {
+		$publicAttribute = $relationName.ucwords('body');
+		$relationAttribute =  'body';
+	}?>
 		[
-			'attribute' => '<?php echo $relationVariable;?>',
+			'attribute' => '<?php echo $publicAttribute;?>',
 <?php if($foreignCondition && !$foreignUserCondition):?>
 			'value' => function ($model) {
-				$<?php echo $relationVariable;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
-				if($<?php echo $relationVariable;?> != '-')
-					return Html::a($<?php echo $relationVariable;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $relationVariable;?>]);
-				return $<?php echo $relationVariable;?>;
+				$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+				if($<?php echo $publicAttribute;?> != '-')
+					return Html::a($<?php echo $publicAttribute;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>]);
+				return $<?php echo $publicAttribute;?>;
 			},
 			'format' => 'html',
 <?php else:?>

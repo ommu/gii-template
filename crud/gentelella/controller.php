@@ -40,13 +40,24 @@ if($primaryKeyColumn->comment == 'trigger')
 	$primaryKeyTriggerCondition = 1;
 
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
-$arrayRelation = array();
+$arrayRelation = $arrayNamespace = [];
 $i=0;
 foreach($foreignKeys as $key => $val) {
 	$arrayRelation[$i]['relation'] = $generator->setRelation($key);
 	$arrayRelation[$i]['table'] = $val;
-	$namespace = $val != 'ommu_users' ? str_replace($modelClass, $generator->generateClassName($val), $generator->modelClass) : 'ommu\users\models\Users';
-	$arrayRelation[$i]['namespace'] = $namespace;
+	if($val == 'ommu_users')
+		$namespace = 'ommu\users\models\Users';
+	else if($val == 'ommu_members')
+		$namespace = 'ommu\member\models\Members';
+	else {
+		$module = $tableSchema->columns[$key]->comment;
+		if($module)
+			$namespace = $generator->getUseModel($module, $generator->generateClassName($val));
+		else
+			$namespace = str_replace($modelClass, $generator->generateClassName($val), $generator->modelClass);
+	}
+	if(!in_array($namespace, $arrayNamespace))
+		$arrayNamespace[] = $namespace;
 	$i++;
 }
 
@@ -120,9 +131,9 @@ use <?= ltrim($generator->searchModelClass, '\\') . (isset($searchModelAlias) ? 
 <?php else: ?>
 use yii\data\ActiveDataProvider;
 <?php endif;
-if(!empty($arrayRelation)):
-	foreach($arrayRelation as $key => $val) { ?>
-use <?= ltrim($arrayRelation[$key]['namespace'], '\\') ?>;
+if(!empty($arrayNamespace)):
+	foreach($arrayNamespace as $val) { ?>
+use <?= ltrim($val, '\\') ?>;
 <?php }
 endif;?>
 

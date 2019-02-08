@@ -38,7 +38,7 @@ class <?= $className ?> extends \app\components\Module
 	public $layout = 'main';
 
 	/**
-	* {@inheritdoc}
+	 * {@inheritdoc}
 	 */
 	public $controllerNamespace = '<?= $generator->getControllerNamespace() ?>';
 

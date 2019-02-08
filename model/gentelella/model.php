@@ -27,22 +27,21 @@ $patternClass[1] = '(Swt)';
 /**
  * Condition
  */
+$relationCondition = 0;
+$i18n = 0;
+$userCondition = 0;
+$memberCondition = 0;
+$tagCondition = 0;
 $tinyCondition = 0;
 $publishCondition = 0;
 $urlCondition = 0;
 $permissionCondition = 0;
+$dateCondition = 0;
 $slugCondition = 0;
-$tagCondition = 0;
-$memberCondition = 0;
-$userCondition = 0;
 $uploadCondition = 0;
 $serializeCondition = 0;
-$i18n = 0;
-$dateCondition = 0;
 $useGetFunctionCondition = 0;
-$relationCondition = 0;
 $primaryKeyTriggerCondition = 0;
-$relationCondition = 0;
 
 $relationArray = [];
 $inputPublicVariables = [];
@@ -58,6 +57,12 @@ else
  * foreignKeys Column
  */
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
+$otherModels = [];
+foreach ($foreignKeys as $key => $val) {
+	$module = $tableSchema->columns[$key]->comment;
+	if($module)
+		$otherModels[] = $generator->getUseModel($module, $generator->generateClassName($val));
+}
 
 $yaml = $generator->loadYaml('author.yaml');
 
@@ -89,21 +94,43 @@ foreach ($tableSchema->columns as $column) {
 		continue;
 
 	$commentArray = explode(',', $column->comment);
-	if(in_array('trigger[delete]', $commentArray) || in_array('user', $commentArray) || (!in_array($primaryKey, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
+	if(in_array('trigger[delete]', $commentArray) || in_array('user', $commentArray) || (!in_array($primaryKey, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']))) {
 		$relationCondition = 1;
+		if(in_array('trigger[delete]', $commentArray))
+			$i18n = 1;
+		if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
+			$userCondition = 1;
+		if($column->name == 'member_id')
+			$memberCondition = 1;
+		if($column->name == 'tag_id')
+			$tagCondition = 1;
+	}
 
-	if(in_array($column->dbType, ['tinyint(1)']))
+	if(in_array($column->dbType, ['tinyint(1)'])) {
 		$tinyCondition = 1;
+		if(in_array($column->name, ['publish','headline']))
+			$publishCondition = 1;
+		if(!in_array($column->name, ['publish','headline']) && $column->comment != '' && $column->comment[0] != '"')
+			$urlCondition = 1;
+		if($column->name == 'permission')
+			$permissionCondition = 1;
+	}
 
 	if(in_array($column->dbType, ['timestamp','datetime','date']))
 		$dateCondition = 1;
 
-	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
-		$userCondition = 1;?>
+	if($column->name == 'slug') 
+		$slugCondition = 1;
+
+	if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray))
+		$uploadCondition = 1;
+
+	if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('serialize', $commentArray))
+		$serializeCondition = 1;?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php }
 
-if (!empty($relations) || $relationCondition || $tinyCondition || $userCondition) {?>
+if (!empty($relations) || $relationCondition) {?>
  *
  * The followings are the available model relations:
 <?php foreach ($relations as $name => $relation) {
@@ -118,16 +145,7 @@ foreach ($tableSchema->columns as $column) {
 		continue;
 
 	$commentArray = explode(',', $column->comment);
-	if($column->dbType == 'tinyint(1)') {
-		if(in_array($column->name, ['publish','headline']))
-			$publishCondition = 1;
-		if(!in_array($column->name, ['publish','headline']) && $column->comment != '' && $column->comment[0] != '"')
-			$urlCondition = 1;
-		if($column->name == 'permission')
-			$permissionCondition = 1;
-	} elseif($column->name == 'slug') 
-		$slugCondition = 1;
-	elseif(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
+	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
 		$relationName = $generator->setRelation($column->name);
 		$relationName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		if(!in_array($relationName, $relationArray)) {
@@ -141,21 +159,10 @@ foreach ($tableSchema->columns as $column) {
 			else if(in_array('user', $commentArray))
 				echo " * @property Users \${$relationName}\n";
 		}
-		if($column->name == 'tag_id')
-			$tagCondition = 1;
-		else if($column->name == 'member_id')
-			$memberCondition = 1;
 	} else {
-		if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('file', $commentArray))
-			$uploadCondition = 1;
-		else if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('serialize', $commentArray))
-			$serializeCondition = 1;
-		else {
-			if(in_array('trigger[delete]', $commentArray)) {
-				$i18n = 1;
-				$relationName = $generator->i18nRelation($column->name);
-				echo " * @property SourceMessage \${$relationName}\n";
-			}
+		if(in_array('trigger[delete]', $commentArray)) {
+			$relationName = $generator->i18nRelation($column->name);
+			echo " * @property SourceMessage \${$relationName}\n";
 		}
 	}
 }
@@ -169,6 +176,7 @@ if($tableType != Generator::TYPE_VIEW) {
 		$primaryKeyTriggerCondition = 1;
 }
 
+$relationCondition = 0;
 foreach ($relations as $name => $relation) {
 	if($relation[2])
 		$relationCondition = 1;
@@ -190,6 +198,11 @@ echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('ommu\users\models\Users', '\\').";\n" : '';
 echo $memberCondition ? "use ".ltrim('ommu\member\models\Members', '\\').";\n" : '';
+if(!empty($otherModels)):
+	foreach($otherModels as $val) {
+		echo "use ".ltrim($val, '\\').";\n";
+	}
+endif;
 ?>
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
@@ -230,7 +243,7 @@ foreach ($tableSchema->columns as $column) {
 		$relationTable = trim($foreignKeys[$column->name]);
 		$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
 		$relationAttribute = key($generator->getNameAttributes($relationSchema));
-		if($relationTable == 'ommu_users')
+		if(in_array($relationTable, ['ommu_users', 'ommu_members']))
 			$relationAttribute = 'displayname';
 		$searchPublicVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
 		if(preg_match('/('.$relationName.')/', $relationAttribute))
@@ -496,20 +509,22 @@ foreach ($tableSchema->columns as $column) {
 		$relationName = $generator->setRelation($column->name);
 		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		$relationAttribute = $variableAttribute = 'displayname';
-		$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
+		$publicAttribute = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
 		if(array_key_exists($column->name, $foreignKeys)) {
 			$relationTable = trim($foreignKeys[$column->name]);
 			$relationAttribute = $generator->getNameAttribute($relationTable);
 			$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
 			$variableAttribute = key($generator->getNameAttributes($relationSchema));
-			if($relationTable == 'ommu_users')
-				$relationAttribute = $variableAttribute ='displayname';
-			$publicAttribute = $relationVariable = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
+			if(in_array($relationTable, ['ommu_users', 'ommu_members']))
+				$relationAttribute = $variableAttribute = 'displayname';
+			$publicAttribute = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
 			if(preg_match('/('.$relationName.')/', $variableAttribute))
-				$publicAttribute = $relationVariable = lcfirst(Inflector::id2camel($variableAttribute, '_'));
+				$publicAttribute = lcfirst(Inflector::id2camel($variableAttribute, '_'));
 		}
-		if($column->name == 'tag_id')
-			$publicAttribute = $relationVariable = $relationName.ucwords('body');
+		if($column->name == 'tag_id') {
+			$publicAttribute = $relationName.ucwords('body');
+			$relationAttribute = 'body';
+		}
 		if($smallintCondition)
 			$publicAttribute = $column->name;
 
@@ -893,7 +908,7 @@ foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
 		$foreignCondition = 1;
 	
-	if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
+	if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id'])) {
 		$relationName = $generator->setRelation($column->name);
 		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		$relationAttribute = 'displayname';
@@ -902,16 +917,12 @@ foreach ($tableSchema->columns as $column) {
 			$relationTable = trim($foreignKeys[$column->name]);
 			$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
 			$relationAttribute = key($generator->getNameAttributes($relationSchema));
-			if($relationTable == 'ommu_users')
+			if(in_array($relationTable, ['ommu_users', 'ommu_members']))
 				$relationAttribute = 'displayname';
 			$publicAttribute = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
 			if(preg_match('/('.$relationName.')/', $relationAttribute))
 				$publicAttribute = lcfirst(Inflector::id2camel($relationAttribute, '_'));
-			$relationAttribute = $relationTable == 'ommu_users' ? 'displayname' : $generator->getNameAttribute($relationTable);
-		}
-		if($column->name == 'tag_id') {
-			$publicAttribute = $relationName.ucwords('body');
-			$relationAttribute = 'body';
+			$relationAttribute = in_array($relationTable, ['ommu_users', 'ommu_members']) ? 'displayname' : $generator->getNameAttribute($relationTable);
 		}
 		echo "\t\t// \$this->$publicAttribute = isset(\$this->{$relationFixedName}) ? \$this->{$relationFixedName}->{$relationAttribute} : '-';\n";
 	}
@@ -1124,14 +1135,14 @@ foreach($tableSchema->columns as $column) {
 			if($insert) {
 				$<?php echo $publicAttribute;?> = $this->urlTitle($this-><?php echo $publicAttribute;?>);
 				if($this-><?php echo $column->name;?> == 0) {
-					$<?php echo $relationName;?> = self::find()
-						->select(['<?php echo $column->name;?>', 'body'])
+					$<?php echo $relationName;?> = CoreTags::find()
+						->select(['<?php echo $column->name;?>'])
 						->andWhere(['body' => $<?php echo $publicAttribute;?>]);
 						
 					if($<?php echo $relationName;?> != null)
 						$this-><?php echo $column->name;?> = $<?php echo $relationName;?>-><?php echo $column->name;?>;
 					else {
-						$data = new OmmuTags();
+						$data = new CoreTags();
 						$data->body = $this-><?php echo $publicAttribute;?>;
 						if($data->save())
 							$this-><?php echo $column->name;?> = $data-><?php echo $column->name;?>;
