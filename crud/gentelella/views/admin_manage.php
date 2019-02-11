@@ -100,7 +100,8 @@ $this->params['menu']['option'] = [
 <?= $generator->enablePjax ? "<?php Pjax::begin(); ?>\n\n" : '';
 
 if(!empty($arrayRelation)) {
-	foreach($arrayRelation as $key => $val) {?>
+	foreach($arrayRelation as $key => $val) {
+		$dropDownOptions = '';?>
 <?php echo "<?php ";?>if($<?php echo $arrayRelation[$key]['relation'];?> != null) {
 $model = $<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>;
 echo DetailView::widget([
@@ -116,6 +117,7 @@ $parentClassName = $generator->generateClassName($parentTableName);
 $parentPrimaryKey = $generator->getPrimaryKey($parentTableSchema);
 $parentForeignKeys = $generator->getForeignKeys($parentTableSchema->foreignKeys);
 $parentController = strtolower(Inflector::singularize($generator->setRelation($parentTableName, true)));
+$dropDownOptions = $generator->dropDownOptions($parentTableSchema);
 
 if (($parentTableSchema = $parentTableSchema) === false) {
 	foreach ($generator->getColumnNames() as $name) {

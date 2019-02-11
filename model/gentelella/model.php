@@ -1079,7 +1079,7 @@ $beforeSave = 1;?>
 <?php }?>
 					if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName]))) {
 						if($this->old_<?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>])))
-							rename(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>]), join('/', [$verwijderenPath, time().'_change_'.$this->old_<?php echo $column->name;?>]));
+							rename(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'-'.time().'_change_'.$this->old_<?php echo $column->name;?>]));
 						$this-><?php echo $column->name;?> = $fileName;
 					}
 				} else {
@@ -1247,7 +1247,7 @@ if($generator->uploadPath['subfolder']) {?>
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) {?>
 		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this-><?php echo $column->name;?>])))
-			rename(join('/', [$uploadPath, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, time().'_deleted_'.$this-><?php echo $column->name;?>]));
+			rename(join('/', [$uploadPath, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'-'.time().'_deleted_'.$this-><?php echo $column->name;?>]));
 
 <?php 	}
 	}
