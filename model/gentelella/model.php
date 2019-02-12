@@ -593,6 +593,7 @@ foreach ($tableSchema->columns as $column) {
 			'value' => function($model, $key, $index, $column) {
 				return self::get<?php echo $functionName;?>($model-><?php echo $publicAttribute;?>);
 			},
+			'filter' => self::get<?php echo $functionName;?>();
 		];
 <?php 	}
 	} else {
@@ -1137,7 +1138,8 @@ foreach($tableSchema->columns as $column) {
 				if($this-><?php echo $column->name;?> == 0) {
 					$<?php echo $relationName;?> = CoreTags::find()
 						->select(['<?php echo $column->name;?>'])
-						->andWhere(['body' => $<?php echo $publicAttribute;?>]);
+						->andWhere(['body' => $<?php echo $publicAttribute;?>])
+						->one();
 						
 					if($<?php echo $relationName;?> != null)
 						$this-><?php echo $column->name;?> = $<?php echo $relationName;?>-><?php echo $column->name;?>;

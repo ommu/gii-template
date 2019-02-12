@@ -804,7 +804,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				$relationTable = trim($foreignKeys[$column->name]);
 				$relationSchema = $this->getTableSchemaWithTableName($relationTable);
 				$relationAttribute = key($this->getNameAttributes($relationSchema));
-				if($relationTable == 'ommu_users')
+				if(in_array($relationTable, ['ommu_users', 'ommu_members']))
 					$relationAttribute = 'displayname';
 				$publicVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
 				if(preg_match('/('.$relationName.')/', $relationAttribute))

@@ -94,7 +94,7 @@ foreach ($tableSchema->columns as $column) {
 		$relationTable = trim($foreignKeys[$column->name]);
 		$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
 		$relationAttribute = key($generator->getNameAttributes($relationSchema));
-		if($relationTable == 'ommu_users')
+		if(in_array($relationTable, ['ommu_users', 'ommu_members']))
 			$relationAttribute = 'displayname';
 		$inputRuleVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
 		if(preg_match('/('.$relationName.')/', $relationAttribute))
