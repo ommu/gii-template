@@ -117,6 +117,7 @@ $parentClassName = $generator->generateClassName($parentTableName);
 $parentPrimaryKey = $generator->getPrimaryKey($parentTableSchema);
 $parentForeignKeys = $generator->getForeignKeys($parentTableSchema->foreignKeys);
 $parentController = strtolower(Inflector::singularize($generator->setRelation($parentTableName, true)));
+$parentController = $parentController != $generator->getModuleName() ? $parentController : 'admin';
 $dropDownOptions = $generator->dropDownOptions($parentTableSchema);
 
 if (($parentTableSchema = $parentTableSchema) === false) {
@@ -233,19 +234,31 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 			'format' => 'html',
 <?php endif;?>
 		],
+<?php } else if(preg_match('/(name|title)/', $column->name) && !in_array('trigger[delete]', $commentArray)) {?>
+		[
+			'attribute' => '<?php echo $column->name;?>',
+			'value' => function ($model) {
+				return Html::a($model-><?php echo $column->name;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $column->name;?>]);
+			},
+			'format' => 'html',
+		],
 <?php } else {
 	if(in_array('trigger[delete]', $commentArray)) {
 		$publicAttribute = $column->name.'_i';?>
 		[
 			'attribute' => '<?php echo $publicAttribute;?>',
+<?php if(preg_match('/(name|title)/', $column->name)) {?>
 			'value' => function ($model) {
 				if($model-><?php echo $publicAttribute;?> != '')
 					return Html::a($model-><?php echo $publicAttribute;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $publicAttribute;?>]);
 				return $model-><?php echo $publicAttribute;?>;
 			},
+<?php } else {?>
+			'value' => $model-><?php echo $publicAttribute;?>,
+<?php }?>
+<?php if(preg_match('/(name|title)/', $column->name) || in_array('redactor', $commentArray)) {?>
 			'format' => 'html',
-<?php if(in_array('redactor', $commentArray)):?>
-<?php endif;?>
+<?php }?>
 		],
 <?php } else {
 		$format = $generator->generateColumnFormat($column);

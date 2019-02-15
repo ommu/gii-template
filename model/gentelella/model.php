@@ -382,29 +382,32 @@ foreach ($relations as $name => $relation) {
 	 * @return \yii\db\ActiveQuery
 	 */
 <?php if($relation[2]) {?>
-	public function get<?php echo ucfirst($relationName);?>($count=true<?php echo $publishRltnCondition ? ', $publish=1' : ''?>)
+	public function get<?php echo ucfirst($relationName);?>($count=false<?php echo $publishRltnCondition ? ', $publish=1' : ''?>)
 <?php } else {?>
 	public function get<?php echo ucfirst($relationName);?>()
 <?php }?>
 	{
 <?php if($relation[2]) {?>
-		if($count == true) {
-			$model = <?php echo $relation[1];?>::find()
-				->where(<?php echo $relation[3];?>);
-<?php if($publishRltnCondition) {?>
-			if($publish == 0)
-				$model->unpublish();
-			elseif($publish == 1)
-				$model->published();
-			elseif($publish == 2)
-				$model->deleted();
-<?php }?>
-
-			return $model->count();
-		}
-
-<?php }?>
+		if($count == false)
+			<?= preg_replace($patternClass, '', $relation[0]) . "\n\n" ?>
+<?php } else {?>
 		<?= preg_replace($patternClass, '', $relation[0]) . "\n" ?>
+<?php }?>
+<?php if($relation[2]) {?>
+		$model = <?php echo $relation[1];?>::find()
+			->where(<?php echo $relation[3];?>);
+<?php if($publishRltnCondition) {?>
+		if($publish == 0)
+			$model->unpublish();
+		elseif($publish == 1)
+			$model->published();
+		elseif($publish == 2)
+			$model->deleted();
+<?php }?>
+		$<?php echo lcfirst($relationName);?> = $model->count();
+
+		return $<?php echo lcfirst($relationName);?> ? $<?php echo lcfirst($relationName);?> : 0;
+<?php }?>
 	}
 <?php }
 
@@ -637,12 +640,14 @@ foreach ($relations as $name => $relation) {
 	$publishRltnCondition = 0;
 	if(preg_match('/(%s.publish)/', $relation[0]))
 		$publishRltnCondition = 1;
-	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name)); ?>
+	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
+	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin'; ?>
 		$this->templateColumns['<?php echo $relationName;?>'] = [
 			'attribute' => '<?php echo $relationName;?>',
 			'filter' => false,
 			'value' => function($model, $key, $index, $column) {
-				return Html::a($model-><?php echo $relationName;?>, ['<?php echo Inflector::singularize($relationName);?>/manage', '<?php echo $generator->setRelation($primaryKey);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$model-><?php echo $relationName;?>])]);
+				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
+				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($primaryKey);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
 			},
 			'contentOptions' => ['class'=>'center'],
 			'format' => 'html',
@@ -961,7 +966,6 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 			$fileType = lcfirst(Inflector::singularize(Inflector::id2camel($column->name, '_')).'FileType');?>
 			$<?php echo $fileType;?> = ['bmp','gif','jpg','png'];
 			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-
 			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
 				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
 					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', [

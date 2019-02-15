@@ -137,11 +137,12 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 	}?>
 		[
 			'attribute' => '<?php echo $publicAttribute;?>',
-<?php if($foreignCondition && !$foreignUserCondition):?>
+<?php if($foreignCondition && !$foreignUserCondition):
+	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin';?>
 			'value' => function ($model) {
 				$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
 				if($<?php echo $publicAttribute;?> != '-')
-					return Html::a($<?php echo $publicAttribute;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>]);
+					return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>]);
 				return $<?php echo $publicAttribute;?>;
 			},
 			'format' => 'html',
@@ -247,10 +248,14 @@ foreach ($relations as $name => $relation) {
 	$publishRltnCondition = 0;
 	if(preg_match('/(%s.publish)/', $relation[0]))
 		$publishRltnCondition = 1;
-	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name)); ?>
+	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
+	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin'; ?>
 		[
 			'attribute' => '<?php echo $relationName;?>',
-			'value' => Html::a($model-><?php echo $relationName;?>, ['<?php echo Inflector::singularize($relationName);?>/manage', '<?php echo $generator->setRelation($primaryKey);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$model-><?php echo $relationName;?>])]),
+			'value' => function ($model) {
+				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
+				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($primaryKey);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
+			},
 			'format' => 'html',
 		],
 <?php }
