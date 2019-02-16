@@ -15,6 +15,10 @@ echo $form->field($generator, 'viewPath', ['template' => '{label}<div class="col
 echo $form->field($generator, 'baseClass', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}'])
     ->label($generator->getAttributeLabel('baseClass'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
 
+echo $form->field($generator, 'enableI18N', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
+	->checkbox()
+	->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+
 echo $form->field($generator, 'attachRBACFilter', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
     ->checkbox()
     ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);

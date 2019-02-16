@@ -73,14 +73,14 @@ if($generator->attachRBACFilter): ?>
 <?php endif; ?>
 <?php foreach ($generator->getActionIDs() as $action): ?>
 	/**
-	 * {@inheritdoc}
+	 * <?php echo Inflector::id2camel($action)." Action\n"; ?>
 	 */
 	public function action<?= Inflector::id2camel($action) ?>()
 	{
-		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($controllerClass));?>;
+		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize(Inflector::id2camel($action)));?>;
 		$this->view->description = '';
 		$this->view->keywords = '';
-		return $this->render('<?= $action ?>');
+		return $this->render('<?= Inflector::camel2id(Inflector::id2camel($action), '_') ?>');
 	}
 
 <?php endforeach; ?>

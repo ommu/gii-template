@@ -77,7 +77,7 @@ class Generator extends \ommu\gii\Generator
             ['baseClass', 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
             ['actions', 'match', 'pattern' => '/^[a-z][a-z0-9\\-,\\s]*$/', 'message' => 'Only a-z, 0-9, dashes (-), spaces and commas are allowed.'],
 			[['viewPath', 'attachRBACFilter'], 'safe'],
-            [['attachRBACFilter', 'useModified'], 'boolean'],
+            [['enableI18N', 'attachRBACFilter', 'useModified'], 'boolean'],
         ]);
     }
 
