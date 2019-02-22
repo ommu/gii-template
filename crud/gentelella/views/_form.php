@@ -97,8 +97,11 @@ $redactorOptions = [
 <?= "<?php "?>$form = ActiveForm::begin([
 <?php if($uploadCondition) {?>
 	'options' => [
+		'class' => 'form-horizontal form-label-left',
 		'enctype' => 'multipart/form-data',
 	],
+<?php } else {?>
+	'options' => ['class'=>'form-horizontal form-label-left'],
 <?php }?>
 	'enableClientValidation' => <?php echo $uploadCondition ? 'false' : 'true';?>,
 	'enableAjaxValidation' => false,

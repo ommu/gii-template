@@ -318,12 +318,12 @@ class Generator extends \ommu\gii\Generator
         $tableSchema = $this->getTableSchema();
         if ($tableSchema === false || !isset($tableSchema->columns[$attribute])) {
             if (preg_match('/^(password|pass|passwd|passcode)$/i', $attribute)) {
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute')
 \t->passwordInput()
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 			} else {
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+				return "echo \$form->field(\$model, '$attribute')
+\t->label(\$model->getAttributeLabel('$attribute'))";
             }
         }
         $column = $tableSchema->columns[$attribute];
@@ -351,42 +351,43 @@ class Generator extends \ommu\gii\Generator
 				$functionName = ucfirst($relationName);
 				$label = $this->generateString('Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');
 				return "\$$relationName = $modelClass::get$functionName();
-echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><span class=\"small-px mb-10\">'.$label.'</span>{input}{error}</div>'])
+echo \$form->field(\$model, '$attribute')
 \t->radioList(\$$relationName, ['class'=>'desc mt-10', 'separator' => '<br />'])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))
+\t->hint($label)";
 
 			} elseif($column->comment != '' && $column->comment[0] == '"') {
 				$relationName = $this->setRelation($attribute);
 				$functionName = ucfirst($relationName);
 				return "\$$relationName = $modelClass::get$functionName();
-echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+echo \$form->field(\$model, '$attribute')
 \t->dropDownList(\$$relationName, ['prompt'=>''])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else {
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12 checkbox\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute')
 \t->checkbox(['label'=>''])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 			}
 		}
 
 		if ($column->name === 'email') {	// 02 //oke
-			return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+			return "echo \$form->field(\$model, '$attribute')
 \t->textInput(['type'=>'email'])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 		}
 
 		if (in_array($column->dbType, array('timestamp','datetime','date'))) {	// 03
 			// Jui datepicker lebih fleksibel terhadap dukungan browser dan dapat diformat tanggalnya
 			// dari pada html5.
 // 			if($this->useJuiDatePicker) {
-// 				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+// 				return "echo \$form->field(\$model, '$attribute')
 // \t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type'=>'date', 'class'=>'form-control']])
-// \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+// \t->label(\$model->getAttributeLabel('$attribute'))";
 // 			} else {
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute')
 \t->textInput(['type' => 'date'])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 			// }
 		}
 		
@@ -401,26 +402,26 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 \t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
 
 			} else if(in_array('redactor', $commentArray)) {	// 04.2
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute')
 \t->textarea(['rows'=>6, 'cols'=>50])
 \t->widget(Redactor::className(), ['clientOptions' => \$redactorOptions])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else if(in_array('text', $commentArray)) {	// 04.3
 				$maxlength = $i18n ? ', \'maxlength\'=>true' : '';
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute')
 \t->textarea(['rows'=>6, 'cols'=>50$maxlength])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else {	// 04.4
 				if($i18n) {	// 04.4.1
-					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+					return "echo \$form->field(\$model, '$attribute')
 \t->textInput(['maxlength'=>true])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 				} else {	// 04.4.2
-					return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+					return "echo \$form->field(\$model, '$attribute')
 \t->textarea(['rows'=>6, 'cols'=>50])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 				}
 			}
 		}
@@ -430,9 +431,9 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			$relationName = $this->setRelation($column->name);
 			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
 			return "\$$relationName = $modelClass::get$functionName();
-echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+echo \$form->field(\$model, '$attribute')
 \t->dropDownList(\$$relationName, ['prompt' => ''])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 		}
 
 		if (preg_match('/^(password|pass|passwd|passcode)$/i', $column->name))
@@ -447,14 +448,14 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 				$relationClassName = $this->generateClassName($relationTableName);
 				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
 				return "\$$relationName = $relationClassName::get$functionName();
-echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+echo \$form->field(\$model, '$attribute')
 \t->dropDownList(\$$relationName, ['prompt'=>''])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else {
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute')
 \t->$input(['type'=>'number', 'min'=>'1'])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 			}
 		}
 
@@ -463,14 +464,15 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"co
 			$label2 = $this->generateString('Format: XXXX-XXXX-XXXX-XXXX');
 			return "if(\$model->isNewRecord && !\$model->getErrors())
 	\$model->$attribute = \$this->licenseCode();
-echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><span class=\"small-px mb-10\">'.$label.'</span>{input}{error}<span class=\"small-px\">'.$label2.'</span></div>'])
+echo \$form->field(\$model, '$attribute')
 \t->$input(['maxlength'=>true])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))
+\t->hint($label.'<br/>'.$label2)";
 		}
 
-				return "echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\">{input}{error}</div>'])
+				return "echo \$form->field(\$model, '$attribute')
 \t->$input(['maxlength'=>true])
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
     }
 
     /**
