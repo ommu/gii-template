@@ -3,29 +3,29 @@
 /* @var $form yii\widgets\ActiveForm */
 /* @var $generator yii\gii\generators\controller\Generator */
 
-echo $form->field($generator, 'controllerClass', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}'])
-    ->label($generator->getAttributeLabel('controllerClass'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'controllerClass', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])
+	->label($generator->getAttributeLabel('controllerClass'));
 
-echo $form->field($generator, 'actions', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}'])
-    ->label($generator->getAttributeLabel('actions'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'actions', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])
+	->label($generator->getAttributeLabel('actions'));
 
-echo $form->field($generator, 'viewPath', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}'])
-    ->label($generator->getAttributeLabel('viewPath'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'viewPath', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])
+	->label($generator->getAttributeLabel('viewPath'));
 
-echo $form->field($generator, 'baseClass', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}'])
-    ->label($generator->getAttributeLabel('baseClass'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'baseClass', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])
+	->label($generator->getAttributeLabel('baseClass'));
 
-echo $form->field($generator, 'enableI18N', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
+echo $form->field($generator, 'enableI18N')
 	->checkbox()
-	->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+	->label($generator->getAttributeLabel('enableI18N'));
 
-echo $form->field($generator, 'attachRBACFilter', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
-    ->checkbox()
-    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'attachRBACFilter')
+	->checkbox()
+	->label($generator->getAttributeLabel('attachRBACFilter'));
 	
-echo $form->field($generator, 'useModified', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}{hint}</div>'])
-    ->checkbox()
-    ->label('', ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'useModified')
+	->checkbox()
+	->label($generator->getAttributeLabel('useModified'));
 
-echo $form->field($generator, 'link', ['template' => '{label}<div class="col-md-9 col-sm-9 col-xs-12">{input}{error}</div>{hint}	'])
-	->label($generator->getAttributeLabel('link'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12']);
+echo $form->field($generator, 'link')
+	->label($generator->getAttributeLabel('link'));
