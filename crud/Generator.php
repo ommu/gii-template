@@ -351,7 +351,7 @@ class Generator extends \ommu\gii\Generator
 				$functionName = ucfirst($relationName);
 				$label = $this->generateString('Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');
 				return "\$$relationName = $modelClass::get$functionName();
-echo \$form->field(\$model, '$attribute')
+echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}{hint}{input}{error}{endWrapper}'])
 \t->radioList(\$$relationName, ['class'=>'desc mt-10', 'separator' => '<br />'])
 \t->label(\$model->getAttributeLabel('$attribute'))
 \t->hint($label)";
@@ -366,7 +366,7 @@ echo \$form->field(\$model, '$attribute')
 
 			} else {
 				return "echo \$form->field(\$model, '$attribute')
-\t->checkbox(['label'=>''])
+\t->checkbox()
 \t->label(\$model->getAttributeLabel('$attribute'))";
 			}
 		}
@@ -397,9 +397,9 @@ echo \$form->field(\$model, '$attribute')
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [$modelClass::getUploadPath(false), \$model->$primaryKey])" : "$modelClass::getUploadPath(false)";
 				return "\$uploadPath = $uploadPath;
 \$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? Html::img(join('/', [Url::Base(), \$uploadPath, \$model->old_{$attribute}]), ['class'=>'mb-15', 'width'=>'100%']) : '';
-echo \$form->field(\$model, '$attribute', ['template' => '{label}<div class=\"col-md-6 col-sm-9 col-xs-12\"><div>'.\$$relationName.'</div>{input}{error}</div>'])
+echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<div>'.\$$relationName.'</div>{input}{error}{endWrapper}'])
 \t->fileInput()
-\t->label(\$model->getAttributeLabel('$attribute'), ['class'=>'control-label col-md-3 col-sm-3 col-xs-12'])";
+\t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else if(in_array('redactor', $commentArray)) {	// 04.2
 				return "echo \$form->field(\$model, '$attribute')
