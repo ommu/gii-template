@@ -644,9 +644,10 @@ class Generator extends \ommu\gii\Generator
                         "return \$this->" . ($hasMany ? 'hasMany' : 'hasOne') . "($className::className(), $link)$andOnCondition;",
                         $className,
                         $hasMany,
-                        $this->generateRelationLink($refs, true),
+						$this->generateRelationLink($refs, true),
+						key($refs),
                     ];
-                }
+				}
 
                 if (($junctionFks = $this->checkJunctionTable($table)) === false) {
                     continue;

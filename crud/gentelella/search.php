@@ -166,9 +166,12 @@ endforeach;?>
 	 *
 	 * @return ActiveDataProvider
 	 */
-	public function search($params)
+	public function search($params, $column=null)
 	{
-		$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
+		if(!($column && is_array($column)))
+			$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
+		else
+			$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t')->select($column);
 <?php
 if(!empty($arrayRelations)):
 foreach ($arrayRelations as $key => $val):

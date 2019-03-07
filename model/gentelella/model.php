@@ -596,7 +596,7 @@ foreach ($tableSchema->columns as $column) {
 			'value' => function($model, $key, $index, $column) {
 				return self::get<?php echo $functionName;?>($model-><?php echo $publicAttribute;?>);
 			},
-			'filter' => self::get<?php echo $functionName;?>();
+			'filter' => self::get<?php echo $functionName;?>(),
 		];
 <?php 	}
 	} else {
@@ -647,7 +647,7 @@ foreach ($relations as $name => $relation) {
 			'filter' => false,
 			'value' => function($model, $key, $index, $column) {
 				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
-				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($primaryKey);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
+				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
 			},
 			'contentOptions' => ['class'=>'center'],
 			'format' => 'html',
