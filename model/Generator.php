@@ -49,7 +49,7 @@ class Generator extends \ommu\gii\Generator
     public $generateMessage = true;
     private static $_allTableNames = null;
 	public $uploadPath = [
-		'directory' => 'public/main',
+		'directory' => 'main',
 	];
 	public $useGetFunction = false;
 	public $link='http://opensource.ommu.co';

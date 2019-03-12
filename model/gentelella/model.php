@@ -860,7 +860,7 @@ if(is_array($column->enumValues)) {
 
 if($uploadCondition) {
 	$directoryPath = $generator->uploadPath['directory'];
-	$returnAlias = join('/', ['@webroot', $directoryPath]);?>
+	$returnAlias = join('/', ['@public', $directoryPath]);?>
 
 	/**
 	 * @param returnAlias set true jika ingin kembaliannya path alias atau false jika ingin string
