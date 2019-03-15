@@ -40,10 +40,6 @@ use yii\helpers\Url;
 
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = <?php echo $generator->generateString('Create')?>;
-
-$this->params['menu']['content'] = [
-	['label' => <?= $generator->generateString('Back To Manage') ?>, 'url' => Url::to(['manage']), 'icon' => 'table'],
-];
 ?>
 
 <div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-create">
