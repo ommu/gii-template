@@ -51,15 +51,4 @@ class <?= $className ?> extends \app\components\Module
 	{
 		parent::init();
 	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getLayoutPath()
-	{
-		if(Yii::$app->view->theme)
-			return Yii::$app->view->theme->basePath . DIRECTORY_SEPARATOR . 'layouts';
-		else
-			return parent::getLayoutPath();
-	}
 }

@@ -167,7 +167,7 @@ class Generator extends \yii\gii\Generator
 	// @return php array/object
 	public function loadYaml($fileName) 
 	{
-		$fname = join('/', [Yii::getAlias('@webroot'), $fileName]);
+		$fname = join('/', [dirname(Yii::getAlias('@app')), $fileName]);
 		if(!file_exists($fname)) {
 			$errMsg  = 'File "author.yaml" tidak dapat ditemukan, dimohon untuk membuat file ';
 			$errMsg .= '"author.yaml" pada folder ' . Yii::getAlias('@webroot');
