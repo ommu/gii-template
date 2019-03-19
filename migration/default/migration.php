@@ -27,6 +27,7 @@ echo "<?php\n";
  *
  */
 
+use Yii;
 use yii\db\Schema;
 
 class <?= $migrationName ?> extends \yii\db\Migration
@@ -39,17 +40,20 @@ class <?= $migrationName ?> extends \yii\db\Migration
 		}
 <?php foreach ($tables as $table): ?>
 		
-		$this->createTable('<?= $table['name'] ?>', [
+		$tableName = Yii::$app->db->tablePrefix . '<?= $table['name'] ?>';
+		if(!Yii::$app->db->getTableSchema($tableName, true)) {
+			$this->createTable('<?= $table['name'] ?>', [
 <?php foreach ($table['columns'] as $column => $definition): ?>
-			<?= "'$column' => $definition"?>,
+				<?= "'$column' => $definition"?>,
 <?php endforeach;?>
 <?php if(isset($table['primary'])): ?>
-			<?= "'{$table['primary']}'" ?>,
+				<?= "'{$table['primary']}'" ?>,
 <?php endif; ?>
 <?php foreach ($table['relations'] as $definition): ?>
-			<?= "'$definition'" ?>,
+				<?= "'$definition'" ?>,
 <?php endforeach;?>
-		], $tableOptions);
+			], $tableOptions);
+		}
 <?php endforeach;?>
 	}
 

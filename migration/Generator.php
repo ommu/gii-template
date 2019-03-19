@@ -286,6 +286,9 @@ class Generator extends \ommu\gii\Generator
 				}
 			}
 
+			if ($column->comment)
+				$extra .= ' COMMENT \\\''.$column->comment.'\\\'';
+
 			if (!empty($extra))
 				$type = "$type . {$quote}$extra{$quote}";
 
