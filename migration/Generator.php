@@ -266,24 +266,30 @@ class Generator extends \ommu\gii\Generator
 		$columns = [];
 		$needPK = true;
 		foreach ($table->columns as $column) {
-			if ($column->autoIncrement) {
-				$columns[$column->name] = $column->type == Schema::TYPE_BIGINT ? 'Schema::TYPE_BIGPK' : 'Schema::TYPE_PK';
-				$needPK = false;
-				continue;
-			}
+			// if ($column->autoIncrement) {
+			// 	$columns[$column->name] = $column->type == Schema::TYPE_BIGINT ? 'Schema::TYPE_BIGPK' : 'Schema::TYPE_PK';
+			// 	$needPK = false;
+			// 	continue;
+			// }
 			list($type, $extra) = $this->getSchemaType($column);
-			$quote = "'";
+			$quote = '\'';
+			if ($column->unsigned)
+				$extra .= ' UNSIGNED';
+
 			if (!$column->allowNull)
 				$extra .= ' NOT NULL';
 
+			if ($column->autoIncrement)
+				$extra .= ' AUTO_INCREMENT';
+
 			if ($column->defaultValue !== null) {
 				$extra .= ' DEFAULT ';
-				if ($column->defaultValue instanceof Expression || is_numeric($column->defaultValue)) {
+				if ($column->defaultValue instanceof Expression)
 					$extra .= $column->defaultValue;
-				} else {
-					$extra .= "'{$column->defaultValue}'";
-					$quote = '"';
-				}
+				else if (is_numeric($column->defaultValue))
+					$extra .= '\\\''.$column->defaultValue.'\\\'';
+				else
+					$extra .= '\\\''.$column->defaultValue.'\\\'';
 			}
 
 			if ($column->comment)
