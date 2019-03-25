@@ -528,6 +528,7 @@ foreach ($tableSchema->columns as $column) {
 			$publicAttribute = $relationName.ucwords('body');
 			$relationAttribute = 'body';
 		}
+		$publicProperty = $publicAttribute;
 		if($smallintCondition)
 			$publicAttribute = $column->name;
 
@@ -538,6 +539,7 @@ foreach ($tableSchema->columns as $column) {
 				'attribute' => '<?php echo $publicAttribute;?>',
 				'value' => function($model, $key, $index, $column) {
 					return isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+					// return $model-><?php echo $publicProperty;?>;
 				},
 <?php if($foreignCondition && $smallintCondition) {
 	$relationClassName = $generator->generateClassName($relationTable);
@@ -644,11 +646,11 @@ foreach ($relations as $name => $relation) {
 	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin'; ?>
 		$this->templateColumns['<?php echo $relationName;?>'] = [
 			'attribute' => '<?php echo $relationName;?>',
-			'filter' => false,
 			'value' => function($model, $key, $index, $column) {
 				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
 				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
 			},
+			'filter' => false,
 			'contentOptions' => ['class'=>'center'],
 			'format' => 'html',
 		];
@@ -664,10 +666,10 @@ foreach ($tableSchema->columns as $column) {
 	if ($column->phpType === 'boolean' || $column->dbType == 'tinyint(1)') {?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
-			'filter' => $this->filterYesNo(),
 			'value' => function($model, $key, $index, $column) {
 				return $this->filterYesNo($model-><?php echo $column->name;?>);
 			},
+			'filter' => $this->filterYesNo(),
 			'contentOptions' => ['class'=>'center'],
 		];
 <?php }
@@ -685,12 +687,6 @@ foreach ($tableSchema->columns as $column) {
 			$comment = 'Headline,Unheadline';?>
 		$this->templateColumns['<?php echo $column->name;?>'] = [
 			'attribute' => '<?php echo $column->name;?>',
-<?php if($comment != '' && $comment[0] == '"') {
-	$functionName = ucfirst($generator->setRelation($column->name));?>
-			'filter' => self::get<?php echo $functionName;?>(),
-<?php } else {?>
-			'filter' => $this->filterYesNo(),
-<?php }?>
 			'value' => function($model, $key, $index, $column) {
 <?php $rawCondition = 0;
 if($comment != '' && $comment[0] == '"') {
@@ -702,6 +698,12 @@ if($comment != '' && $comment[0] == '"') {
 				return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $comment;?>'<?php echo $column->name == 'headline' ? ', true' : '';?>);
 <?php }?>
 			},
+<?php if($comment != '' && $comment[0] == '"') {
+	$functionName = ucfirst($generator->setRelation($column->name));?>
+			'filter' => self::get<?php echo $functionName;?>(),
+<?php } else {?>
+			'filter' => $this->filterYesNo(),
+<?php }?>
 			'contentOptions' => ['class'=>'center'],
 <?php if($rawCondition == 1) {?>
 			'format' => 'raw',
@@ -716,11 +718,11 @@ foreach ($tableSchema->columns as $column) {
 		if(!Yii::$app->request->get('trash')) {
 			$this->templateColumns['<?php echo $column->name;?>'] = [
 				'attribute' => '<?php echo $column->name;?>',
-				'filter' => $this->filterYesNo(),
 				'value' => function($model, $key, $index, $column) {
 					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
 					return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
 				},
+				'filter' => $this->filterYesNo(),
 				'contentOptions' => ['class'=>'center'],
 				'format' => 'raw',
 			];
