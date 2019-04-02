@@ -71,26 +71,23 @@ echo "<?php\n";
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
+use yii\helpers\ArrayHelper;
 <?php echo $uploadCondition || $getFunctionCondition || $permissionCondition || $enumCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
-$this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString($functionLabel) ?>, 'url' => ['index']];
-$this->params['breadcrumbs'][] = $model-><?= $generator->getNameAttribute(); ?>;
+$this->params['breadcrumbs'][] = ['label' => <?php echo $generator->generateString($functionLabel) ?>, 'url' => ['index']];
+$this->params['breadcrumbs'][] = $model-><?php echo $generator->getNameAttribute(); ?>;
 
 $this->params['menu']['content'] = [
-	['label' => <?= $generator->generateString('Detail') ?>, 'url' => Url::to(['view', <?= $urlParams ?>]), 'icon' => 'eye'],
-	['label' => <?= $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?= $urlParams ?>]), 'icon' => 'pencil'],
-	['label' => <?= $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?= $urlParams ?>]), 'htmlOptions' => ['data-confirm'=><?= $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method'=>'post'], 'icon' => 'trash'],
+	['label' => <?php echo $generator->generateString('Detail') ?>, 'url' => Url::to(['view', <?php echo $urlParams ?>]), 'icon' => 'eye'],
+	['label' => <?php echo $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?php echo $urlParams ?>]), 'icon' => 'pencil'],
+	['label' => <?php echo $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?php echo $urlParams ?>]), 'htmlOptions' => ['data-confirm'=><?php echo $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method'=>'post'], 'icon' => 'trash'],
 ];
 ?>
 
-<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-view">
+<div class="<?php echo Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-view">
 
-<?= "<?php echo " ?>DetailView::widget([
-	'model' => $model,
-	'options' => [
-		'class'=>'table table-striped detail-view',
-	],
-	'attributes' => [
+<?php echo "<?php\n" ?>
+$attributes = [
 <?php
 if (($tableSchema = $tableSchema) === false) {
 	foreach ($generator->getColumnNames() as $name) {
@@ -134,39 +131,39 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 		$publicAttribute = $relationName.ucwords('body');
 		$relationAttribute =  'body';
 	}?>
-		[
-			'attribute' => '<?php echo $publicAttribute;?>',
+	[
+		'attribute' => '<?php echo $publicAttribute;?>',
 <?php if($foreignCondition && !$foreignUserCondition):
 	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin';?>
-			'value' => function ($model) {
-				$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
-				if($<?php echo $publicAttribute;?> != '-')
-					return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>]);
-				return $<?php echo $publicAttribute;?>;
-			},
-			'format' => 'html',
+		'value' => function ($model) {
+			$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+			if($<?php echo $publicAttribute;?> != '-')
+				return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>]);
+			return $<?php echo $publicAttribute;?>;
+		},
+		'format' => 'html',
 <?php else:?>
-			'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
+		'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
 <?php endif;?>
-		],
+	],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
+	[
+		'attribute' => '<?php echo $column->name;?>',
 <?php if($column->dbType == 'date') {?>
-			'value' => Yii::$app->formatter->asDate($model-><?php echo $column->name;?>, 'medium'),
+		'value' => Yii::$app->formatter->asDate($model-><?php echo $column->name;?>, 'medium'),
 <?php } else {?>
-			'value' => Yii::$app->formatter->asDatetime($model-><?php echo $column->name;?>, 'medium'),
+		'value' => Yii::$app->formatter->asDatetime($model-><?php echo $column->name;?>, 'medium'),
 <?php }?>
-		],
+	],
 <?php } else if($column->dbType == 'tinyint(1)') {?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
+	[
+		'attribute' => '<?php echo $column->name;?>',
 <?php if($primaryKeyTriggerCondition) {
 if($column->comment != '') {
 	$commentArray = explode(',', $column->comment);?>
-			'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
+		'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
 <?php } else {?>
-			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
+		'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
 <?php }
 } else {
 if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
@@ -176,65 +173,65 @@ if(in_array($column->name, ['publish','headline']) || ($column->comment != '' &&
 	if($comment != '') {
 if($comment != '' && $comment[0] == '"') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
-			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
+		'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
 <?php }?>
 <?php } else {?>
-			'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+		'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
 <?php }
 if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
-			'format' => 'raw',
+		'format' => 'raw',
 <?php }
 } else if($column->name == 'permission') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
-			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
-			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
+		'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
 <?php }
 }?>
-		],
+	],
 <?php } else if (is_array($column->enumValues) && count($column->enumValues) > 0) {
 			$dropDownOptionKey = $dropDownOptions[$column->dbType];
 			$functionName = ucfirst($generator->setRelation($dropDownOptionKey));?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
-			'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
-		],
+	[
+		'attribute' => '<?php echo $column->name;?>',
+		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+	],
 <?php } else if($column->type == 'text') {?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
+	[
+		'attribute' => '<?php echo $column->name;?>',
 <?php if(in_array('file', $commentArray)):?>
-			'value' => function ($model) {
+		'value' => function ($model) {
 <?php if($generator->uploadPathSubfolder) {?>
-				$uploadPath = join('/', [<?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
+			$uploadPath = join('/', [<?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
 <?php } else {?>
-				$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
+			$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
 <?php }?>
-				return $model-><?php echo $column->name;?> ? Html::img(join('/', [Url::Base(), $uploadPath, $model-><?php echo $column->name;?>]), ['width' => '100%']).'<br/><br/>'.$model-><?php echo $column->name;?> : '-';
-			},
+			return $model-><?php echo $column->name;?> ? Html::img(join('/', [Url::Base(), $uploadPath, $model-><?php echo $column->name;?>]), ['width' => '100%']).'<br/><br/>'.$model-><?php echo $column->name;?> : '-';
+		},
 <?php elseif(in_array('serialize', $commentArray)):?>
-			'value' => serialize($model-><?php echo $column->name;?>),
+		'value' => serialize($model-><?php echo $column->name;?>),
 <?php else:?>
-			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
+		'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
 <?php endif;
 if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
-			'format' => 'html',
+		'format' => 'html',
 <?php endif;?>
-		],
+	],
 <?php } else {
 	if(in_array('trigger[delete]', $commentArray)) {
 		$publicAttribute = $column->name.'_i';?>
-		[
-			'attribute' => '<?php echo $publicAttribute;?>',
-			'value' => $model-><?php echo $publicAttribute;?>,
+	[
+		'attribute' => '<?php echo $publicAttribute;?>',
+		'value' => $model-><?php echo $publicAttribute;?>,
 <?php if(in_array('redactor', $commentArray)):?>
-			'format' => 'html',
+		'format' => 'html',
 <?php endif;?>
-		],
+	],
 <?php } else {
 		$format = $generator->generateColumnFormat($column);
-		echo "\t\t'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+		echo "\t'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
 		}
 	}
 	}
@@ -249,17 +246,33 @@ foreach ($relations as $name => $relation) {
 		$publishRltnCondition = 1;
 	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
 	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin'; ?>
-		[
-			'attribute' => '<?php echo $relationName;?>',
-			'value' => function ($model) {
-				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
-				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
-			},
-			'format' => 'html',
-		],
+	[
+		'attribute' => '<?php echo $relationName;?>',
+		'value' => function ($model) {
+			$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
+			return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
+		},
+		'format' => 'html',
+	],
 <?php }
 ?>
+];
+if(Yii::$app->request->isAjax) {
+	$attributes = ArrayHelper::merge($attributes, [
+		[
+			'attribute' => '',
+			'value' => Html::a(Yii::t('app', 'Update'), ['update', <?php echo $urlParams ?>], ['title'=>Yii::t('app', 'Update'), 'class'=>'btn btn-success']),
+			'format' => 'html',
+		],
+	]);
+}
+
+echo DetailView::widget([
+	'model' => $model,
+	'options' => [
+		'class'=>'table table-striped detail-view',
 	],
+	'attributes' => $attributes,
 ]); ?>
 
 </div>
