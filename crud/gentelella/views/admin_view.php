@@ -138,7 +138,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 		'value' => function ($model) {
 			$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
 			if($<?php echo $publicAttribute;?> != '-')
-				return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>]);
+				return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>, 'class'=>'modal-btn']);
 			return $<?php echo $publicAttribute;?>;
 		},
 		'format' => 'html',
