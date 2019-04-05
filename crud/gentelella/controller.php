@@ -40,7 +40,7 @@ if($primaryKeyColumn->comment == 'trigger')
 	$primaryKeyTriggerCondition = 1;
 
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
-$arrayRelation = $arrayNamespace = [];
+$arrayRelation = [];
 $i=0;
 foreach($foreignKeys as $key => $val) {
 	$arrayRelation[$i]['relation'] = $generator->setRelation($key);
@@ -56,9 +56,7 @@ foreach($foreignKeys as $key => $val) {
 		else
 			$namespace = str_replace($modelClass, $generator->generateClassName($val), $generator->modelClass);
 	}
-	if(!in_array($namespace, $arrayNamespace))
-		$arrayNamespace[] = $namespace;
-	$i++;
+	$arrayRelation[$i]['namespace'] = $namespace;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -130,12 +128,7 @@ use <?= ltrim($generator->modelClass, '\\') ?>;
 use <?= ltrim($generator->searchModelClass, '\\') . (isset($searchModelAlias) ? " as $searchModelAlias" : "") ?>;
 <?php else: ?>
 use yii\data\ActiveDataProvider;
-<?php endif;
-if(!empty($arrayNamespace)):
-	foreach($arrayNamespace as $val) { ?>
-use <?= ltrim($val, '\\') ?>;
-<?php }
-endif;?>
+<?php endif;?>
 
 class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->baseControllerClass) . "\n" ?>
 {
@@ -192,14 +185,7 @@ endforeach;
 	 */
 	public function actionManage()
 	{
-<?php 
-if(!empty($arrayRelation)) {
-	foreach($arrayRelation as $key => $val) {?>
-		$<?php echo $arrayRelation[$key]['relation'];?> = Yii::$app->request->get('<?php echo $arrayRelation[$key]['relation'];?>');
-<?php }
-	echo "\n";
-}
-if (!empty($generator->searchModelClass)): ?>
+<?php if (!empty($generator->searchModelClass)): ?>
 		$searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
 		$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -215,8 +201,8 @@ if (!empty($generator->searchModelClass)): ?>
 <?php if(!empty($arrayRelation)) {
 	echo "\n";
 	foreach($arrayRelation as $key => $val) {?>
-		if($<?php echo $arrayRelation[$key]['relation'];?> != null)
-			$<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?> = <?php echo $generator->generateClassName($arrayRelation[$key]['table']);?>::findOne($<?php echo $arrayRelation[$key]['relation'];?>);
+		if(($<?php echo $arrayRelation[$key]['relation'];?> = Yii::$app->request->get('<?php echo $arrayRelation[$key]['relation'];?>')) != null)
+			$<?php echo $arrayRelation[$key]['relation'];?> = <?php echo '\\'.ltrim($arrayRelation[$key]['namespace'], '\\');?>::findOne($<?php echo $arrayRelation[$key]['relation'];?>);
 <?php }
 }?>
 
@@ -230,7 +216,6 @@ if (!empty($generator->searchModelClass)): ?>
 <?php if(!empty($arrayRelation)) {
 	foreach($arrayRelation as $key => $val) {?>
 			'<?php echo $arrayRelation[$key]['relation'];?>' => $<?php echo $arrayRelation[$key]['relation'];?>,
-			'<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>' => $<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>,
 <?php }
 }?>
 		]);

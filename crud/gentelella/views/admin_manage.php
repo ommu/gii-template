@@ -103,9 +103,9 @@ if(!empty($arrayRelation)) {
 	foreach($arrayRelation as $key => $val) {
 		$dropDownOptions = '';?>
 <?php echo "<?php ";?>if($<?php echo $arrayRelation[$key]['relation'];?> != null) {
-$model = $<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>;
+$model = $<?php echo $arrayRelation[$key]['relation'];?>;
 echo DetailView::widget([
-	'model' => $<?php echo Inflector::pluralize($arrayRelation[$key]['relation']);?>,
+	'model' => $model,
 	'options' => [
 		'class'=>'table table-striped detail-view',
 	],
