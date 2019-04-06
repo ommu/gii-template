@@ -130,7 +130,7 @@ if (($parentTableSchema = $parentTableSchema) === false) {
 			if(!in_array($column->name, ['enabled','verified','level_id','email','lastlogin_date']))
 				continue;
 		} else {
-			if($column->name[0] == '_' || $column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || in_array($column->name, ['modified_date','modified_id','updated_date','updated_id','slug']))
+			if($column->name[0] == '_' || $column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || in_array($column->name, ['orders','creation_date','creation_id','modified_date','modified_id','updated_date','updated_id','slug']))
 				continue;
 		}
 
@@ -173,7 +173,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 			'value' => function ($model) {
 				$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
 				if($<?php echo $publicAttribute;?> != '-')
-					return Html::a($<?php echo $publicAttribute;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>]);
+					return Html::a($<?php echo $publicAttribute;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>, 'class'=>'modal-btn']);
 				return $<?php echo $publicAttribute;?>;
 			},
 			'format' => 'html',
@@ -238,7 +238,9 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 		[
 			'attribute' => '<?php echo $column->name;?>',
 			'value' => function ($model) {
-				return Html::a($model-><?php echo $column->name;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $column->name;?>]);
+				if($model-><?php echo $column->name;?> != '')
+					return Html::a($model-><?php echo $column->name;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $column->name;?>, 'class'=>'modal-btn']);
+				return $model-><?php echo $column->name;?>;
 			},
 			'format' => 'html',
 		],
@@ -250,7 +252,7 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 <?php if(preg_match('/(name|title)/', $column->name)) {?>
 			'value' => function ($model) {
 				if($model-><?php echo $publicAttribute;?> != '')
-					return Html::a($model-><?php echo $publicAttribute;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $publicAttribute;?>]);
+					return Html::a($model-><?php echo $publicAttribute;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $publicAttribute;?>, 'class'=>'modal-btn']);
 				return $model-><?php echo $publicAttribute;?>;
 			},
 <?php } else {?>
