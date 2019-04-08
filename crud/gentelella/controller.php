@@ -291,12 +291,11 @@ endforeach;
 		}
 
 <?php if($generator->enableI18N) {
-	$pageTitle = [Inflector::camel2id('modelClass') => $shortLabel];
 	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";
 ?>
-		$this->view->title = <?php echo $generator->generateString('Update '.Inflector::camel2id('{modelClass}').': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;
+		$this->view->title = <?php echo $generator->generateString('Update '.$shortLabel.': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;
 <?php } else {?>
-		$this->view->title = <?= $generator->generateString('Update '.Inflector::camel2id('{modelClass}').': ', [Inflector::camel2id('modelClass') => $label]) ?>.$model-><?= $relationAttributeName ?>;
+		$this->view->title = <?= $generator->generateString('Update '.$shortLabel.': ', [Inflector::camel2id('modelClass') => $label]) ?>.$model-><?= $relationAttributeName ?>;
 <?php }?>
 		$this->view->description = '';
 		$this->view->keywords = '';
@@ -315,12 +314,11 @@ endforeach;
 		$model = $this->findModel(<?= $actionParams ?>);
 
 <?php if($generator->enableI18N) {
-	$pageTitle = [Inflector::camel2id('modelClass') => $shortLabel];
 	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";
 ?>
-		$this->view->title = <?php echo $generator->generateString('Detail '.Inflector::camel2id('{modelClass}').': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;
+		$this->view->title = <?php echo $generator->generateString('Detail '.$shortLabel.': '.Inflector::camel2id('{'.$attributeName.'}').'', $pageTitle);?>;
 <?php } else {?>
-		$this->view->title = <?= $generator->generateString('Detail '.Inflector::camel2id('{modelClass}').': ', [Inflector::camel2id('modelClass') => $label]) ?>.$model-><?= $relationAttributeName; ?>;
+		$this->view->title = <?= $generator->generateString('Detail '.$shortLabel.': ', [Inflector::camel2id('modelClass') => $label]) ?>.$model-><?= $relationAttributeName; ?>;
 <?php }?>
 		$this->view->description = '';
 		$this->view->keywords = '';
