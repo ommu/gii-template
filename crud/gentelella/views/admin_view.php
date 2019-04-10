@@ -256,7 +256,7 @@ foreach ($relations as $name => $relation) {
 <?php }?>
 	[
 		'attribute' => '',
-		'value' => Html::a(Yii::t('app', 'Update'), ['update', 'id'=>$model->id], ['title'=>Yii::t('app', 'Update'), 'class'=>'btn btn-success']),
+		'value' => Html::a(Yii::t('app', 'Update'), ['update', 'id'=>$model->id], ['title'=>Yii::t('app', 'Update'), 'class'=>'btn btn-primary btn-sm']),
 		'format' => 'html',
 		'visible' => Yii::$app->request->isAjax ? true : false,
 	],
