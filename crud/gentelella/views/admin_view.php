@@ -162,7 +162,7 @@ if($column->comment != '') {
 	$commentArray = explode(',', $column->comment);?>
 		'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
 <?php } else {?>
-		'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
+		'value' => $model->filterYesNo($model-><?php echo $column->name;?>),
 <?php }
 } else {
 if(in_array($column->name, ['publish','headline']) || ($column->comment != '' && $column->comment[7] != '[')) {
@@ -174,10 +174,10 @@ if($comment != '' && $comment[0] == '"') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
 		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
-		'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
+		'value' => $model->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
 <?php }?>
 <?php } else {?>
-		'value' => $this->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+		'value' => $model->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
 <?php }
 if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 		'format' => 'raw',
@@ -186,7 +186,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 	$functionName = ucfirst($generator->setRelation($column->name));?>
 		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
-		'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
+		'value' => $model->filterYesNo($model-><?php echo $column->name;?>),
 <?php }
 }?>
 	],
