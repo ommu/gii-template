@@ -192,6 +192,7 @@ use Yii;
 <?php 
 echo $uploadCondition || $relationCondition ? "use ".ltrim('yii\helpers\Html', '\\').";\n" : '';
 echo $publishCondition || $urlCondition || $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';
+echo $i18n || $tagCondition || $slugCondition ? "use ".ltrim('yii\helpers\Inflector', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
@@ -208,9 +209,9 @@ endif;
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $tinyCondition || $tagCondition || $i18n ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
+<?php echo $tinyCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition || $tagCondition || $i18n || $uploadCondition ? "\n" : '';?>
+<?php echo $tinyCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 foreach ($tableSchema->columns as $column) {
@@ -1060,7 +1061,7 @@ $beforeSave = 1;?>
 		$controller = strtolower(Yii::$app->controller->id);
 		$action = strtolower(Yii::$app->controller->action->id);
 
-		$location = $this->urlTitle($module.' '.$controller);
+		$location = Inflector::slug($module.' '.$controller);
 
 <?php }?>
 		if(parent::beforeSave($insert)) {
@@ -1114,7 +1115,7 @@ foreach($tableSchema->columns as $column) {
 					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
 <?php if($slugCondition && $i18n && preg_match('/(name|title)/', $column->name)) {?>
 
-				$this->slug = $this->urlTitle($this-><?php echo $publicAttribute;?>);
+				$this->slug = Inflector::slug($this-><?php echo $publicAttribute;?>);
 <?php }?>
 
 			} else {
@@ -1141,7 +1142,7 @@ foreach($tableSchema->columns as $column) {
 		$relationName =  $generator->setRelation($column->name);
 		$publicAttribute = $relationName.ucwords('body');?>
 			if($insert) {
-				$<?php echo $publicAttribute;?> = $this->urlTitle($this-><?php echo $publicAttribute;?>);
+				$<?php echo $publicAttribute;?> = Inflector::slug($this-><?php echo $publicAttribute;?>);
 				if($this-><?php echo $column->name;?> == 0) {
 					$<?php echo $relationName;?> = CoreTags::find()
 						->select(['<?php echo $column->name;?>'])
