@@ -41,8 +41,6 @@
 		"yiisoft/yii2-jui": "^2.0",
 		"mdmsoft/yii2-admin": "^2.7",
 		"components/jqueryui": "~1.10",
-		"ommu/yii-traits": "~2.1",
-		"ommu/yii2-redactor": "~2.0",
 		"thamtech/yii2-uuid": "*"
 	},
 	"autoload": {
