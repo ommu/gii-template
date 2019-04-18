@@ -107,7 +107,8 @@ foreach ($tableSchema->columns as $column) {
 	}
 
 	if(in_array($column->dbType, ['tinyint(1)'])) {
-		$tinyCondition = 1;
+		if($column->name != 'permission' && ($column->comment == '' || ($column->comment != '' && $column->comment[0] != '"')))
+			$tinyCondition = 1;
 		if(in_array($column->name, ['publish','headline']))
 			$publishCondition = 1;
 		if(!in_array($column->name, ['publish','headline']) && $column->comment != '' && $column->comment[0] != '"')
