@@ -45,7 +45,7 @@ $this->params['breadcrumbs'][] = ['label' => $model-><?= $generator->getNameAttr
 $this->params['breadcrumbs'][] = <?= $generator->generateString('Update') ?>;
 
 $this->params['menu']['content'] = [
-	['label' => <?= $generator->generateString('Detail') ?>, 'url' => Url::to(['view', <?= $urlParams ?>]), 'icon' => 'eye', 'htmlOptions' => ['class'=>'btn btn-info btn-sm']],
+	['label' => <?= $generator->generateString('Detail') ?>, 'url' => Url::to(['view', <?= $urlParams ?>]), 'icon' => 'eye', 'htmlOptions' => ['class'=>'btn btn-success btn-sm']],
 	['label' => <?= $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?= $urlParams ?>]), 'icon' => 'pencil', 'htmlOptions' => ['class'=>'btn btn-primary btn-sm']],
 	['label' => <?= $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?= $urlParams ?>]), 'htmlOptions' => ['data-confirm'=><?= $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method'=>'post', 'class'=>'btn btn-danger btn-sm'], 'icon' => 'trash'],
 ];
