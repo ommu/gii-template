@@ -561,7 +561,7 @@ echo \$form->field(\$model, '$attribute')
 			->dropDownList(\$$relationName, ['prompt'=>''])";
 					} else
 						return "echo \$form->field(\$model, '$attribute')
-			->dropDownList(\$this->filterYesNo(), ['prompt'=>''])";
+			->dropDownList(\$model->filterYesNo(), ['prompt'=>''])";
 				} else
 					return "echo \$form->field(\$model, '$attribute')";
 			}
