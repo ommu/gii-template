@@ -73,7 +73,6 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use <?= ($generator->indexWidgetType === 'grid' ? "app\\components\\widgets\\GridView" : "yii\\widgets\\ListView"); ?>;
 <?= $generator->enablePjax ? 'use yii\widgets\Pjax;'."\n" : ''; ?>
-use yii\helpers\ArrayHelper;
 <?php if(!empty($arrayRelation)):
 echo 'use yii\widgets\DetailView;'."\n";
 	foreach($arrayNamespace as  $val) { ?>
@@ -321,11 +320,11 @@ array_push($columnData, [
 	],
 	'buttons' => [
 		'view' => function ($url, $model, $key) {
-			$url = Url::to(ArrayHelper::merge(['view', 'id'=>$model->primaryKey], Yii::$app->request->get()));
+			$url = Url::to(['view', 'id'=>$model->primaryKey]);
 			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title' => <?= $generator->generateString('Detail ' . $functionLabel) ?>]);
 		},
 		'update' => function ($url, $model, $key) {
-			$url = Url::to(ArrayHelper::merge(['update', 'id'=>$model->primaryKey], Yii::$app->request->get()));
+			$url = Url::to(['update', 'id'=>$model->primaryKey]);
 			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title' => <?= $generator->generateString('Update ' . $functionLabel) ?>]);
 		},
 		'delete' => function ($url, $model, $key) {
