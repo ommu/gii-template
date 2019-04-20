@@ -35,6 +35,7 @@ $tagCondition = 0;
 $tinyCondition = 0;
 $publishCondition = 0;
 $urlCondition = 0;
+$licenseCondition = 0;
 $permissionCondition = 0;
 $dateCondition = 0;
 $slugCondition = 0;
@@ -119,6 +120,9 @@ foreach ($tableSchema->columns as $column) {
 
 	if(in_array($column->dbType, ['timestamp','datetime','date']))
 		$dateCondition = 1;
+
+	if($column->name == 'license') 
+		$licenseCondition = 1;
 
 	if($column->name == 'slug') 
 		$slugCondition = 1;
@@ -209,7 +213,7 @@ endif;
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $tinyCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
+<?php echo $tinyCondition || $licenseCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
 <?php echo $tinyCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];

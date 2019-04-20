@@ -463,7 +463,7 @@ echo \$form->field(\$model, '$attribute')
 			$label = $this->generateString('Enter the your license key that is provided to you when you purchased this plugin. If you do not know your license key, please contact support team.');
 			$label2 = $this->generateString('Format: XXXX-XXXX-XXXX-XXXX');
 			return "if(\$model->isNewRecord && !\$model->getErrors())
-	\$model->$attribute = \$this->licenseCode();
+	\$model->$attribute = \$model->licenseCode();
 echo \$form->field(\$model, '$attribute')
 \t->$input(['maxlength'=>true])
 \t->label(\$model->getAttributeLabel('$attribute'))
