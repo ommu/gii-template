@@ -313,11 +313,17 @@ if ($tableSchema === false) {
 
 <?php endif; ?>
 array_push($columnData, [
-	'class' => 'yii\grid\ActionColumn',
+	'class' => 'app\components\grid\ActionColumn',
 	'header' => <?php echo $generator->generateString('Option');?>,
-	'contentOptions' => [
-		'class'=>'action-column',
-	],
+	'urlCreator' => function($action, $model, $key, $index) {
+		if($action == 'view')
+			return Url::to(['view', 'id'=>$key]);
+		if($action == 'update')
+			return Url::to(['update', 'id'=>$key]);
+		if($action == 'delete')
+			return Url::to(['delete', 'id'=>$key]);
+	},
+<?php /*
 	'buttons' => [
 		'view' => function ($url, $model, $key) {
 			$url = Url::to(['view', 'id'=>$model->primaryKey]);
@@ -336,7 +342,8 @@ array_push($columnData, [
 			]);
 		},
 	],
-	'template' => '{view}{update}{delete}',
+*/?>
+	'template' => '{view} {update} {delete}',
 ]);
 
 echo GridView::widget([
