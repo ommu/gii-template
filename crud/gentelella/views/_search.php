@@ -31,7 +31,7 @@ echo "<?php\n";
  * @var $this app\components\View
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->searchModelClass)."\n"; ?>
- * @var $form app\components\ActiveForm
+ * @var $form yii\widgets\ActiveForm
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
@@ -47,7 +47,7 @@ echo "<?php\n";
  */
 
 use yii\helpers\Html;
-use app\components\ActiveForm;
+use yii\widgets\ActiveForm;
 <?php echo $getFunctionCondition || $enumCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 <?php foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {

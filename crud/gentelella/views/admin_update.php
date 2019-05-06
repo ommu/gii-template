@@ -23,7 +23,7 @@ echo "<?php\n";
  * @var $this app\components\View
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
- * @var $form app\components\ActiveForm
+ * @var $form app\components\widgets\ActiveForm
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>

@@ -54,7 +54,7 @@ echo "<?php\n";
  * @var $this app\components\View
  * @var $this <?php echo ltrim($generator->controllerClass)."\n"; ?>
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
- * @var $form app\components\ActiveForm
+ * @var $form app\components\widgets\ActiveForm
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
@@ -71,7 +71,7 @@ echo "<?php\n";
 
 use yii\helpers\Html;
 <?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
-use app\components\ActiveForm;
+use app\components\widgets\ActiveForm;
 <?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
 <?php echo $uploadCondition || $getFunctionCondition || $permissionCondition || $enumCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
 foreach ($tableSchema->columns as $column) {
