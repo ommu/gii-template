@@ -138,9 +138,8 @@ foreach ($tableSchema->columns as $column) {
 } ?>
 <div class="ln_solid"></div>
 
-<?= "<?php " ?>$button = Html::submitButton($model->isNewRecord ? <?= $generator->generateString('Create') ?> : <?= $generator->generateString('Update') ?>, ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']);
-echo $form->field($model, '<?php echo $primaryKey;?>', ['template' => '{label}{beginWrapper}'.$button.'{endWrapper}'])
-	->label(''); ?>
+<?php echo "<?php ";?>echo $form->field($model, 'submitButton')
+	->submitButton(); ?>
 
 <?= "<?php " ?>ActiveForm::end(); ?>
 
