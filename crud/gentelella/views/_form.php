@@ -18,6 +18,7 @@ $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
 
 $tableSchema = $generator->tableSchema;
+$primaryKey = $generator->getPrimaryKey($tableSchema);
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $redactorCondition = 0;
@@ -136,11 +137,10 @@ foreach ($tableSchema->columns as $column) {
 		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>
 <div class="ln_solid"></div>
-<div class="form-group row">
-	<div class="col-md-6 col-sm-9 col-xs-12 col-12 col-sm-offset-3">
-<?= "\t\t<?php echo " ?>Html::submitButton($model->isNewRecord ? <?= $generator->generateString('Create') ?> : <?= $generator->generateString('Update') ?>, ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']); ?>
-	</div>
-</div>
+
+<?= "<?php " ?>$button = Html::submitButton($model->isNewRecord ? <?= $generator->generateString('Create') ?> : <?= $generator->generateString('Update') ?>, ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']);
+echo $form->field($model, '<?php echo $primaryKey;?>', ['template' => '{label}{beginWrapper}'.$button.'{endWrapper}'])
+	->label(''); ?>
 
 <?= "<?php " ?>ActiveForm::end(); ?>
 
