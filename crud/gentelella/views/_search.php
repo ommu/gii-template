@@ -95,8 +95,8 @@ foreach($tableSchema->columns as $column) {
 }
 ?>
 		<div class="form-group">
-			<?= "<?php echo " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
-			<?= "<?php echo " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
+			<?= "<?php echo " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']); ?>
+			<?= "<?php echo " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']); ?>
 		</div>
 
 	<?= "<?php " ?>ActiveForm::end(); ?>

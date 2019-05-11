@@ -65,7 +65,7 @@ echo "<?php\n";
 ?>
 /**
  * <?php echo $controllerClass."\n"; ?>
- * @var $this app\components\View
+ * @var $this <?php echo ltrim($generator->controllerClass, '\\')."\n"; ?>
  * @var $model <?php echo ltrim($generator->modelClass)."\n"; ?>
  *
  * <?= $controllerClass ?> implements the CRUD actions for <?= $modelClass ?> model.
