@@ -204,6 +204,8 @@ if(!empty($inputSearchVariables)) {
 			'defaultOrder' => ['<?php echo $generator->getPrimaryKey($tableSchema);?>' => SORT_DESC],
 		]);
 
+		if(Yii::$app->request->get('<?php echo $generator->getPrimaryKey($tableSchema);?>'))
+			unset($params['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
 		$this->load($params);
 
 		if(!$this->validate()) {

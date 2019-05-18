@@ -213,7 +213,7 @@ endif;
 
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
 {
-<?php echo $tinyCondition || $licenseCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
+<?php echo $tinyCondition || $licenseCondition || $primaryKeyTriggerCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
 <?php echo $tinyCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
@@ -583,7 +583,7 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {?>
 				$uploadPath = self::getUploadPath(false);
 <?php }?>
-				return $model-><?php echo $publicAttribute;?> ? Html::img(join('/', [Url::Base(), $uploadPath, $model-><?php echo $publicAttribute;?>]), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
+				return $model-><?php echo $publicAttribute;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
 			},
 			'format' => 'html',
 		];
@@ -720,19 +720,23 @@ if($comment != '' && $comment[0] == '"') {
 
 foreach ($tableSchema->columns as $column) {
 	$comment = $column->comment;
-	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {?>
-		if(!Yii::$app->request->get('trash')) {
+	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
+		echo $primaryKeyTriggerCondition ? "\t\t// " : '';?>if(!Yii::$app->request->get('trash')) {
 			$this->templateColumns['<?php echo $column->name;?>'] = [
 				'attribute' => '<?php echo $column->name;?>',
 				'value' => function($model, $key, $index, $column) {
+<?php if(!$primaryKeyTriggerCondition) {?>
 					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
 					return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
+<?php } else {?>
+					return $this->filterYesNo($model->publish);
+<?php }?>
 				},
 				'filter' => $this->filterYesNo(),
 				'contentOptions' => ['class'=>'center'],
-				'format' => 'raw',
+<?php echo !$primaryKeyTriggerCondition ? "\t\t\t\t'format' => 'raw',\n" : '';?>
 			];
-		}
+<?php echo $primaryKeyTriggerCondition ? "\t\t// " : '';?>}
 <?php }
 } ?>
 <?php /*
@@ -973,7 +977,7 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 		if($column->type == 'text' && in_array('file', $commentArray)) {
 			$fileType = lcfirst(Inflector::singularize(Inflector::id2camel($column->name, '_')).'FileType');?>
 			$<?php echo $fileType;?> = ['bmp','gif','jpg','png'];
-			$<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+			// $<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
 				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
 					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', [
@@ -1083,7 +1087,7 @@ $beforeSave = 1;?>
 <?php foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) {?>
-				$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+				// $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 <?php if($generator->uploadPath['subfolder']) {?>
 					$fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
@@ -1199,7 +1203,7 @@ if($generator->uploadPath['subfolder']) {?>
 <?php foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text'  && in_array('file', $commentArray)) {?>
-			$this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+			// $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
 			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 <?php if($generator->uploadPath['subfolder']) {?>
 				$fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 

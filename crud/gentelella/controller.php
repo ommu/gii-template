@@ -57,6 +57,7 @@ foreach($foreignKeys as $key => $val) {
 			$namespace = str_replace($modelClass, $generator->generateClassName($val), $generator->modelClass);
 	}
 	$arrayRelation[$i]['namespace'] = $namespace;
+	$i++;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -275,6 +276,7 @@ endforeach;
 	public function actionUpdate(<?= $actionParams ?>)
 	{
 		$model = $this->findModel(<?= $actionParams ?>);
+
 		if(Yii::$app->request->isPost) {
 			$model->load(Yii::$app->request->post());
 			// $postData = Yii::$app->request->post();
