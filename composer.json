@@ -1,6 +1,7 @@
 {
 	"name": "ommu/gii",
 	"description": "Gii Generator Template from Ommu Platform",
+	"type": "ommu-library",
 	"keywords": [
 		"yii",
 		"library",
@@ -11,9 +12,8 @@
 		"ommu",
 		"ommu-platform"
 	],
-	"homepage": "https://github.com/ommu/gii-template",
-	"type": "ommu-library",
 	"license": "Apache-2.0",
+	"homepage": "https://github.com/ommu/gii-template",
 	"support": {
 		"issues": "https://github.com/ommu/gii-template/issues",
 		"wiki": "https://github.com/ommu/gii-template/wiki",
@@ -42,12 +42,12 @@
 		"mdmsoft/yii2-admin": "^2.7",
 		"components/jqueryui": "~1.10"
 	},
+	"suggest": {
+		"components/jqueryui": "move to bower/jquery-ui or bower-asset/jquery-ui"
+	},
 	"autoload": {
 		"psr-4": {
 			"ommu\\gii\\": ""
 		}
-	},
-	"suggest": {
-		"components/jqueryui": "move to bower/jquery-ui or bower-asset/jquery-ui"
 	}
 }
