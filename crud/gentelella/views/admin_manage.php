@@ -282,7 +282,7 @@ if(!empty($generator->searchModelClass)): ?>
 
 <?php endif; ?>
 <?php if ($generator->indexWidgetType === 'grid'): ?>
-<?= "<?php \n" ?>
+<?= "<?php\n" ?>
 <?php if(!empty($generator->searchModelClass)): ?>
 $columnData = $columns;
 <?php else: ?>

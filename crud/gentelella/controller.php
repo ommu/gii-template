@@ -346,8 +346,9 @@ endforeach;
 			return $this->redirect(['manage']);
 		}
 <?php else: ?>
-		$this->findModel(<?= $actionParams ?>)->delete();
-		
+		$model = $this->findModel($id);
+		$model->delete();
+
 		Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
 		return $this->redirect(['manage']);
 <?php endif; ?>

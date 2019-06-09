@@ -791,7 +791,8 @@ if($tableType != Generator::TYPE_VIEW && ($generator->useGetFunction || $useGetF
 	 */
 	public static function get<?php echo $functionName; ?>(<?php echo $publishCondition ? '$publish=null, $array=true' : '$array=true';?>) 
 	{
-		$model = self::find()->alias('t');
+		$model = self::find()->alias('t')
+			->select(['t.<?php echo $primaryKey;?>', 't.<?php echo $attributeName;?>']);
 <?php 
 $i18nRelation = $i18n && preg_match('/(name|title)/', $attributeName) ? 'title' : '';
 if($i18nRelation)
