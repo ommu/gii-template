@@ -492,6 +492,9 @@ if($queryClassName):
 	{
 		parent::init();
 
+		if(!(Yii::$app instanceof \app\components\Application))
+			return;
+
 		$this->templateColumns['_no'] = [
 			'header' => <?php echo $generator->generateString('No');?>,
 			'class' => 'yii\grid\SerialColumn',
