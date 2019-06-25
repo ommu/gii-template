@@ -724,7 +724,7 @@ if($comment != '' && $comment[0] == '"') {
 foreach ($tableSchema->columns as $column) {
 	$comment = $column->comment;
 	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
-		echo $primaryKeyTriggerCondition ? "\t\t// " : '';?>if(!Yii::$app->request->get('trash')) {
+		echo $primaryKeyTriggerCondition ? "\t\t// " : "\t\t";?>if(!Yii::$app->request->get('trash')) {
 			$this->templateColumns['<?php echo $column->name;?>'] = [
 				'attribute' => '<?php echo $column->name;?>',
 				'value' => function($model, $key, $index, $column) {
@@ -739,7 +739,7 @@ foreach ($tableSchema->columns as $column) {
 				'contentOptions' => ['class'=>'center'],
 <?php echo !$primaryKeyTriggerCondition ? "\t\t\t\t'format' => 'raw',\n" : '';?>
 			];
-<?php echo $primaryKeyTriggerCondition ? "\t\t// " : '';?>}
+<?php echo $primaryKeyTriggerCondition ? "\t\t// " : "\t\t";?>}
 <?php }
 } ?>
 <?php /*
@@ -753,7 +753,7 @@ foreach ($tableSchema->columns as $column):
 					'attribute' => '<?php echo $column->name;?>',
 					'model'  => $this,
 				]),
-				'format'	=> 'html',
+				'format' => 'html',
 			];
 <?php } else { ?>
 			$this->defaultColumns[] = [
@@ -980,12 +980,12 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 		$commentArray = explode(',', $column->comment);
 		if($column->type == 'text' && in_array('file', $commentArray)) {
 			$fileType = lcfirst(Inflector::singularize(Inflector::id2camel($column->name, '_')).'FileType');?>
-			$<?php echo $fileType;?> = ['bmp','gif','jpg','png'];
-			// $<?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-			if($<?php echo $column->name;?> instanceof UploadedFile && !$<?php echo $column->name;?>->getHasError()) {
-				if(!in_array(strtolower($<?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
+			// $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
+				$<?php echo $fileType;?> = ['jpg', 'jpeg', 'png', 'bmp', 'gif'];
+				if(!in_array(strtolower($this-><?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
 					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', [
-						'name'=>$<?php echo $column->name;?>->name,
+						'name'=>$this-><?php echo $column->name;?>->name,
 						'extensions'=>$this->formatFileType($<?php echo $fileType;?>, false),
 					]));
 				}

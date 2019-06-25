@@ -26,7 +26,7 @@ use yii\widgets\ActiveForm;
     <?php endforeach; ?>
 
         <div class="form-group">
-            <?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Submit') ?>, ['class' => 'btn btn-primary']) ?>
+            <?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Submit') ?>, ['class' => 'btn btn-primary']); ?>
         </div>
     <?= "<?php " ?>ActiveForm::end(); ?>
 
