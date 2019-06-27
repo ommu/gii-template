@@ -386,7 +386,7 @@ echo \$form->field(\$model, '$attribute')
 // \t->label(\$model->getAttributeLabel('$attribute'))";
 // 			} else {
 				return "echo \$form->field(\$model, '$attribute')
-\t->textInput(['type' => 'date'])
+\t->textInput(['type'=>'date'])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 			// }
 		}
