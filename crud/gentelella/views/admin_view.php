@@ -143,6 +143,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 		'format' => 'html',
 <?php else:?>
 		'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
+		'visible' => !$small,
 <?php endif;?>
 	],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
@@ -153,6 +154,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 <?php } else {?>
 		'value' => Yii::$app->formatter->asDatetime($model-><?php echo $column->name;?>, 'medium'),
 <?php }?>
+		'visible' => !$small,
 	],
 <?php } else if($column->dbType == 'tinyint(1)') {?>
 	[
@@ -189,6 +191,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 		'value' => $model->filterYesNo($model-><?php echo $column->name;?>),
 <?php }
 }?>
+		'visible' => !$small,
 	],
 <?php } else if (is_array($column->enumValues) && count($column->enumValues) > 0) {
 			$dropDownOptionKey = $dropDownOptions[$column->dbType];
@@ -196,6 +199,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 	[
 		'attribute' => '<?php echo $column->name;?>',
 		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+		'visible' => !$small,
 	],
 <?php } else if($column->type == 'text') {?>
 	[
@@ -217,6 +221,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 		'format' => 'html',
 <?php endif;?>
+		'visible' => !$small,
 	],
 <?php } else {
 	if(in_array('trigger[delete]', $commentArray)) {
@@ -227,9 +232,19 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 <?php if(in_array('redactor', $commentArray)):?>
 		'format' => 'html',
 <?php endif;?>
+		'visible' => !$small,
 	],
 <?php } else {
 		$format = $generator->generateColumnFormat($column);
+if($format == 'text' && !$column->isPrimaryKey) {?>
+	[
+		'attribute' => '<?php echo $column->name;?>',
+		'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
+<?php if(!preg_match('/(name|title|body)/', $column->name)) {?>
+		'visible' => !$small,
+<?php }?>
+	],
+<?php } else
 		echo "\t'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
 		}
 	}
@@ -252,13 +267,14 @@ foreach ($relations as $name => $relation) {
 			return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
 		},
 		'format' => 'html',
+		'visible' => !$small,
 	],
 <?php }?>
 	[
 		'attribute' => '',
 		'value' => Html::a(Yii::t('app', 'Update'), ['update', 'id'=>$model->primaryKey], ['title'=>Yii::t('app', 'Update'), 'class'=>'btn btn-primary']),
 		'format' => 'html',
-		'visible' => Yii::$app->request->isAjax ? true : false,
+		'visible' => !$small && Yii::$app->request->isAjax ? true : false,
 	],
 ];
 

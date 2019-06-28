@@ -73,12 +73,6 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use <?= ($generator->indexWidgetType === 'grid' ? "app\\components\\grid\\GridView" : "yii\\widgets\\ListView"); ?>;
 <?= $generator->enablePjax ? 'use yii\widgets\Pjax;'."\n" : ''; ?>
-<?php if(!empty($arrayRelation)):
-echo 'use yii\widgets\DetailView;'."\n";
-	foreach($arrayNamespace as  $val) { ?>
-use <?= ltrim($val, '\\') ?>;
-<?php }
-endif;?>
 
 $this->params['breadcrumbs'][] = $this->title;
 
@@ -100,177 +94,13 @@ $this->params['menu']['option'] = [
 
 if(!empty($arrayRelation)) {
 	foreach($arrayRelation as $key => $val) {
-		$dropDownOptions = '';?>
-<?php echo "<?php ";?>if($<?php echo $arrayRelation[$key]['relation'];?> != null) {
-$model = $<?php echo $arrayRelation[$key]['relation'];?>;
-echo DetailView::widget([
-	'model' => $model,
-	'options' => [
-		'class'=>'table table-striped detail-view',
-	],
-	'attributes' => [
-<?php
-$parentTableName = $arrayRelation[$key]['table'];
-$parentTableSchema = $generator->getTableSchemaWithTableName($parentTableName);
-$parentClassName = $generator->generateClassName($parentTableName);
-$parentPrimaryKey = $generator->getPrimaryKey($parentTableSchema);
-$parentForeignKeys = $generator->getForeignKeys($parentTableSchema->foreignKeys);
-$parentController = strtolower(Inflector::singularize($generator->setRelation($parentTableName, true)));
-$parentController = $parentController != $generator->getModuleName() ? $parentController : 'admin';
-$dropDownOptions = $generator->dropDownOptions($parentTableSchema);
-
-if (($parentTableSchema = $parentTableSchema) === false) {
-	foreach ($generator->getColumnNames() as $name) {
-		echo "\t\t'" . $name . "',\n";
-	}
-} else {
-	foreach ($parentTableSchema->columns as $column) {
-		if($parentTableName == 'ommu_users') {
-			if(!in_array($column->name, ['enabled','verified','level_id','email','lastlogin_date']))
-				continue;
-		} else {
-			if($column->name[0] == '_' || $column->autoIncrement || $column->isPrimaryKey || $column->dbType == 'tinyint(1)' || in_array($column->name, ['orders','creation_date','creation_id','modified_date','modified_id','updated_date','updated_id','slug']))
-				continue;
-		}
-
-		$foreignCondition = 0;
-		$foreignUserCondition = 0;
-		if(!empty($parentForeignKeys) && array_key_exists($column->name, $parentForeignKeys)) {
-			$foreignCondition = 1;
-			if($parentForeignKeys[$column->name] == 'ommu_users')
-				$foreignUserCondition = 1;
-		}
-
-		$commentArray = explode(',', $column->comment);
-
-if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncrement || !$column->isPrimaryKey) && in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id']))) {
-	$smallintCondition = 0;
-	if(preg_match('/(smallint)/', $column->type))
-		$smallintCondition = 1;
-	$relationName = $generator->setRelation($column->name);
-	$relationFixedName = $generator->setRelationFixed($relationName, $parentTableSchema->columns);
-	$relationAttribute = $variableAttribute = 'displayname';
-	$publicAttribute = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
-	if(array_key_exists($column->name, $parentForeignKeys)) {
-		$relationTable = trim($parentForeignKeys[$column->name]);
-		$relationAttribute = $generator->getNameAttribute($relationTable);
-		$relationSchema = $generator->getTableSchemaWithTableName($relationTable);
-		$variableAttribute = key($generator->getNameAttributes($relationSchema));
-		if(in_array($relationTable, ['ommu_users', 'ommu_members']))
-			$relationAttribute = $variableAttribute = 'displayname';
-		$publicAttribute = $relationName.ucwords(Inflector::id2camel($variableAttribute, '_'));
-		if(preg_match('/('.$relationName.')/', $variableAttribute))
-			$publicAttribute = lcfirst(Inflector::id2camel($variableAttribute, '_'));
-	}
-	if($column->name == 'tag_id') {
-		$publicAttribute = $relationName.ucwords('body');
-		$relationAttribute = 'body';
-	}?>
-		[
-			'attribute' => '<?php echo $publicAttribute;?>',
-<?php if($parentTableName != 'ommu_users' && $foreignCondition && !$foreignUserCondition):?>
-			'value' => function ($model) {
-				$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
-				if($<?php echo $publicAttribute;?> != '-')
-					return Html::a($<?php echo $publicAttribute;?>, ['<?php echo Inflector::singularize($relationName);?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>, 'class'=>'modal-btn']);
-				return $<?php echo $publicAttribute;?>;
-			},
-			'format' => 'html',
-<?php else:?>
-			'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
-<?php endif;?>
-		],
-<?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
-<?php if($column->dbType == 'date') {?>
-			'value' => Yii::$app->formatter->asDate($model-><?php echo $column->name;?>, 'medium'),
-<?php } else {?>
-			'value' => Yii::$app->formatter->asDatetime($model-><?php echo $column->name;?>, 'medium'),
-<?php }?>
-		],
-<?php } else if($column->dbType == 'tinyint(1)') {
-	$comment = $column->comment;?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
-<?php if($comment != '') {
-if($comment != '' && $comment[0] == '"') {
-	$functionName = ucfirst($generator->setRelation($column->name));?>
-			'value' => <?php echo $parentClassName;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
-<?php } else {
-	$commentArray = explode(',', $column->comment);?>
-			'value' => $model-><?php echo $column->name;?> == 1 ? Yii::t('app', '<?php echo $commentArray[0];?>') : Yii::t('app', '<?php echo $commentArray[1];?>'),
-<?php }
-} else {?>
-			'value' => $this->filterYesNo($model-><?php echo $column->name;?>),
-<?php }?>
-		],
-<?php } else if (is_array($column->enumValues) && count($column->enumValues) > 0) {
-			$dropDownOptionKey = $dropDownOptions[$column->dbType];
-			$functionName = ucfirst($generator->setRelation($dropDownOptionKey));?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
-			'value' => <?php echo $parentClassName;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
-		],
-<?php } else if($column->type == 'text') {?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
-<?php if(in_array('file', $commentArray)):?>
-			'value' => function ($model) {
-<?php if($generator->uploadPathSubfolder) {?>
-				$uploadPath = join('/', [<?php echo $parentClassName;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
-<?php } else {?>
-				$uploadPath = <?php echo $parentClassName;?>::getUploadPath(false);
-<?php }?>
-				return $model-><?php echo $column->name;?> ? Html::a($model-><?php echo $column->name;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>]))) : '-';
-			},
-<?php elseif(in_array('serialize', $commentArray)):?>
-			'value' => serialize($model-><?php echo $column->name;?>),
-<?php else:?>
-			'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
-<?php endif;
-if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
-			'format' => 'html',
-<?php endif;?>
-		],
-<?php } else if(preg_match('/(name|title)/', $column->name) && !in_array('trigger[delete]', $commentArray)) {?>
-		[
-			'attribute' => '<?php echo $column->name;?>',
-			'value' => function ($model) {
-				if($model-><?php echo $column->name;?> != '')
-					return Html::a($model-><?php echo $column->name;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $column->name;?>, 'class'=>'modal-btn']);
-				return $model-><?php echo $column->name;?>;
-			},
-			'format' => 'html',
-		],
-<?php } else {
-	if(in_array('trigger[delete]', $commentArray)) {
-		$publicAttribute = $column->name.'_i';?>
-		[
-			'attribute' => '<?php echo $publicAttribute;?>',
-<?php if(preg_match('/(name|title)/', $column->name)) {?>
-			'value' => function ($model) {
-				if($model-><?php echo $publicAttribute;?> != '')
-					return Html::a($model-><?php echo $publicAttribute;?>, ['<?php echo $parentController;?>/view', 'id'=>$model-><?php echo $parentPrimaryKey;?>], ['title'=>$model-><?php echo $publicAttribute;?>, 'class'=>'modal-btn']);
-				return $model-><?php echo $publicAttribute;?>;
-			},
-<?php } else {?>
-			'value' => $model-><?php echo $publicAttribute;?>,
-<?php }?>
-<?php if(preg_match('/(name|title)/', $column->name) || in_array('redactor', $commentArray)) {?>
-			'format' => 'html',
-<?php }?>
-		],
-<?php } else {
-		$format = $generator->generateColumnFormat($column);
-		echo "\t\t'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
-		}
-	}
-	}
-}?>
-	],
-]);
-}?>
+		$render = join('/', ['',$arrayRelation[$key]['relation'], 'admin_view']);
+		if($arrayRelation['table'] == 'ommu_users')
+			$render = '@ommu/users/views/member/admin_view';
+		else if($arrayRelation['table'] == 'ommu_members')
+			$render = '@ommu/member/views/manage/admin/admin_view'; ?>
+<?php echo "<?php ";?>if($<?php echo $arrayRelation[$key]['relation'];?> != null)
+	echo $this->render('<?php echo $render;?>', ['model'=>$<?php echo $arrayRelation[$key]['relation'];?>, 'small'=>true]); ?>
 
 <?php }
 }
