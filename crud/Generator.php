@@ -432,7 +432,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<
 			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
 			return "\$$relationName = $modelClass::get$functionName();
 echo \$form->field(\$model, '$attribute')
-\t->dropDownList(\$$relationName, ['prompt' => ''])
+\t->dropDownList(\$$relationName, ['prompt'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 		}
 

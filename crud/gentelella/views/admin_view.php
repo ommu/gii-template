@@ -76,12 +76,13 @@ use yii\widgets\DetailView;
 $this->params['breadcrumbs'][] = ['label' => <?php echo $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model-><?php echo $generator->getNameAttribute(); ?>;
 
+if(!$small) {
 $this->params['menu']['content'] = [
 	['label' => <?php echo $generator->generateString('Detail') ?>, 'url' => Url::to(['view', <?php echo $urlParams ?>]), 'icon' => 'eye', 'htmlOptions' => ['class'=>'btn btn-success']],
 	['label' => <?php echo $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?php echo $urlParams ?>]), 'icon' => 'pencil', 'htmlOptions' => ['class'=>'btn btn-primary']],
 	['label' => <?php echo $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?php echo $urlParams ?>]), 'htmlOptions' => ['data-confirm'=><?php echo $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method'=>'post', 'class'=>'btn btn-danger'], 'icon' => 'trash'],
 ];
-?>
+} ?>
 
 <div class="<?php echo Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-view">
 
@@ -236,7 +237,7 @@ if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
 	],
 <?php } else {
 		$format = $generator->generateColumnFormat($column);
-if($format == 'text' && !$column->isPrimaryKey) {?>
+if($format == 'text') {?>
 	[
 		'attribute' => '<?php echo $column->name;?>',
 		'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',

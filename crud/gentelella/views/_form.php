@@ -88,7 +88,7 @@ $redactorOptions = [
 	'imageManagerJson' => ['/redactor/upload/image-json'],
 	'imageUpload' => ['/redactor/upload/image'],
 	'fileUpload' => ['/redactor/upload/file'],
-	'plugins' => ['clips', 'fontcolor','imagemanager']
+	'plugins' => ['clips', 'fontcolor', 'imagemanager']
 ];
 <?php }?>
 ?>
@@ -107,6 +107,11 @@ $redactorOptions = [
 	'enableClientValidation' => <?php echo $uploadCondition ? 'false' : 'true';?>,
 	'enableAjaxValidation' => false,
 	//'enableClientScript' => true,
+	'fieldConfig' => [
+		'errorOptions' => [
+			'encode' => false,
+		],
+	],
 ]); ?>
 
 <?php echo "<?php "?>//echo $form->errorSummary($model);?>
