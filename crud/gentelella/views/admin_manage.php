@@ -153,18 +153,14 @@ array_push($columnData, [
 		if($action == 'delete')
 			return Url::to(['delete', 'id'=>$key]);
 	},
-<?php /*
 	'buttons' => [
 		'view' => function ($url, $model, $key) {
-			$url = Url::to(['view', 'id'=>$model->primaryKey]);
-			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title' => <?= $generator->generateString('Detail ' . $functionLabel) ?>]);
+			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title' => <?= $generator->generateString('Detail ' . $functionLabel) ?>, 'class'=>'modal-btn']);
 		},
 		'update' => function ($url, $model, $key) {
-			$url = Url::to(['update', 'id'=>$model->primaryKey]);
-			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title' => <?= $generator->generateString('Update ' . $functionLabel) ?>]);
+			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title' => <?= $generator->generateString('Update ' . $functionLabel) ?>, 'class'=>'modal-btn']);
 		},
 		'delete' => function ($url, $model, $key) {
-			$url = Url::to(['delete', 'id'=>$model->primaryKey]);
 			return Html::a('<span class="glyphicon glyphicon-trash"></span>', $url, [
 				'title' => <?= $generator->generateString('Delete ' . $functionLabel) ?>,
 				'data-confirm' => <?= $generator->generateString('Are you sure you want to delete this item?') ?>,
@@ -172,7 +168,6 @@ array_push($columnData, [
 			]);
 		},
 	],
-*/?>
 	'template' => '{view} {update} {delete}',
 ]);
 
