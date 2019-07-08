@@ -177,7 +177,8 @@ if(!empty($arrayRelations)):
 foreach ($arrayRelations as $key => $val):
 	$relations[] = $val.' '.$key;
 endforeach;?>
-		$query->joinWith([<?php echo "\n\t\t\t'" .implode("', \n\t\t\t'", $relations). "'\n\t\t";?>]);
+		$query->joinWith([<?php echo "\n\t\t\t'" .implode("', \n\t\t\t'", $relations). "'\n\t\t";?>])
+		->groupBy(['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
 <?php endif;?>
 
 		// add conditions that should always apply here
