@@ -63,7 +63,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	 */
 	public function published() 
 	{
-		return $this->andWhere(['<?php echo $column->name;?>' => 1]);
+		return $this->andWhere(['t.<?php echo $column->name;?>' => 1]);
 	}
 
 	/**
@@ -71,7 +71,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	 */
 	public function unpublish() 
 	{
-		return $this->andWhere(['<?php echo $column->name;?>' => 0]);
+		return $this->andWhere(['t.<?php echo $column->name;?>' => 0]);
 	}
 
 	/**
@@ -79,7 +79,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	 */
 	public function deleted() 
 	{
-		return $this->andWhere(['<?php echo $column->name;?>' => 2]);
+		return $this->andWhere(['t.<?php echo $column->name;?>' => 2]);
 	}
 <?php elseif($column->name == 'headline'):?>
 
@@ -88,8 +88,8 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	 */
 	public function headlined() 
 	{
-		return $this->andWhere(['publish' => 1])
-			->andWhere(['<?php echo $column->name;?>' => 1]);
+		return $this->andWhere(['t.publish' => 1])
+			->andWhere(['t.<?php echo $column->name;?>' => 1]);
 	}
 <?php endif;
 endforeach;?>

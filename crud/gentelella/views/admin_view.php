@@ -212,7 +212,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 <?php } else {?>
 			$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
 <?php }?>
-			return $model-><?php echo $column->name;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['class'=>'mb-3']).$model-><?php echo $column->name;?> : '-';
+			return $model-><?php echo $column->name;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['alt'=>$model-><?php echo $column->name;?>, 'class'=>'mb-3']).'<br/>'.$model-><?php echo $column->name;?> : '-';
 		},
 <?php elseif(in_array('serialize', $commentArray)):?>
 		'value' => serialize($model-><?php echo $column->name;?>),

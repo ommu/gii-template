@@ -396,7 +396,7 @@ echo \$form->field(\$model, '$attribute')
 				$relationName = $this->setRelation($attribute);
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [$modelClass::getUploadPath(false), \$model->$primaryKey])" : "$modelClass::getUploadPath(false)";
 				return "\$uploadPath = $uploadPath;
-\$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['class'=>'mb-3']) : '';
+\$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class'=>'mb-3']) : '';
 echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<div>'.\$$relationName.'</div>{input}{error}{hint}{endWrapper}'])
 \t->fileInput()
 \t->label(\$model->getAttributeLabel('$attribute'))";

@@ -401,6 +401,7 @@ foreach ($relations as $name => $relation) {
 <?php }?>
 <?php if($relation[2]) {?>
 		$model = <?php echo $relation[1];?>::find()
+			->alias('t')
 			->where(<?php echo $relation[3];?>);
 <?php if($publishRltnCondition) {?>
 		if($publish == 0)
@@ -586,7 +587,7 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {?>
 				$uploadPath = self::getUploadPath(false);
 <?php }?>
-				return $model-><?php echo $publicAttribute;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
+				return $model-><?php echo $publicAttribute;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['alt'=>$model-><?php echo $publicAttribute;?>]) : '-';
 			},
 			'format' => 'html',
 		];
