@@ -395,8 +395,11 @@ echo \$form->field(\$model, '$attribute')
 			if(in_array('file', $commentArray)) {	// 04.1
 				$relationName = $this->setRelation($attribute);
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [$modelClass::getUploadPath(false), \$model->$primaryKey])" : "$modelClass::getUploadPath(false)";
+				$previewFile = "Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class'=>'mb-3'])";
+				if(in_array('pdf', $commentArray))
+					$previewFile = "Html::a(\$model->old_{$attribute}, Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['title'=>\$model->old_{$attribute}, 'target'=>'_blank', 'class'=>'d-inline-block mb-3'])";
 				return "\$uploadPath = $uploadPath;
-\$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class'=>'mb-3']) : '';
+\$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? $previewFile : '';
 echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<div>'.\$$relationName.'</div>{input}{error}{hint}{endWrapper}'])
 \t->fileInput()
 \t->label(\$model->getAttributeLabel('$attribute'))";

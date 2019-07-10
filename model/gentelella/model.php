@@ -587,9 +587,15 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {?>
 				$uploadPath = self::getUploadPath(false);
 <?php }?>
+<?php if(in_array('pdf', $commentArray)) {?>
+				return $model-><?php echo $publicAttribute;?> ? Html::a($model-><?php echo $publicAttribute;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['title'=>$model-><?php echo $publicAttribute;?>, 'target'=>'_blank']) : '-';
+			},
+			'format' => 'raw',
+<?php } else {?>
 				return $model-><?php echo $publicAttribute;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['alt'=>$model-><?php echo $publicAttribute;?>]) : '-';
 			},
 			'format' => 'html',
+<?php }?>
 		];
 <?php 	}
 	} else if(is_array($column->enumValues)) {

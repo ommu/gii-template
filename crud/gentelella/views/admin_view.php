@@ -211,16 +211,24 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 			$uploadPath = join('/', [<?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
 <?php } else {?>
 			$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
-<?php }?>
+<?php }
+if(in_array('pdf', $commentArray)) {?>
+			return $model-><?php echo $column->name;?> ? Html::a($model-><?php echo $column->name;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['title'=>$model-><?php echo $column->name;?>, 'target'=>'_blank']) : '-';
+<?php } else {?>
 			return $model-><?php echo $column->name;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['alt'=>$model-><?php echo $column->name;?>, 'class'=>'mb-3']).'<br/>'.$model-><?php echo $column->name;?> : '-';
+<?php }?>
 		},
 <?php elseif(in_array('serialize', $commentArray)):?>
 		'value' => serialize($model-><?php echo $column->name;?>),
 <?php else:?>
 		'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
 <?php endif;
-if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):?>
+if(in_array('redactor', $commentArray) || in_array('file', $commentArray)):
+if(in_array('file', $commentArray) && in_array('pdf', $commentArray)):?>
+		'format' => 'raw',
+<?php else:?>
 		'format' => 'html',
+<?php endif;?>
 <?php endif;?>
 		'visible' => !$small,
 	],
