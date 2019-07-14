@@ -350,7 +350,7 @@ class Generator extends \ommu\gii\Generator
 				$relationName = $this->setRelation($attribute);
 				$functionName = ucfirst($relationName);
 				$label = $this->generateString('Select whether or not you want to let the public (visitors that are not logged-in) to view the following sections of your social network. In some cases (such as Profiles, Blogs, and Albums), if you have given them the option, your users will be able to make their pages private even though you have made them publically viewable here. For more permissions settings, please visit the General Settings page.');
-				return "\$$relationName = $modelClass::get$functionName();
+				return "\$$relationName = \$model::get$functionName();
 echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}{hint}{input}{error}{endWrapper}'])
 \t->radioList(\$$relationName)
 \t->label(\$model->getAttributeLabel('$attribute'))
@@ -359,7 +359,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}{
 			} elseif($column->comment != '' && $column->comment[0] == '"') {
 				$relationName = $this->setRelation($attribute);
 				$functionName = ucfirst($relationName);
-				return "\$$relationName = $modelClass::get$functionName();
+				return "\$$relationName = \$model::get$functionName();
 echo \$form->field(\$model, '$attribute')
 \t->dropDownList(\$$relationName, ['prompt'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'))";
@@ -394,7 +394,7 @@ echo \$form->field(\$model, '$attribute')
 		if ($column->type === 'text' || $i18n) {	// 04
 			if(in_array('file', $commentArray)) {	// 04.1
 				$relationName = $this->setRelation($attribute);
-				$uploadPath = $this->uploadPathSubfolder ? "join('/', [$modelClass::getUploadPath(false), \$model->$primaryKey])" : "$modelClass::getUploadPath(false)";
+				$uploadPath = $this->uploadPathSubfolder ? "join('/', [\$model::getUploadPath(false), \$model->$primaryKey])" : "\$model::getUploadPath(false)";
 				$previewFile = "Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class'=>'mb-3'])";
 				if(in_array('pdf', $commentArray))
 					$previewFile = "Html::a(\$model->old_{$attribute}, Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['title'=>\$model->old_{$attribute}, 'target'=>'_blank', 'class'=>'d-inline-block mb-3'])";
@@ -433,7 +433,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<
 			$dropDownOptionKey = $dropDownOptions[$column->dbType];
 			$relationName = $this->setRelation($column->name);
 			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
-			return "\$$relationName = $modelClass::get$functionName();
+			return "\$$relationName = \$model::get$functionName();
 echo \$form->field(\$model, '$attribute')
 \t->dropDownList(\$$relationName, ['prompt'=>''])
 \t->label(\$model->getAttributeLabel('$attribute'))";

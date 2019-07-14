@@ -73,8 +73,7 @@ echo "<?php\n";
 use yii\helpers\Html;
 <?php echo $uploadCondition ? "use ".ltrim('yii\helpers\Url', '\\').";\n" : '';?>
 use app\components\widgets\ActiveForm;
-<?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';?>
-<?php echo $uploadCondition || $getFunctionCondition || $permissionCondition || $enumCondition ? "use ".ltrim($generator->modelClass, '\\').";\n" : '';
+<?php echo $redactorCondition ? "use ".ltrim('yii\redactor\widgets\Redactor', '\\').";\n" : '';
 foreach ($tableSchema->columns as $column) {
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys) && preg_match('/(smallint)/', $column->type)) {
 		$relationTableName = trim($foreignKeys[$column->name]);

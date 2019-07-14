@@ -71,7 +71,6 @@ echo "<?php\n";
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
-<?php echo $uploadCondition || $getFunctionCondition || $permissionCondition || $enumCondition ? "use ".ltrim($generator->modelClass).";\n" : '';?>
 
 $this->params['breadcrumbs'][] = ['label' => <?php echo $generator->generateString($functionLabel) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model-><?php echo $generator->getNameAttribute(); ?>;
@@ -175,7 +174,7 @@ if(in_array($column->name, ['publish','headline']) || ($column->comment != '' &&
 	if($comment != '') {
 if($comment != '' && $comment[0] == '"') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
-		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+		'value' => $model::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
 		'value' => $model->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
 <?php }?>
@@ -187,7 +186,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 <?php }
 } else if($column->name == 'permission') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
-		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+		'value' => $model::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
 		'value' => $model->filterYesNo($model-><?php echo $column->name;?>),
 <?php }
@@ -199,7 +198,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 			$functionName = ucfirst($generator->setRelation($dropDownOptionKey));?>
 	[
 		'attribute' => '<?php echo $column->name;?>',
-		'value' => <?php echo $modelClass;?>::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
+		'value' => $model::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 		'visible' => !$small,
 	],
 <?php } else if($column->type == 'text') {?>
@@ -208,9 +207,9 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 <?php if(in_array('file', $commentArray)):?>
 		'value' => function ($model) {
 <?php if($generator->uploadPathSubfolder) {?>
-			$uploadPath = join('/', [<?php echo $modelClass;?>::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
+			$uploadPath = join('/', [$model::getUploadPath(false), $model-><?php echo $primaryKey;?>]);
 <?php } else {?>
-			$uploadPath = <?php echo $modelClass;?>::getUploadPath(false);
+			$uploadPath = $model::getUploadPath(false);
 <?php }
 if(in_array('pdf', $commentArray)) {?>
 			return $model-><?php echo $column->name;?> ? Html::a($model-><?php echo $column->name;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['title'=>$model-><?php echo $column->name;?>, 'target'=>'_blank']) : '-';
