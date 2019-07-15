@@ -546,7 +546,7 @@ echo \$form->field(\$model, '$attribute')
 			$dropDownOptionKey = $dropDownOptions[$column->dbType];
 			$relationName = $this->setRelation($column->name);
 			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
-			return "\$$relationName = $modelClass::get$functionName();
+			return "\$$relationName = \$model::get$functionName();
 			echo \$form->field(\$model, '$attribute')
 			->dropDownList(\$$relationName, ['prompt'=>''])";
 
@@ -559,7 +559,7 @@ echo \$form->field(\$model, '$attribute')
 					if($attribute == 'permission' || ($column->comment != '' && $column->comment[0] == '"')) {
 						$relationName = $this->setRelation($column->name);
 						$functionName = ucfirst($relationName);
-						return "\$$relationName = $modelClass::get$functionName();
+						return "\$$relationName = \$model::get$functionName();
 			echo \$form->field(\$model, '$attribute')
 			->dropDownList(\$$relationName, ['prompt'=>''])";
 					} else
