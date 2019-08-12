@@ -27,12 +27,12 @@
  *	recursiveDelete
  *	formatSizeUnits
  *
- * @author Putra Sudaryanto <putra.sudaryanto@gmail.com>
+ * @author Putra Sudaryanto <putra@ommu.co>
  * @contact (+62)856-299-4114
  * @create date November 27, 2013 15:02 WIB
  * @update date April 3, 2014 15:02 WIB
- * @copyright Copyright (c) 2013 Ommu Platform (ommu.co)
- * @link http://opensource.ommu.co
+ * @copyright Copyright (c) 2013 Ommu Platform (www.ommu.co)
+ * @link https://www.ommu.co
  *
  */
 

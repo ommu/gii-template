@@ -6,8 +6,8 @@ model:
 author:
   name: Putra Sudaryanto
   phone: (+62)856-299-4114
-  email: putra@sudaryanto.id
-  homepage: https://sudaryanto.id
+  email: putra@ommu.co
+  homepage: https://ommu.co
 
 db_table_name	: 
  

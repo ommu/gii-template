@@ -2,7 +2,7 @@
 /**
  * OClientScript class file.
  *
- * @author Putra Sudaryanto <putra@sudaryanto.id>
+ * @author Putra Sudaryanto <putra@ommu.co>
  * @contact (+62)856-299-4114
  * @created date Maret 1, 2014 14:02 WIB
  * @updated date Maret 1, 2014 15:50 WIB
@@ -144,7 +144,7 @@ class OClientScript extends CClientScript
 		$return['scriptFiles'] = $this->getScriptFiles();
 		$return['scriptFiles'][] = $url;
 		//$return['scripts'] = $this->getScripts();
-		$return['powered'] = 'Ommu Platform by putra@sudaryanto.id';
+		$return['powered'] = 'Ommu Platform by putra@ommu.co';
 		
 		return $return;
 	}

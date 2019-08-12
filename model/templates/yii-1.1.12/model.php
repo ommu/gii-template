@@ -28,7 +28,7 @@ function setRelationName($names) {
 /**
  * <?php echo $modelClass."\n"; ?>
  *
- * @author Putra Sudaryanto <putra@sudaryanto.id>
+ * @author Putra Sudaryanto <putra@ommu.co>
  * @contact (+62)856-299-4114
  * @copyright Copyright (c) <?php echo date('Y'); ?> CarCentOS (Career Center OS)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>

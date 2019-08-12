@@ -2,7 +2,7 @@
 /**
  * <?php echo $this->moduleClass."\n"; ?>
  *
- * @author Putra Sudaryanto <putra@sudaryanto.id>
+ * @author Putra Sudaryanto <putra@ommu.co>
  * @contact (+62)856-299-4114
  * @copyright Copyright (c) <?php echo date('Y'); ?> Ommu Platform (www.ommu.co)
  * @created date <?php echo date('j F Y, H:i')." WIB\n"; ?>
