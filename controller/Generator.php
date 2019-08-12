@@ -44,7 +44,7 @@ class Generator extends \ommu\gii\Generator
 	public $actions = 'index';
 	
 	public $attachRBACFilter = true;
-	public $link='http://opensource.ommu.co';
+	public $link='https://www.ommu.co';
 	public $useModified = false;
 
     /**

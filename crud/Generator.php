@@ -41,7 +41,7 @@ class Generator extends \ommu\gii\Generator
     public $searchModelClass = '';
     public $attachRBACFilter = true;
 	public $uploadPathSubfolder = false;
-    public $link='http://opensource.ommu.co';
+    public $link='https://www.ommu.co';
     public $useModified = false;
     
     /**

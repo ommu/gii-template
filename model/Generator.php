@@ -52,7 +52,7 @@ class Generator extends \ommu\gii\Generator
 		'directory' => 'main',
 	];
 	public $useGetFunction = false;
-	public $link='http://opensource.ommu.co';
+	public $link='https://www.ommu.co';
 	public $useModified = false;
 
     /**
