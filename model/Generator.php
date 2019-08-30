@@ -394,6 +394,8 @@ class Generator extends \ommu\gii\Generator
                     } else {
 						if(in_array('serialize', $commentArray))
 							$types['serialize'][] = $column->name;
+						else if(in_array('json', $commentArray))
+							$types['json'][] = $column->name;
 						else
                             $types['string'][] = $column->name;
                     }
@@ -439,7 +441,7 @@ class Generator extends \ommu\gii\Generator
 			}
 		}
 
-		$typeRules = ['required','integer','string','serialize','number','double','boolean','safe'];
+		$typeRules = ['required','integer','string','serialize','json','number','double','boolean','safe'];
 
         $rules = [];
         $driverName = $this->getDbDriverName();
@@ -447,7 +449,7 @@ class Generator extends \ommu\gii\Generator
 		foreach ($typeRules as $rule) {
 			//echo  $rule."\n";
 			if(!empty($types[$rule])) {
-				if($rule == 'serialize')
+				if(in_array($rule, ['serialize','json']))
 					$rules[] = "//[['" . implode("', '", $types[$rule]) . "'], '$rule']";
 				else
 					$rules[] = "[['" . implode("', '", $types[$rule]) . "'], '$rule']";

@@ -345,14 +345,14 @@ endforeach;
 
 		if($model->save(false, ['publish'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
-			return $this->redirect(['manage']);
+			return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
 		}
 <?php else: ?>
 		$model = $this->findModel($id);
 		$model->delete();
 
 		Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
-		return $this->redirect(['manage']);
+		return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
 <?php endif; ?>
 	}
 <?php 

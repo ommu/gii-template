@@ -219,6 +219,8 @@ if(in_array('pdf', $commentArray)) {?>
 		},
 <?php elseif(in_array('serialize', $commentArray)):?>
 		'value' => serialize($model-><?php echo $column->name;?>),
+<?php elseif(in_array('json', $commentArray)):?>
+		'value' => Json::encode($model-><?php echo $column->name;?>),
 <?php else:?>
 		'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
 <?php endif;

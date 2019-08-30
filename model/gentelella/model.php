@@ -41,6 +41,7 @@ $dateCondition = 0;
 $slugCondition = 0;
 $uploadCondition = 0;
 $serializeCondition = 0;
+$jsonCondition = 0;
 $useGetFunctionCondition = 0;
 $primaryKeyTriggerCondition = 0;
 
@@ -131,7 +132,10 @@ foreach ($tableSchema->columns as $column) {
 		$uploadCondition = 1;
 
 	if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('serialize', $commentArray))
-		$serializeCondition = 1;?>
+		$serializeCondition = 1;
+
+	if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('json', $commentArray))
+		$jsonCondition = 1;?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php }
 
@@ -199,6 +203,7 @@ echo $publishCondition || $urlCondition || $uploadCondition ? "use ".ltrim('yii\
 echo $i18n || $tagCondition || $slugCondition ? "use ".ltrim('yii\helpers\Inflector', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
+echo $jsonCondition ? "use ".ltrim('yii\helpers\Json', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
@@ -215,7 +220,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 {
 <?php echo $tinyCondition || $licenseCondition || $primaryKeyTriggerCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition || $uploadCondition ? "\n" : '';?>
+<?php echo $tinyCondition || $licenseCondition || $primaryKeyTriggerCondition || $uploadCondition ? "\n" : '';?>
 	public $gridForbiddenColumn = [];
 <?php 
 foreach ($tableSchema->columns as $column) {
@@ -635,6 +640,8 @@ foreach ($tableSchema->columns as $column) {
 <?php } else {
 	if($column->type == 'text' && in_array('serialize', $commentArray)) {?>
 				return serialize($model-><?php echo $publicAttribute;?>);
+<?php } else if($column->type == 'text' && in_array('json', $commentArray)) {?>
+				return Json::encode($model-><?php echo $publicAttribute;?>);
 <?php } else if($column->name == 'permission') {
 		$functionName = ucfirst($generator->setRelation($column->name));?>
 				return self::get<?php echo $functionName;?>($model-><?php echo $publicAttribute;?>);
@@ -664,11 +671,11 @@ foreach ($relations as $name => $relation) {
 			'attribute' => '<?php echo $relationName;?>',
 			'value' => function($model, $key, $index, $column) {
 				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
-				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
+				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>]), 'data-pjax' => 0]);
 			},
 			'filter' => false,
 			'contentOptions' => ['class'=>'center'],
-			'format' => 'html',
+			'format' => 'raw',
 		];
 <?php }
 
@@ -898,7 +905,7 @@ if($uploadCondition) {
 <?php }
 
 $afEvents = 0;
-if($tagCondition || $uploadCondition || $serializeCondition || $i18n || $userCondition || !empty($relations) || $relationCondition)
+if($tagCondition || $uploadCondition || $serializeCondition || $jsonCondition || $i18n || $userCondition || !empty($relations) || $relationCondition)
 	$afEvents = 1;
 if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 
@@ -923,6 +930,9 @@ if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 
 	} else if($column->type == 'text' && in_array('serialize', $commentArray)) {
 		echo "\t\t\$this->$column->name = unserialize(\$this->$column->name);\n";
+
+	} else if($column->type == 'text' && in_array('json', $commentArray)) {
+		echo "\t\t\$this->$column->name = Json::decode(\$this->$column->name);\n";
 
 	} else {
 		if(in_array('trigger[delete]', $commentArray)) {
@@ -1063,7 +1073,7 @@ endif;
 
 $bsEvents = 0;
 $beforeSave = 0;
-if($tagCondition || $uploadCondition || $serializeCondition || $i18n)
+if($tagCondition || $uploadCondition || $serializeCondition || $jsonCondition || $i18n)
 	$bsEvents = 1;
 foreach($tableSchema->columns as $column) {
 	if((in_array($column->type, ['date','datetime']) && $column->comment != 'trigger'))
@@ -1157,6 +1167,10 @@ foreach($tableSchema->columns as $column) {
 	} else if($column->type == 'text' && in_array('serialize', $commentArray)) {
 		$beforeSave = 1;
 		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
+
+	} else if($column->type == 'text' && in_array('json', $commentArray)) {
+		$beforeSave = 1;
+		echo "\t\t\t\$this->$column->name = Json::encode(\$this->$column->name);\n";
 
 	} else if($column->name == 'tag_id') {
 		$beforeSave = 1;
