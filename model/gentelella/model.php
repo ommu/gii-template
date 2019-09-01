@@ -502,7 +502,7 @@ if($queryClassName):
 			return;
 
 		$this->templateColumns['_no'] = [
-			'header' => <?php echo $generator->generateString('No');?>,
+			'header' => '#',
 			'class' => 'yii\grid\SerialColumn',
 			'contentOptions' => ['class'=>'center'],
 		];
