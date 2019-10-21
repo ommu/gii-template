@@ -5,6 +5,7 @@
 
 use yii\helpers\StringHelper;
 use yii\helpers\Inflector;
+use yii\helpers\ArrayHelper;
 
 /* @var $this yii\web\View */
 /* @var $generator yii\gii\generators\crud\Generator */
@@ -61,30 +62,34 @@ class <?= $searchModelClass ?> extends <?= (isset($modelAlias) ? $modelAlias : $
 		return [
 <?php
 $arrayRelations = [];
-$inputRuleVariables = [];
-$inputSearchVariables = [];
 
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
 		$relationName = $generator->i18nRelation($column->name);
-		$inputRuleVariable = $column->name.'_i';
-		$arrayRelations[$relationName] = $relationName;
-		if(!in_array($inputRuleVariable, $inputRuleVariables))
-			$inputRuleVariables[] = $inputRuleVariable;
-		if(!in_array($inputRuleVariable, $inputSearchVariables))
-			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'message']);
+		$propertyName = $column->name.'_i';
+		$arrayRelations[$relationName]['relation'] = $relationName;
+		$arrayRelations[$relationName]['relationAlias'] = $relationName;
+		$propertyNameFilter = ArrayHelper::map($arrayRelations, 'property', 'property');
+		if(!in_array($propertyName, $propertyNameFilter))
+			$arrayRelations[$relationName]['propertySearch'] = $arrayRelations[$relationName]['property'] = $propertyName;
+		$propertyFieldFilter = ArrayHelper::map($arrayRelations, 'propertyField', 'propertyField');
+		if(!in_array($propertyName, $propertyFieldFilter))
+			$arrayRelations[$relationName]['propertyField'] = join('.', [$relationName, 'message']);
 	}
 }
 foreach ($tableSchema->columns as $column) {
 	if(in_array($column->name, ['tag_id'])) {
 		$relationName = $generator->setRelation($column->name);
-		$inputRuleVariable = $relationName.ucwords('body');
-		$arrayRelations[$relationName] = $relationName;
-		if(!in_array($inputRuleVariable, $inputRuleVariables))
-			$inputRuleVariables[] = $inputRuleVariable;
-		if(!in_array($inputRuleVariable, $inputSearchVariables))
-			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, 'body']);
+		$propertyName = $relationName.ucwords('body');
+		$arrayRelations[$relationName]['relation'] = $relationName;
+		$arrayRelations[$relationName]['relationAlias'] = $relationName;
+		$propertyNameFilter = ArrayHelper::map($arrayRelations, 'property', 'property');
+		if(!in_array($propertyName, $propertyNameFilter))
+			$arrayRelations[$relationName]['propertySearch'] = $arrayRelations[$relationName]['property'] = $propertyName;
+		$propertyFieldFilter = ArrayHelper::map($arrayRelations, 'propertyField', 'propertyField');
+		if(!in_array($propertyName, $propertyFieldFilter))
+			$arrayRelations[$relationName]['propertyField'] = join('.', [$relationName, 'body']);
 	}
 }
 foreach ($tableSchema->columns as $column) {
@@ -96,16 +101,19 @@ foreach ($tableSchema->columns as $column) {
 		$relationAttribute = key($generator->getNameAttributes($relationSchema));
 		if(in_array($relationTable, ['ommu_users', 'ommu_members']))
 			$relationAttribute = 'displayname';
-		$inputRuleVariable = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
+		$propertyName = $relationName.ucwords(Inflector::id2camel($relationAttribute, '_'));
 		if(preg_match('/('.$relationName.')/', $relationAttribute))
-			$inputRuleVariable = lcfirst(Inflector::id2camel($relationAttribute, '_'));
-		$arrayRelations[$relationFixedName] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTable,'.'));
-		if(!in_array($inputRuleVariable, $inputRuleVariables))
-			$inputRuleVariables[] = $inputRuleVariable;
-		if(!in_array($column->name, $inputSearchVariables)) {
+			$propertyName = lcfirst(Inflector::id2camel($relationAttribute, '_'));
+		$arrayRelations[$relationFixedName]['relation'] = $generator->getName2ndRelation($relationName, $generator->getNameAttribute($relationTable,'.'));
+		$arrayRelations[$relationFixedName]['relationAlias'] = $relationFixedName;
+		$propertyNameFilter = ArrayHelper::map($arrayRelations, 'property', 'property');
+		if(!in_array($propertyName, $propertyNameFilter))
+			$arrayRelations[$relationFixedName]['propertySearch'] = $arrayRelations[$relationName]['property'] = $propertyName;
+		$propertyFieldFilter = ArrayHelper::map($arrayRelations, 'propertyField', 'propertyField');
+		if(!in_array($column->name, $propertyFieldFilter)) {
 			if(preg_match('/(smallint)/', $column->type))
-				$inputSearchVariables[$column->name] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTable, '.'))]);
-			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTable, '.'))]);
+				$arrayRelations[$relationFixedName]['property'] = $column->name;
+			$arrayRelations[$relationFixedName]['propertyField'] = join('.', [$relationName, $generator->getName2ndAttribute($relationName, $generator->getNameAttribute($relationTable, '.'))]);
 		}
 	}
 }
@@ -119,20 +127,23 @@ foreach ($tableSchema->columns as $column) {
 	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id'])) {
 		$relationName = $generator->setRelation($column->name);
 		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
-		$inputRuleVariable = $relationName.'Displayname';
-		$arrayRelations[$relationFixedName] = $relationFixedName;
-		if(!in_array($inputRuleVariable, $inputRuleVariables))
-			$inputRuleVariables[] = $inputRuleVariable;
-		if(!in_array($inputRuleVariable, $inputSearchVariables))
-			$inputSearchVariables[$inputRuleVariable] = join('.', [$relationFixedName, 'displayname']);
+		$propertyName = $relationName.'Displayname';
+		$arrayRelations[$relationFixedName]['relation'] = $relationFixedName;
+		$arrayRelations[$relationFixedName]['relationAlias'] = $relationFixedName;
+		$propertyNameFilter = ArrayHelper::map($arrayRelations, 'property', 'property');
+		if(!in_array($propertyName, $propertyNameFilter))
+			$arrayRelations[$relationName]['propertySearch'] = $arrayRelations[$relationName]['property'] = $propertyName;
+		$propertyFieldFilter = ArrayHelper::map($arrayRelations, 'propertyField', 'propertyField');
+		if(!in_array($propertyName, $propertyFieldFilter))
+			$arrayRelations[$relationName]['propertyField'] = join('.', [$relationFixedName, 'displayname']);
 	}
 }
 
 foreach($rules as $rule):
 if(!empty($rule->columns)):
 	// Jika public var ada merge ke safe rule columns
-	if($rule->ruleType == 'safe' && !empty($inputRuleVariables))
-		$rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, $inputRuleVariables);
+	if($rule->ruleType == 'safe' && !empty($arrayRelations))
+		$rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, ArrayHelper::map($arrayRelations, 'propertySearch', 'propertySearch'));
 		
 	echo "\t\t\t[['".implode("', '", $rule->columns)?>'], '<?=$rule->ruleType?>'],
 <?php endif;
@@ -174,11 +185,18 @@ endforeach;?>
 			$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t')->select($column);
 <?php
 if(!empty($arrayRelations)):
-foreach ($arrayRelations as $key => $val):
+	$propertyFields = ArrayHelper::map($arrayRelations, 'relationAlias', 'relation');
+foreach ($propertyFields as $key => $val):
 	$relations[] = $val.' '.$key;
 endforeach;?>
-		$query->joinWith([<?php echo "\n\t\t\t'" .implode("', \n\t\t\t'", $relations). "'\n\t\t";?>])
-		->groupBy(['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
+		$query->joinWith([<?php echo "\n\t\t\t// '" .implode("', \n\t\t\t// '", $relations). "'\n\t\t";?>]);<?php echo "\n";?>
+<?php foreach ($arrayRelations as $val):
+	$smallintCondition = ($val['propertySearch'] == $val['property']) ? false : true ; ?>
+		if((isset($params['sort']) && in_array($params['sort'], ['<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>', '-<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>'])) || (isset($params['<?php echo $val['propertySearch'];?>']) && $params['<?php echo $val['propertySearch'];?>'] != ''))
+			$query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>']);
+<?php endforeach;?>
+<?php echo "\n";?>
+		$query = $query->groupBy(['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
 <?php endif;?>
 
 		// add conditions that should always apply here
@@ -192,8 +210,9 @@ endforeach;?>
 
 		$attributes = array_keys($this->getTableSchema()->columns);
 <?php 
-if(!empty($inputSearchVariables)) {
-	foreach ($inputSearchVariables as $key => $val) {?>
+if(!empty($arrayRelations)) {
+	$propertyFields = ArrayHelper::map($arrayRelations, 'property', 'propertyField');
+	foreach ($propertyFields as $key => $val) {?>
 		$attributes['<?php echo $key;?>'] = [
 			'asc' => ['<?php echo $val;?>' => SORT_ASC],
 			'desc' => ['<?php echo $val;?>' => SORT_DESC],

@@ -23,6 +23,7 @@ $permissionCondition = 0;
 $primaryKeyTriggerCondition = 0;
 $relationCondition = 0;
 $enumCondition = 0;
+$jsonCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) 
@@ -33,6 +34,8 @@ foreach ($tableSchema->columns as $column) {
 		$permissionCondition = 1;
 	if (is_array($column->enumValues) && count($column->enumValues) > 0)
 		$enumCondition = 1;
+	if($column->type == 'text' && in_array('json', $commentArray))
+		$jsonCondition = 1;
 }
 $primaryKeyColumn = $tableSchema->columns[$primaryKey];
 if($primaryKeyColumn->comment == 'trigger')
@@ -71,6 +74,8 @@ echo "<?php\n";
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
+<?php
+echo $jsonCondition ? "use ".ltrim('yii\helpers\Json', '\\').";\n" : '';?>
 
 if(!$small) {
 $this->params['breadcrumbs'][] = ['label' => <?php echo $generator->generateString($functionLabel) ?>, 'url' => ['index']];
