@@ -552,20 +552,19 @@ foreach ($tableSchema->columns as $column) {
 
 		if(!in_array($publicAttribute, $publicAttributes)) {
 			$publicAttributes[] = $publicAttribute;?>
-		if(!Yii::$app->request->get('<?php echo $relationName;?>')) {
-			$this->templateColumns['<?php echo $publicAttribute;?>'] = [
-				'attribute' => '<?php echo $publicAttribute;?>',
-				'value' => function($model, $key, $index, $column) {
-					return isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
-					// return $model-><?php echo $publicProperty;?>;
-				},
+		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
+			'attribute' => '<?php echo $publicAttribute;?>',
+			'value' => function($model, $key, $index, $column) {
+				return isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+				// return $model-><?php echo $publicProperty;?>;
+			},
 <?php if($foreignCondition && $smallintCondition) {
 	$relationClassName = $generator->generateClassName($relationTable);
 	$relationFunctionName = Inflector::singularize($generator->setRelation($relationClassName, true));?>
-				'filter' => <?php echo $relationClassName;?>::get<?php echo $relationFunctionName;?>(),
+			'filter' => <?php echo $relationClassName;?>::get<?php echo $relationFunctionName;?>(),
 <?php }?>
-			];
-		}
+			'visible' => !Yii::$app->request->get('<?php echo $relationName;?>') ? true : false,
+		];
 <?php 	}
 	} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
 		$publicAttribute = $column->name;
@@ -740,23 +739,22 @@ if($comment != '' && $comment[0] == '"') {
 
 foreach ($tableSchema->columns as $column) {
 	$comment = $column->comment;
-	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
-		echo $primaryKeyTriggerCondition ? "\t\t// " : "\t\t";?>if(!Yii::$app->request->get('trash')) {
-			$this->templateColumns['<?php echo $column->name;?>'] = [
-				'attribute' => '<?php echo $column->name;?>',
-				'value' => function($model, $key, $index, $column) {
+	if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {?>
+		$this->templateColumns['<?php echo $column->name;?>'] = [
+			'attribute' => '<?php echo $column->name;?>',
+			'value' => function($model, $key, $index, $column) {
 <?php if(!$primaryKeyTriggerCondition) {?>
-					$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
-					return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
+				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
+				return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
 <?php } else {?>
-					return $this->filterYesNo($model->publish);
+				return $this->filterYesNo($model->publish);
 <?php }?>
-				},
-				'filter' => $this->filterYesNo(),
-				'contentOptions' => ['class'=>'center'],
-<?php echo !$primaryKeyTriggerCondition ? "\t\t\t\t'format' => 'raw',\n" : '';?>
-			];
-<?php echo $primaryKeyTriggerCondition ? "\t\t// " : "\t\t";?>}
+			},
+			'filter' => $this->filterYesNo(),
+			'contentOptions' => ['class'=>'center'],
+<?php echo !$primaryKeyTriggerCondition ? "\t\t\t'format' => 'raw',\n" : '';?>
+			'visible' => !Yii::$app->request->get('trash') ? true : false,
+		];
 <?php }
 } ?>
 <?php /*
@@ -845,9 +843,14 @@ foreach ($tableSchema->columns as $column) {
 	 */
 	public static function get<?php echo $functionName; ?>($value=null)
 	{
+		$moduleName = "module name";
+		$module = strtolower(Yii::$app->controller->module->id);
+		if(($module = Yii::$app->moduleManager->getModule($module)) != null);
+			$moduleName = strtolower($module->getName());
+
 		$items = array(
-			1 => Yii::t('app', 'Yes, the public can view "module name" unless they are made private.'),
-			0 => Yii::t('app', 'No, the public cannot view "module name".'),
+			1 => Yii::t('app', 'Yes, the public can view {module} unless they are made private.', ['module'=>$moduleName]),
+			0 => Yii::t('app', 'No, the public cannot view {module}.', ['module'=>$moduleName]),
 		);
 
 		if($value !== null)

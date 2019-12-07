@@ -355,8 +355,9 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}{
 \t->radioList(\$$relationName)
 \t->label(\$model->getAttributeLabel('$attribute'))
 \t->hint($label)";
-			} else if($attribute == 'publish' && $column->comment == '') {
-				return " if(\$model->isNewRecord && !\$model->getErrors())
+			//} else if($attribute == 'publish' && $column->comment == '') {
+			} else if($attribute == 'publish') {
+				return "if(\$model->isNewRecord && !\$model->getErrors())
 \t\$model->publish = 1;
 echo \$form->field(\$model, '$attribute')
 \t->checkbox()

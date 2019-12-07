@@ -119,11 +119,11 @@ endforeach;
 namespace <?= StringHelper::dirname(ltrim($generator->controllerClass, '\\')) ?>;
 
 use Yii;
-use yii\filters\VerbFilter;
 use <?= ltrim($generator->baseControllerClass, '\\') ?>;
 <?php if($generator->attachRBACFilter): ?>
 use mdm\admin\components\AccessControl;
 <?php endif; ?>
+use yii\filters\VerbFilter;
 use <?= ltrim($generator->modelClass, '\\') ?>;
 <?php if (!empty($generator->searchModelClass)): ?>
 use <?= ltrim($generator->searchModelClass, '\\') . (isset($searchModelAlias) ? " as $searchModelAlias" : "") ?>;
