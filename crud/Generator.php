@@ -401,7 +401,7 @@ echo \$form->field(\$model, '$attribute')
 			if(in_array('file', $commentArray)) {	// 04.1
 				$relationName = $this->setRelation($attribute);
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [\$model::getUploadPath(false), \$model->$primaryKey])" : "\$model::getUploadPath(false)";
-				$previewFile = "Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class'=>'mb-3'])";
+				$previewFile = "Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class'=>'d-block border border-width-3 mb-3']).\$model->{$attribute}.'<hr/>'";
 				if(in_array('pdf', $commentArray))
 					$previewFile = "Html::a(\$model->old_{$attribute}, Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['title'=>\$model->old_{$attribute}, 'target'=>'_blank', 'class'=>'d-inline-block mb-3'])";
 				return "\$uploadPath = $uploadPath;

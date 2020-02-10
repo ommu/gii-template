@@ -148,7 +148,7 @@ if (!empty($relations) || $relationCondition) {?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php }
 foreach ($tableSchema->columns as $column) {
-	if($column->autoIncrement || $column->isPrimaryKey)
+	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
 		continue;
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
 		continue;
@@ -265,7 +265,7 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 foreach ($tableSchema->columns as $column) {
-	if($column->autoIncrement || $column->isPrimaryKey)
+	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
 		continue;
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
 		continue;
@@ -444,7 +444,7 @@ if($i18n) {
 }
 
 foreach ($tableSchema->columns as $column) {
-	if($column->autoIncrement || $column->isPrimaryKey)
+	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
 		continue;
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
 		continue;
@@ -515,7 +515,7 @@ $enumArray = [];
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
+	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
 		continue;
 
 	$commentArray = explode(',', $column->comment);

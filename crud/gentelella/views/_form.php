@@ -140,7 +140,7 @@ foreach ($tableSchema->columns as $column) {
 	if($column->dbType == 'tinyint(1)' && $column->name == 'publish')
 		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>
-<div class="ln_solid"></div>
+<hr/>
 
 <?php echo "<?php ";?>echo $form->field($model, 'submitButton')
 	->submitButton(); ?>

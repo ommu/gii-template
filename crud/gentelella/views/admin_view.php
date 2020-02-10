@@ -218,7 +218,7 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 if(in_array('pdf', $commentArray)) {?>
 			return $model-><?php echo $column->name;?> ? Html::a($model-><?php echo $column->name;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['title'=>$model-><?php echo $column->name;?>, 'target'=>'_blank']) : '-';
 <?php } else {?>
-			return $model-><?php echo $column->name;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['alt'=>$model-><?php echo $column->name;?>, 'class'=>'mb-3']).'<br/>'.$model-><?php echo $column->name;?> : '-';
+			return $model-><?php echo $column->name;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['alt'=>$model-><?php echo $column->name;?>, 'class'=>'d-block border border-width-3 mb-3']).$model-><?php echo $column->name;?> : '-';
 <?php }?>
 		},
 <?php elseif(in_array('serialize', $commentArray)):?>
