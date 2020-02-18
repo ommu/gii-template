@@ -507,7 +507,7 @@ if($queryClassName):
 		$this->templateColumns['_no'] = [
 			'header' => '#',
 			'class' => 'yii\grid\SerialColumn',
-			'contentOptions' => ['class'=>'center'],
+			'contentOptions' => ['class'=>'text-center'],
 		];
 <?php 
 $publicAttributes = [];
@@ -676,7 +676,7 @@ foreach ($relations as $name => $relation) {
 				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>]), 'data-pjax'=>0]);
 			},
 			'filter' => false,
-			'contentOptions' => ['class'=>'center'],
+			'contentOptions' => ['class'=>'text-center'],
 			'format' => 'raw',
 		];
 <?php }
@@ -695,7 +695,7 @@ foreach ($tableSchema->columns as $column) {
 				return $this->filterYesNo($model-><?php echo $column->name;?>);
 			},
 			'filter' => $this->filterYesNo(),
-			'contentOptions' => ['class'=>'center'],
+			'contentOptions' => ['class'=>'text-center'],
 		];
 <?php }
 }
@@ -729,7 +729,7 @@ if($comment != '' && $comment[0] == '"') {
 <?php } else {?>
 			'filter' => $this->filterYesNo(),
 <?php }?>
-			'contentOptions' => ['class'=>'center'],
+			'contentOptions' => ['class'=>'text-center'],
 <?php if($rawCondition == 1) {?>
 			'format' => 'raw',
 <?php }?>
@@ -751,7 +751,7 @@ foreach ($tableSchema->columns as $column) {
 <?php }?>
 			},
 			'filter' => $this->filterYesNo(),
-			'contentOptions' => ['class'=>'center'],
+			'contentOptions' => ['class'=>'text-center'],
 <?php echo !$primaryKeyTriggerCondition ? "\t\t\t'format' => 'raw',\n" : '';?>
 			'visible' => !Yii::$app->request->get('trash') ? true : false,
 		];
