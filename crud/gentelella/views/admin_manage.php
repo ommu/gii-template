@@ -117,7 +117,7 @@ if(!empty($generator->searchModelClass)): ?>
 $columnData = $columns;
 <?php else: ?>
 $columnData = [
-	['class' => 'yii\grid\SerialColumn'],
+	['class' => 'app\components\grid\SerialColumn'],
 <?php
 $count = 0;
 if ($tableSchema === false) {
