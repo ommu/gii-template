@@ -23,7 +23,7 @@ class Generator extends \ommu\gii\Generator
 	public $tableName;
 	public $generateRelations = true;
 	public $useTablePrefix = false;
-	public $link='https://www.ommu.co';
+	public $link='https://www.ommu.id';
 	public $useModified = false;
 
 	/**

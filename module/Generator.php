@@ -28,7 +28,7 @@ class Generator extends \ommu\gii\Generator
     public $moduleCore = false;
     public $description;
     public $keyword;
-	public $link='https://www.ommu.co';
+	public $link='https://www.ommu.id';
 	public $useModified = false;
 
     /**
