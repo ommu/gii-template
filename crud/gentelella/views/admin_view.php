@@ -17,6 +17,8 @@ $primaryKey = $generator->getPrimaryKey($tableSchema);
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $functionLabel = ucwords(Inflector::pluralize($generator->shortLabel($modelClass)));
 
+$memberCondition = 0;
+$memberUserCondition = 0;
 $uploadCondition = 0;
 $getFunctionCondition = 0;
 $permissionCondition = 0;
@@ -24,7 +26,14 @@ $primaryKeyTriggerCondition = 0;
 $relationCondition = 0;
 $enumCondition = 0;
 $jsonCondition = 0;
+
 foreach ($tableSchema->columns as $column) {
+    if ($column->name == 'member_id') {
+        $memberCondition = 1;
+    }
+    if ($memberCondition && $column->name == 'user_id') {
+        $memberUserCondition = 1;
+    }
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) 
 		$uploadCondition = 1;
@@ -99,7 +108,10 @@ if (($tableSchema = $tableSchema) === false) {
 } else {
 	foreach ($tableSchema->columns as $column) {
 		if($column->name[0] == '_')
-			continue;
+            continue;
+        if ($memberUserCondition && $column->name == 'user_id') {
+            continue;
+        }
 
 		$foreignCondition = 0;
 		$foreignUserCondition = 0;
@@ -136,7 +148,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 	}?>
 	[
 		'attribute' => '<?php echo $publicAttribute;?>',
-<?php if($foreignCondition && !$foreignUserCondition):
+<?php if($foreignCondition && !$foreignUserCondition) {
 	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin';?>
 		'value' => function ($model) {
 			$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
@@ -145,10 +157,21 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 			return $<?php echo $publicAttribute;?>;
 		},
 		'format' => 'html',
-<?php else:?>
+<?php } else {
+    if ($memberUserCondition && $column->name == 'member_id') {?>
+        'value' => function ($model) {
+            $<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+            $userDisplayname = isset($model->user) ? $model->user->displayname : '-';
+            if ($userDisplayname != '-' && $<?php echo $publicAttribute;?> != $userDisplayname) {
+                return $<?php echo $publicAttribute;?>.'<br/>'.$userDisplayname;
+            }
+            return $<?php echo $publicAttribute;?>;
+        },
+<?php   } else {?>
 		'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
 		'visible' => !$small,
-<?php endif;?>
+<?php   }
+    }?>
 	],
 <?php } else if(in_array($column->dbType, array('timestamp','datetime','date'))) {?>
 	[
@@ -224,7 +247,11 @@ if(in_array('pdf', $commentArray)) {?>
 <?php elseif(in_array('serialize', $commentArray)):?>
 		'value' => serialize($model-><?php echo $column->name;?>),
 <?php elseif(in_array('json', $commentArray)):?>
-		'value' => Json::encode($model-><?php echo $column->name;?>),
+		'value' => function ($model) {
+            if (is_array($model-><?php echo $column->name;?>) && empty($model-><?php echo $column->name;?>))
+                return '-';
+            return Json::encode($model-><?php echo $column->name;?>);
+		},
 <?php else:?>
 		'value' => $model-><?php echo $column->name;?> ? $model-><?php echo $column->name;?> : '-',
 <?php endif;

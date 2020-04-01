@@ -29,8 +29,9 @@ $patternClass[1] = '(Swt)';
  */
 $relationCondition = 0;
 $i18n = 0;
-$userCondition = 0;
 $memberCondition = 0;
+$userCondition = 0;
+$memberUserCondition = 0;
 $tagCondition = 0;
 $tinyCondition = 0;
 $publishCondition = 0;
@@ -100,10 +101,14 @@ foreach ($tableSchema->columns as $column) {
 		$relationCondition = 1;
 		if(in_array('trigger[delete]', $commentArray))
 			$i18n = 1;
-		if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id']))
-			$userCondition = 1;
 		if($column->name == 'member_id')
 			$memberCondition = 1;
+        if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id'])) {
+            $userCondition = 1;
+            if($memberCondition && $column->name == 'user_id') {
+                $memberUserCondition = 1;
+            }
+        }
 		if($column->name == 'tag_id')
 			$tagCondition = 1;
 	}
@@ -265,7 +270,7 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 foreach ($tableSchema->columns as $column) {
-	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])))
+	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) || ($memberUserCondition && $column->name == 'user_id'))
 		continue;
 	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
 		continue;
@@ -515,7 +520,7 @@ $enumArray = [];
 foreach ($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
+	if($column->autoIncrement || ($column->isPrimaryKey && !array_key_exists($column->name, $foreignKeys) && !in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || ($memberUserCondition && $column->name == 'user_id'))
 		continue;
 
 	$commentArray = explode(',', $column->comment);
@@ -555,7 +560,16 @@ foreach ($tableSchema->columns as $column) {
 		$this->templateColumns['<?php echo $publicAttribute;?>'] = [
 			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => function($model, $key, $index, $column) {
+<?php if ($memberUserCondition && $column->name == 'member_id') {?>
+                $<?php echo $publicProperty;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+                $userDisplayname = isset($model->user) ? $model->user->displayname : '-';
+                if ($userDisplayname != '-' && $<?php echo $publicProperty;?> != $userDisplayname) {
+                    return $<?php echo $publicProperty;?>.'<br/>'.$userDisplayname;
+                }
+                return $<?php echo $publicProperty;?>;
+<?php } else {?>
 				return isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+<?php }?>
 				// return $model-><?php echo $publicProperty;?>;
 			},
 <?php if($foreignCondition && $smallintCondition) {
@@ -643,7 +657,10 @@ foreach ($tableSchema->columns as $column) {
 	if($column->type == 'text' && in_array('serialize', $commentArray)) {?>
 				return serialize($model-><?php echo $publicAttribute;?>);
 <?php } else if($column->type == 'text' && in_array('json', $commentArray)) {?>
-				return Json::encode($model-><?php echo $publicAttribute;?>);
+                if (is_array($model-><?php echo $publicAttribute;?>) && empty($model-><?php echo $publicAttribute;?>)) {
+                    return '-';
+                }
+                return Json::encode($model-><?php echo $publicAttribute;?>);
 <?php } else if($column->name == 'permission') {
 		$functionName = ucfirst($generator->setRelation($column->name));?>
 				return self::get<?php echo $functionName;?>($model-><?php echo $publicAttribute;?>);
@@ -937,10 +954,13 @@ if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 	} else if($column->type == 'text' && in_array('serialize', $commentArray)) {
 		echo "\t\t\$this->$column->name = unserialize(\$this->$column->name);\n";
 
-	} else if($column->type == 'text' && in_array('json', $commentArray)) {
-		echo "\t\t\$this->$column->name = Json::decode(\$this->$column->name);\n";
-
-	} else {
+	} else if($column->type == 'text' && in_array('json', $commentArray)) { ?>
+        if ($this-><?php echo $column->name;?> == '') {
+            $this-><?php echo $column->name;?> = [];
+        } else {
+            $this-><?php echo $column->name;?> = Json::decode($this-><?php echo $column->name;?>);
+        }
+<?php } else {
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
 			$publicAttributeRelation = $generator->i18nRelation($column->name);
@@ -956,6 +976,9 @@ foreach ($tableSchema->columns as $column) {
 		$foreignCondition = 1;
 	
 	if($foreignCondition || in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id'])) {
+        if ($memberUserCondition && $column->name == 'user_id')
+            continue;
+
 		$relationName = $generator->setRelation($column->name);
 		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		$relationAttribute = 'displayname';

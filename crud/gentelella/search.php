@@ -117,6 +117,9 @@ foreach ($tableSchema->columns as $column) {
 		}
 	}
 }
+
+$memberCondition = 0;
+$memberUserCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	if($column->autoIncrement || $column->isPrimaryKey)
 		continue;
@@ -125,6 +128,12 @@ foreach ($tableSchema->columns as $column) {
 
 	$commentArray = explode(',', $column->comment);
 	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','member_id'])) {
+        if ($column->name == 'member_id') {
+            $memberCondition = 1;
+        }
+        if ($memberCondition && $column->name == 'user_id') {
+            $memberUserCondition = 1;
+        }
 		$relationName = $generator->setRelation($column->name);
 		$relationFixedName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		$propertyName = $relationName.'Displayname';
@@ -141,10 +150,15 @@ foreach ($tableSchema->columns as $column) {
 
 foreach($rules as $rule):
 if(!empty($rule->columns)):
-	// Jika public var ada merge ke safe rule columns
-	if($rule->ruleType == 'safe' && !empty($arrayRelations))
-		$rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, ArrayHelper::map($arrayRelations, 'propertySearch', 'propertySearch'));
-		
+    // Jika public var ada merge ke safe rule columns
+    if ($rule->ruleType == 'safe' && !empty($arrayRelations)) {
+        $propertySearch = ArrayHelper::map($arrayRelations, 'propertySearch', 'propertySearch');
+        if ($memberUserCondition) {
+            unset($propertySearch['userDisplayname']);
+        }
+        $rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, $propertySearch);
+    }
+
 	echo "\t\t\t[['".implode("', '", $rule->columns)?>'], '<?=$rule->ruleType?>'],
 <?php endif;
 endforeach;?>
@@ -190,12 +204,19 @@ foreach ($propertyFields as $key => $val):
 	$relations[] = $val.' '.$key;
 endforeach;?>
 		$query->joinWith([<?php echo "\n\t\t\t// '" .implode("', \n\t\t\t// '", $relations). "'\n\t\t";?>]);<?php echo "\n";?>
-<?php foreach ($arrayRelations as $val):
+<?php foreach ($arrayRelations as $val) {
+    if ($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'user') {
+        continue;
+    }
 	$smallintCondition = ($val['propertySearch'] == $val['property']) ? false : true ; ?>
 		if((isset($params['sort']) && in_array($params['sort'], ['<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>', '-<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>'])) || (isset($params['<?php echo $val['propertySearch'];?>']) && $params['<?php echo $val['propertySearch'];?>'] != ''))
+<?php if ($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'member') {?>
+			$query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>', 'user user']);
+<?php } else {?>
 			$query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>']);
-<?php endforeach;?>
-<?php echo "\n";?>
+<?php }
+}
+echo "\n";?>
 		$query = $query->groupBy(['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
 <?php endif;?>
 
@@ -212,6 +233,9 @@ endforeach;?>
 <?php 
 if(!empty($arrayRelations)) {
 	$propertyFields = ArrayHelper::map($arrayRelations, 'property', 'propertyField');
+    if ($memberUserCondition) {
+        unset($propertyFields['userDisplayname']);
+    }
 	foreach ($propertyFields as $key => $val) {?>
 		$attributes['<?php echo $key;?>'] = [
 			'asc' => ['<?php echo $val;?>' => SORT_ASC],

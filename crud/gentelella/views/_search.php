@@ -15,7 +15,16 @@ $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $getFunctionCondition = 0;
 $enumCondition = 0;
+$memberCondition = 0;
+$memberUserCondition = 0;
+
 foreach ($tableSchema->columns as $column) {
+    if ($column->name == 'member_id') {
+        $memberCondition = 1;
+    }
+    if ($memberCondition && $column->name == 'user_id') {
+        $memberUserCondition = 1;
+    }
 	if($column->comment != '' && $column->comment[0] == '"')
 		$getFunctionCondition = 1;
 	if (is_array($column->enumValues) && count($column->enumValues) > 0)
@@ -74,7 +83,7 @@ use yii\widgets\ActiveForm;
 foreach($tableSchema->columns as $column) {
 	if($column->name[0] == '_')
 		continue;
-	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission'))
+	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || ($memberUserCondition && $column->name == 'user_id'))
 		continue;
 		
 	echo "\t\t<?php ".$generator->generateActiveSearchField($column->name).";?>\n\n";

@@ -503,7 +503,8 @@ echo \$form->field(\$model, '$attribute')
 
 		$i18n = 0;
 		$foreignCondition = 0;
-		$smallintCondition = 0;
+        $smallintCondition = 0;
+
 		if(in_array('trigger[delete]', $commentArray)) {
 			$attribute = $column->name.'_i';
 			$i18n = 1;
@@ -726,7 +727,18 @@ echo \$form->field(\$model, '$attribute')
 
         $arrayHasColumn = [];
 		$arrayLikeColumn = [];
+
+        $memberCondition = 0;
+        $memberUserCondition = 0;
+
         foreach ($columns as $column => $type) {
+            if ($column == 'member_id') {
+                $memberCondition = 1;
+            }
+            if ($memberCondition && $column == 'user_id') {
+                $memberUserCondition = 1;
+            }
+
 			$col = $tableSchema->columns[$column];
 			$commentArray = explode(',', $col->comment);
             switch ($type) {
@@ -829,7 +841,7 @@ echo \$form->field(\$model, '$attribute')
             endif;
         endforeach;
         foreach ($tableSchema->columns as $column): 
-			if($column->autoIncrement || $column->isPrimaryKey)
+			if($column->autoIncrement || $column->isPrimaryKey || ($memberUserCondition && in_array($column->name, ['member_id', 'user_id'])))
 				continue;
 			if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys))
 				continue;
@@ -854,6 +866,14 @@ echo \$form->field(\$model, '$attribute')
         }
         if (!empty($publishConditions)) {
             $conditions[] = implode("\n\t\t", $publishConditions) . "\n";
+        }
+        if ($memberUserCondition) {
+            $conditions[] = "if (isset(\$params['memberDisplayname']) && \$params['memberDisplayname'] != '') {
+            \$query->andWhere(['or', 
+                ['like', 'member.displayname', \$this->memberDisplayname],
+                ['like', 'user.displayname', \$this->memberDisplayname]
+            ]);
+        }\n";
         }
         if (!empty($likeConditions)) {
             $conditions[] = "\$query" . implode("\n\t\t\t", $likeConditions) . ";\n";
