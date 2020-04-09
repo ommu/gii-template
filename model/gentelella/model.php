@@ -576,6 +576,9 @@ foreach ($tableSchema->columns as $column) {
 	$relationClassName = $generator->generateClassName($relationTable);
 	$relationFunctionName = Inflector::singularize($generator->setRelation($relationClassName, true));?>
 			'filter' => <?php echo $relationClassName;?>::get<?php echo $relationFunctionName;?>(),
+<?php }
+if ($memberUserCondition && $column->name == 'member_id') {?>
+            'format' => 'html',
 <?php }?>
 			'visible' => !Yii::$app->request->get('<?php echo $relationName;?>') ? true : false,
 		];

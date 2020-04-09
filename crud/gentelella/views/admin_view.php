@@ -167,6 +167,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
             }
             return $<?php echo $publicAttribute;?>;
         },
+        'format' => 'html',
 <?php   } else {?>
 		'value' => isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-',
 		'visible' => !$small,
