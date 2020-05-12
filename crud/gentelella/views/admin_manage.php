@@ -30,7 +30,7 @@ foreach($foreignKeys as $key => $val) {
 	$arrayRelation[$i]['relation'] = $generator->setRelation($key);
 	$arrayRelation[$i]['table'] = $val;
 	if($val == 'ommu_users')
-		$namespace = 'ommu\users\models\Users';
+		$namespace = 'app\models\Users';
 	else if($val == 'ommu_members')
 		$namespace = 'ommu\member\models\Members';
 	else {

@@ -212,7 +212,7 @@ echo $jsonCondition ? "use ".ltrim('yii\helpers\Json', '\\').";\n" : '';
 echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
-echo $userCondition ? "use ".ltrim('ommu\users\models\Users', '\\').";\n" : '';
+echo $userCondition ? "use ".ltrim('app\models\Users', '\\').";\n" : '';
 echo $memberCondition ? "use ".ltrim('ommu\member\models\Members', '\\').";\n" : '';
 if(!empty($otherModels)):
 	foreach($otherModels as $val) {
