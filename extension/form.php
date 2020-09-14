@@ -6,7 +6,7 @@
 ?>
 <div class="alert alert-info">
 	Please read the
-	<?= \yii\helpers\Html::a('Extension Guidelines', 'http://www.yiiframework.com/doc-2.0/guide-structure-extensions.html', ['target'=>'new']) ?>
+	<?= \yii\helpers\Html::a('Extension Guidelines', 'http://www.yiiframework.com/doc-2.0/guide-structure-extensions.html', ['target' => 'new']) ?>
 	before creating an extension.
 </div>
 
@@ -28,7 +28,7 @@ echo $form->field($generator, 'keywords', ['template' => '{label}{beginWrapper}{
 	->label($generator->getAttributeLabel('keywords'));
 
 echo $form->field($generator, 'license', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])
-	->dropDownList($generator->optsLicense(), ['prompt'=>'Choose...'])
+	->dropDownList($generator->optsLicense(), ['prompt' => 'Choose...'])
 	->label($generator->getAttributeLabel('license'));
 
 echo $form->field($generator, 'title', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])

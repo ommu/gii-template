@@ -91,8 +91,8 @@ $this->params['breadcrumbs'][] = ['label' => <?php echo $generator->generateStri
 $this->params['breadcrumbs'][] = $model-><?php echo $generator->getNameAttribute(); ?>;
 
 $this->params['menu']['content'] = [
-	['label' => <?php echo $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?php echo $urlParams ?>]), 'icon' => 'pencil', 'htmlOptions' => ['class'=>'btn btn-primary']],
-	['label' => <?php echo $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?php echo $urlParams ?>]), 'htmlOptions' => ['data-confirm'=><?php echo $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method'=>'post', 'class'=>'btn btn-danger'], 'icon' => 'trash'],
+	['label' => <?php echo $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?php echo $urlParams ?>]), 'icon' => 'pencil', 'htmlOptions' => ['class' => 'btn btn-primary']],
+	['label' => <?php echo $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?php echo $urlParams ?>]), 'htmlOptions' => ['data-confirm' => <?php echo $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method' => 'post', 'class' => 'btn btn-danger'], 'icon' => 'trash'],
 ];
 } ?>
 
@@ -153,7 +153,7 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 		'value' => function ($model) {
 			$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
 			if($<?php echo $publicAttribute;?> != '-')
-				return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id'=>$model-><?php echo $column->name;?>], ['title'=>$<?php echo $publicAttribute;?>, 'class'=>'modal-btn']);
+				return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id' => $model-><?php echo $column->name;?>], ['title' => $<?php echo $publicAttribute;?>, 'class' => 'modal-btn']);
 			return $<?php echo $publicAttribute;?>;
 		},
 		'format' => 'html',
@@ -204,10 +204,10 @@ if($comment != '' && $comment[0] == '"') {
 	$functionName = ucfirst($generator->setRelation($column->name));?>
 		'value' => $model::get<?php echo $functionName;?>($model-><?php echo $column->name;?>),
 <?php } else {?>
-		'value' => $model->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
+		'value' => $model->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]), $model-><?php echo $column->name;?>, '<?php echo $comment;?>'),
 <?php }?>
 <?php } else {?>
-		'value' => $model->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]), $model-><?php echo $column->name;?>),
+		'value' => $model->quickAction(Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]), $model-><?php echo $column->name;?>),
 <?php }
 if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 		'format' => 'raw',
@@ -240,9 +240,9 @@ if($column->name == 'publish' || ($comment != '' && $comment[0] != '"')) {?>
 			$uploadPath = $model::getUploadPath(false);
 <?php }
 if(in_array('pdf', $commentArray)) {?>
-			return $model-><?php echo $column->name;?> ? Html::a($model-><?php echo $column->name;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['title'=>$model-><?php echo $column->name;?>, 'target'=>'_blank']) : '-';
+			return $model-><?php echo $column->name;?> ? Html::a($model-><?php echo $column->name;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['title' => $model-><?php echo $column->name;?>, 'target' => '_blank']) : '-';
 <?php } else {?>
-			return $model-><?php echo $column->name;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['alt'=>$model-><?php echo $column->name;?>, 'class'=>'d-block border border-width-3 mb-3']).$model-><?php echo $column->name;?> : '-';
+			return $model-><?php echo $column->name;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $column->name;?>])), ['alt' => $model-><?php echo $column->name;?>, 'class' => 'd-block border border-width-3 mb-3']).$model-><?php echo $column->name;?> : '-';
 <?php }?>
 		},
 <?php elseif(in_array('serialize', $commentArray)):?>
@@ -306,7 +306,7 @@ foreach ($relations as $name => $relation) {
 		'attribute' => '<?php echo $relationName;?>',
 		'value' => function ($model) {
 			$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
-			return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>])]);
+			return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo $relationName;?>', ['count' => $<?php echo lcfirst($relationName);?>])]);
 		},
 		'format' => 'html',
 		'visible' => !$small,
@@ -314,7 +314,7 @@ foreach ($relations as $name => $relation) {
 <?php }?>
 	[
 		'attribute' => '',
-		'value' => Html::a(Yii::t('app', 'Update'), ['update', 'id'=>$model->primaryKey], ['title'=>Yii::t('app', 'Update'), 'class'=>'btn btn-success btn-sm']),
+		'value' => Html::a(Yii::t('app', 'Update'), ['update', 'id' => $model->primaryKey], ['title' => Yii::t('app', 'Update'), 'class' => 'btn btn-success btn-sm']),
 		'format' => 'html',
 		'visible' => !$small && Yii::$app->request->isAjax ? true : false,
 	],
@@ -323,7 +323,7 @@ foreach ($relations as $name => $relation) {
 echo DetailView::widget([
 	'model' => $model,
 	'options' => [
-		'class'=>'table table-striped detail-view',
+		'class' => 'table table-striped detail-view',
 	],
 	'attributes' => $attributes,
 ]); ?>

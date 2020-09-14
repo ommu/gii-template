@@ -78,7 +78,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <?php if(!$primaryKeyTriggerCondition):?>
 $this->params['menu']['content'] = [
-	['label' => <?= $generator->generateString('Add '.$functionLabel) ?>, 'url' => Url::to(['create']), 'icon' => 'plus-square', 'htmlOptions' => ['class'=>'btn btn-success']],
+	['label' => <?= $generator->generateString('Add '.$functionLabel) ?>, 'url' => Url::to(['create']), 'icon' => 'plus-square', 'htmlOptions' => ['class' => 'btn btn-success']],
 ];
 <?php endif;
 if(!empty($generator->searchModelClass)): ?>
@@ -100,15 +100,15 @@ if(!empty($arrayRelation)) {
 		else if($arrayRelation['table'] == 'ommu_members')
 			$render = '@ommu/member/views/manage/admin/admin_view'; ?>
 <?php echo "<?php ";?>if($<?php echo $arrayRelation[$key]['relation'];?> != null)
-	echo $this->render('<?php echo $render;?>', ['model'=>$<?php echo $arrayRelation[$key]['relation'];?>, 'small'=>true]); ?>
+	echo $this->render('<?php echo $render;?>', ['model' => $<?php echo $arrayRelation[$key]['relation'];?>, 'small' => true]); ?>
 
 <?php }
 }
 
 if(!empty($generator->searchModelClass)): ?>
-<?= "<?php " . ($generator->indexWidgetType === 'grid' ? "//" : "") ?>echo $this->render('_search', ['model'=>$searchModel]); ?>
+<?= "<?php " . ($generator->indexWidgetType === 'grid' ? "//" : "") ?>echo $this->render('_search', ['model' => $searchModel]); ?>
 
-<?= "<?php " . ($generator->indexWidgetType !== 'grid' ? "//" : "") ?>echo $this->render('_option_form', ['model'=>$searchModel, 'gridColumns'=>$searchModel->activeDefaultColumns($columns), 'route'=>$this->context->route]); ?>
+<?= "<?php " . ($generator->indexWidgetType !== 'grid' ? "//" : "") ?>echo $this->render('_option_form', ['model' => $searchModel, 'gridColumns' => $searchModel->activeDefaultColumns($columns), 'route' => $this->context->route]); ?>
 
 <?php endif; ?>
 <?php if ($generator->indexWidgetType === 'grid'): ?>
@@ -147,18 +147,18 @@ array_push($columnData, [
 	'header' => <?php echo $generator->generateString('Option');?>,
 	'urlCreator' => function($action, $model, $key, $index) {
 		if($action == 'view')
-			return Url::to(['view', 'id'=>$key]);
+			return Url::to(['view', 'id' => $key]);
 		if($action == 'update')
-			return Url::to(['update', 'id'=>$key]);
+			return Url::to(['update', 'id' => $key]);
 		if($action == 'delete')
-			return Url::to(['delete', 'id'=>$key]);
+			return Url::to(['delete', 'id' => $key]);
 	},
 	'buttons' => [
 		'view' => function ($url, $model, $key) {
-			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title'=><?= $generator->generateString('Detail ' . $functionLabel) ?>]);
+			return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, ['title' => <?= $generator->generateString('Detail ' . $functionLabel) ?>]);
 		},
 		'update' => function ($url, $model, $key) {
-			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title'=><?= $generator->generateString('Update ' . $functionLabel) ?>]);
+			return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, ['title' => <?= $generator->generateString('Update ' . $functionLabel) ?>]);
 		},
 		'delete' => function ($url, $model, $key) {
 			return Html::a('<span class="glyphicon glyphicon-trash"></span>', $url, [

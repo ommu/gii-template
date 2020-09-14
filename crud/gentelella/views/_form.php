@@ -101,7 +101,7 @@ $redactorOptions = [
 		'enctype' => 'multipart/form-data',
 	],
 <?php } else {?>
-	'options' => ['class'=>'form-horizontal form-label-left'],
+	'options' => ['class' => 'form-horizontal form-label-left'],
 <?php }?>
 	'enableClientValidation' => <?php echo $uploadCondition ? 'false' : 'true';?>,
 	'enableAjaxValidation' => false,

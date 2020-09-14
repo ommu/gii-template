@@ -512,7 +512,7 @@ if($queryClassName):
 		$this->templateColumns['_no'] = [
 			'header' => '#',
 			'class' => 'app\components\grid\SerialColumn',
-			'contentOptions' => ['class'=>'text-center'],
+			'contentOptions' => ['class' => 'text-center'],
 		];
 <?php 
 $publicAttributes = [];
@@ -612,11 +612,11 @@ if ($memberUserCondition && $column->name == 'member_id') {?>
 				$uploadPath = self::getUploadPath(false);
 <?php }?>
 <?php if(in_array('pdf', $commentArray)) {?>
-				return $model-><?php echo $publicAttribute;?> ? Html::a($model-><?php echo $publicAttribute;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['title'=>$model-><?php echo $publicAttribute;?>, 'target'=>'_blank']) : '-';
+				return $model-><?php echo $publicAttribute;?> ? Html::a($model-><?php echo $publicAttribute;?>, Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['title' => $model-><?php echo $publicAttribute;?>, 'target' => '_blank']) : '-';
 			},
 			'format' => 'raw',
 <?php } else {?>
-				return $model-><?php echo $publicAttribute;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['alt'=>$model-><?php echo $publicAttribute;?>]) : '-';
+				return $model-><?php echo $publicAttribute;?> ? Html::img(Url::to(join('/', ['@webpublic', $uploadPath, $model-><?php echo $publicAttribute;?>])), ['alt' => $model-><?php echo $publicAttribute;?>]) : '-';
 			},
 			'format' => 'html',
 <?php }?>
@@ -693,10 +693,10 @@ foreach ($relations as $name => $relation) {
 			'attribute' => '<?php echo $relationName;?>',
 			'value' => function($model, $key, $index, $column) {
 				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
-				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>'=>$model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\'=>1' : '';?>], ['title'=>Yii::t('app', '{count} <?php echo $relationName;?>', ['count'=>$<?php echo lcfirst($relationName);?>]), 'data-pjax'=>0]);
+				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo $relationName;?>', ['count' => $<?php echo lcfirst($relationName);?>]), 'data-pjax' => 0]);
 			},
 			'filter' => false,
-			'contentOptions' => ['class'=>'text-center'],
+			'contentOptions' => ['class' => 'text-center'],
 			'format' => 'raw',
 		];
 <?php }
@@ -715,7 +715,7 @@ foreach ($tableSchema->columns as $column) {
 				return $this->filterYesNo($model-><?php echo $column->name;?>);
 			},
 			'filter' => $this->filterYesNo(),
-			'contentOptions' => ['class'=>'text-center'],
+			'contentOptions' => ['class' => 'text-center'],
 		];
 <?php }
 }
@@ -739,7 +739,7 @@ if($comment != '' && $comment[0] == '"') {
 				return self::get<?php echo $functionName;?>($model-><?php echo $column->name;?>);
 <?php } else {
 	$rawCondition = 1;?>
-				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
+				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]);
 				return $this->quickAction($url, $model-><?php echo $column->name;?>, '<?php echo $comment;?>'<?php echo $column->name == 'headline' ? ', true' : '';?>);
 <?php }?>
 			},
@@ -749,7 +749,7 @@ if($comment != '' && $comment[0] == '"') {
 <?php } else {?>
 			'filter' => $this->filterYesNo(),
 <?php }?>
-			'contentOptions' => ['class'=>'text-center'],
+			'contentOptions' => ['class' => 'text-center'],
 <?php if($rawCondition == 1) {?>
 			'format' => 'raw',
 <?php }?>
@@ -764,14 +764,14 @@ foreach ($tableSchema->columns as $column) {
 			'attribute' => '<?php echo $column->name;?>',
 			'value' => function($model, $key, $index, $column) {
 <?php if(!$primaryKeyTriggerCondition) {?>
-				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id'=>$model->primaryKey]);
+				$url = Url::to(['<?php echo Inflector::camel2id($column->name);?>', 'id' => $model->primaryKey]);
 				return $this->quickAction($url, $model-><?php echo $column->name;?><?php echo $comment != '' ? ", '$comment'" : '';?>);
 <?php } else {?>
 				return $this->filterYesNo($model->publish);
 <?php }?>
 			},
 			'filter' => $this->filterYesNo(),
-			'contentOptions' => ['class'=>'text-center'],
+			'contentOptions' => ['class' => 'text-center'],
 <?php echo !$primaryKeyTriggerCondition ? "\t\t\t'format' => 'raw',\n" : '';?>
 			'visible' => !Yii::$app->request->get('trash') ? true : false,
 		];
@@ -869,8 +869,8 @@ foreach ($tableSchema->columns as $column) {
 			$moduleName = strtolower($module->getName());
 
 		$items = array(
-			1 => Yii::t('app', 'Yes, the public can view {module} unless they are made private.', ['module'=>$moduleName]),
-			0 => Yii::t('app', 'No, the public cannot view {module}.', ['module'=>$moduleName]),
+			1 => Yii::t('app', 'Yes, the public can view {module} unless they are made private.', ['module' => $moduleName]),
+			0 => Yii::t('app', 'No, the public cannot view {module}.', ['module' => $moduleName]),
 		);
 
 		if($value !== null)
@@ -1036,13 +1036,13 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 				$<?php echo $fileType;?> = ['jpg', 'jpeg', 'png', 'bmp', 'gif'];
 				if(!in_array(strtolower($this-><?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
 					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', [
-						'name'=>$this-><?php echo $column->name;?>->name,
-						'extensions'=>$this->formatFileType($<?php echo $fileType;?>, false),
+						'name' => $this-><?php echo $column->name;?>->name,
+						'extensions' => $this->formatFileType($<?php echo $fileType;?>, false),
 					]));
 				}
 			} /* else {
 				if($this->isNewRecord || (!$this->isNewRecord && $this->old_<?php echo $column->name;?> == ''))
-					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', ['attribute'=>$this->getAttributeLabel('<?php echo $column->name;?>')]));
+					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', ['attribute' => $this->getAttributeLabel('<?php echo $column->name;?>')]));
 			} */
 
 <?php 	}

@@ -66,7 +66,7 @@ JS;
 		<ul>
 		<?= "\t<?php " ?>foreach($columns as $key => $val): ?> 
 			<li>
-		<?= "\t\t<?php echo " ?>Html::checkBox(sprintf("GridColumn[%s]", $key), in_array($key, $gridColumns) ? true : false, ['id'=>'GridColumn_'.$key]); ?>
+		<?= "\t\t<?php echo " ?>Html::checkBox(sprintf("GridColumn[%s]", $key), in_array($key, $gridColumns) ? true : false, ['id' => 'GridColumn_'.$key]); ?>
 		<?= "\t\t<?php echo " ?>Html::label($model->getAttributeLabel($val), 'GridColumn_'.$val); ?>
 			</li>
 		<?= "\t<?php " ?>endforeach; ?>
