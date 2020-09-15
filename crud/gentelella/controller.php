@@ -192,18 +192,20 @@ endforeach;
 
 		$gridColumn = Yii::$app->request->get('GridColumn', null);
 		$cols = [];
-		if($gridColumn != null && count($gridColumn) > 0) {
-			foreach($gridColumn as $key => $val) {
-				if($gridColumn[$key] == 1)
-					$cols[] = $key;
-			}
-		}
+        if ($gridColumn != null && count($gridColumn) > 0) {
+            foreach($gridColumn as $key => $val) {
+                if ($gridColumn[$key] == 1) {
+                    $cols[] = $key;
+                }
+            }
+        }
 		$columns = $searchModel->getGridColumn($cols);
 <?php if(!empty($arrayRelation)) {
 	echo "\n";
 	foreach($arrayRelation as $key => $val) {?>
-		if(($<?php echo $arrayRelation[$key]['relation'];?> = Yii::$app->request->get('<?php echo $arrayRelation[$key]['relation'];?>')) != null)
-			$<?php echo $arrayRelation[$key]['relation'];?> = <?php echo '\\'.ltrim($arrayRelation[$key]['namespace'], '\\');?>::findOne($<?php echo $arrayRelation[$key]['relation'];?>);
+        if (($<?php echo $arrayRelation[$key]['relation'];?> = Yii::$app->request->get('<?php echo $arrayRelation[$key]['relation'];?>')) != null) {
+            $<?php echo $arrayRelation[$key]['relation'];?> = <?php echo '\\'.ltrim($arrayRelation[$key]['namespace'], '\\');?>::findOne($<?php echo $arrayRelation[$key]['relation'];?>);
+        }
 <?php }
 }?>
 
@@ -243,22 +245,23 @@ endforeach;
 	{
 		$model = new <?= $modelClass ?>();
 
-		if(Yii::$app->request->isPost) {
-			$model->load(Yii::$app->request->post());
-			// $postData = Yii::$app->request->post();
-			// $model->load($postData);
-			// $model->order = $postData['order'] ? $postData['order'] : 0;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            // $postData = Yii::$app->request->post();
+            // $model->load($postData);
+            // $model->order = $postData['order'] ? $postData['order'] : 0;
 
-			if($model->save()) {
-				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success created.');?>);
-				return $this->redirect(['manage']);
-				//return $this->redirect(['view', <?= $urlParams ?>]);
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success created.');?>);
+                return $this->redirect(['manage']);
+                //return $this->redirect(['view', <?= $urlParams ?>]);
 
-			} else {
-				if(Yii::$app->request->isAjax)
-					return \yii\helpers\Json::encode(\app\components\widgets\ActiveForm::validate($model));
-			}
-		}
+            } else {
+                if (Yii::$app->request->isAjax) {
+                    return \yii\helpers\Json::encode(\app\components\widgets\ActiveForm::validate($model));
+                }
+            }
+        }
 
 		$this->view->title = <?php echo $generator->generateString('Create '.$shortLabel);?>;
 		$this->view->description = '';
@@ -278,21 +281,22 @@ endforeach;
 	{
 		$model = $this->findModel(<?= $actionParams ?>);
 
-		if(Yii::$app->request->isPost) {
-			$model->load(Yii::$app->request->post());
-			// $postData = Yii::$app->request->post();
-			// $model->load($postData);
-			// $model->order = $postData['order'] ? $postData['order'] : 0;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            // $postData = Yii::$app->request->post();
+            // $model->load($postData);
+            // $model->order = $postData['order'] ? $postData['order'] : 0;
 
-			if($model->save()) {
-				Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
-				return $this->redirect(['manage']);
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
+                return $this->redirect(['manage']);
 
-			} else {
-				if(Yii::$app->request->isAjax)
-					return \yii\helpers\Json::encode(\app\components\widgets\ActiveForm::validate($model));
-			}
-		}
+            } else {
+                if (Yii::$app->request->isAjax) {
+                    return \yii\helpers\Json::encode(\app\components\widgets\ActiveForm::validate($model));
+                }
+            }
+        }
 
 <?php if($generator->enableI18N) {
 	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";
@@ -343,10 +347,10 @@ endforeach;
 		$model = $this->findModel(<?= $actionParams ?>);
 		$model->publish = 2;
 
-		if($model->save(false, ['publish'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
-			return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
-		}
+        if ($model->save(false, ['publish'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
+            Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success deleted.');?>);
+            return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
+        }
 <?php else: ?>
 		$model = $this->findModel($id);
 		$model->delete();
@@ -379,13 +383,13 @@ foreach ($tableSchema->columns as $column):
 <?php endif;?>
 
 <?php if($column->name == 'headline'):?>
-		if($model->save(false, ['publish','<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
+        if ($model->save(false, ['publish','<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 <?php else:?>
-		if($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
+        if ($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
 <?php endif;?>
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
-			return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
-		}
+            Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
+            return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
+        }
 	}
 <?php endif;
 endforeach;
@@ -410,10 +414,10 @@ foreach ($tableSchema->columns as $column):
 		$replace = $model-><?php echo $column->name;?> == 1 ? 0 : 1;
 		$model-><?php echo $column->name;?> = $replace;
 		
-		if($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
-			Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
-			return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
-		}
+        if ($model->save(false, ['<?php echo $column->name;?>'<?php echo array_key_exists('modified_id', $tableSchema->columns) ? ',\'modified_id\'' : ''?>])) {
+            Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
+            return $this->redirect(Yii::$app->request->referrer ?: ['manage']);
+        }
 	}
 <?php endif;
 endforeach;
@@ -439,8 +443,9 @@ if (count($pks) === 1) {
 	$condition = '[' . implode(', ', $condition) . ']';
 }
 ?>
-		if(($model = <?= $modelClass ?>::findOne(<?= $condition ?>)) !== null)
-			return $model;
+        if (($model = <?= $modelClass ?>::findOne(<?= $condition ?>)) !== null) {
+            return $model;
+        }
 
 		throw new \yii\web\NotFoundHttpException(<?= $generator->generateString('The requested page does not exist.') ?>);
 	}

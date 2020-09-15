@@ -193,10 +193,11 @@ endforeach;?>
 	 */
 	public function search($params, $column=null)
 	{
-		if(!($column && is_array($column)))
-			$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
-		else
-			$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t')->select($column);
+        if (!($column && is_array($column))) {
+            $query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
+        } else {
+            $query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t')->select($column);
+        }
 <?php
 if(!empty($arrayRelations)):
 	$propertyFields = ArrayHelper::map($arrayRelations, 'relationAlias', 'relation');
@@ -209,11 +210,13 @@ endforeach;?>
         continue;
     }
 	$smallintCondition = ($val['propertySearch'] == $val['property']) ? false : true ; ?>
-		if((isset($params['sort']) && in_array($params['sort'], ['<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>', '-<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>'])) || (isset($params['<?php echo $val['propertySearch'];?>']) && $params['<?php echo $val['propertySearch'];?>'] != ''))
+        if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>', '-<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>'])) || (isset($params['<?php echo $val['propertySearch'];?>']) && $params['<?php echo $val['propertySearch'];?>'] != '')) {
 <?php if ($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'member') {?>
-			$query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>', 'user user']);
+            $query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>', 'user user']);
+        }
 <?php } else {?>
-			$query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>']);
+            $query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>']);
+        }
 <?php }
 }
 echo "\n";?>
@@ -224,9 +227,10 @@ echo "\n";?>
 		$dataParams = [
 			'query' => $query,
 		];
-		// disable pagination agar data pada api tampil semua
-		if(isset($params['pagination']) && $params['pagination'] == 0)
-			$dataParams['pagination'] = false;
+        // disable pagination agar data pada api tampil semua
+        if (isset($params['pagination']) && $params['pagination'] == 0) {
+            $dataParams['pagination'] = false;
+        }
 		$dataProvider = new ActiveDataProvider($dataParams);
 
 		$attributes = array_keys($this->getTableSchema()->columns);
@@ -248,15 +252,16 @@ if(!empty($arrayRelations)) {
 			'defaultOrder' => ['<?php echo $generator->getPrimaryKey($tableSchema);?>' => SORT_DESC],
 		]);
 
-		if(Yii::$app->request->get('<?php echo $generator->getPrimaryKey($tableSchema);?>'))
-			unset($params['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
+        if (Yii::$app->request->get('<?php echo $generator->getPrimaryKey($tableSchema);?>')) {
+            unset($params['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
+        }
 		$this->load($params);
 
-		if(!$this->validate()) {
-			// uncomment the following line if you do not want to return any records when validation fails
-			// $query->where('0=1');
-			return $dataProvider;
-		}
+        if (!$this->validate()) {
+            // uncomment the following line if you do not want to return any records when validation fails
+            // $query->where('0=1');
+            return $dataProvider;
+        }
 
 		// grid filtering conditions
 		<?php echo implode("\n\t\t", $searchConditions); ?>

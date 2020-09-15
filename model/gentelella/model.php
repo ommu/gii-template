@@ -404,8 +404,9 @@ foreach ($relations as $name => $relation) {
 <?php }?>
 	{
 <?php if($relation[2]) {?>
-		if($count == false)
-			<?= preg_replace($patternClass, '', $relation[0]) . "\n\n" ?>
+        if ($count == false) {
+            <?= preg_replace($patternClass, '', $relation[0]) . "\n\n" ?>
+        }
 <?php } else {?>
 		<?= preg_replace($patternClass, '', $relation[0]) . "\n" ?>
 <?php }?>
@@ -414,12 +415,13 @@ foreach ($relations as $name => $relation) {
 			->alias('t')
 			->where(<?php echo $relation[3];?>);
 <?php if($publishRltnCondition) {?>
-		if($publish == 0)
-			$model->unpublish();
-		elseif($publish == 1)
-			$model->published();
-		elseif($publish == 2)
-			$model->deleted();
+        if ($publish == 0) {
+            $model->unpublish();
+        } else if($publish == 1) {
+            $model->published();
+        } else if($publish == 2) {
+            $model->deleted();
+        }
 <?php }?>
 		$<?php echo lcfirst($relationName);?> = $model->count();
 
@@ -503,11 +505,13 @@ if($queryClassName):
 	{
 		parent::init();
 
-		if(!(Yii::$app instanceof \app\components\Application))
-			return;
+        if (!(Yii::$app instanceof \app\components\Application)) {
+            return;
+        }
 
-		if(!$this->hasMethod('search'))
-			return;
+        if (!$this->hasMethod('search')) {
+            return;
+        }
 
 		$this->templateColumns['_no'] = [
 			'header' => '#',
@@ -583,7 +587,7 @@ if ($memberUserCondition && $column->name == 'member_id') {?>
 			'visible' => !Yii::$app->request->get('<?php echo $relationName;?>') ? true : false,
 		];
 <?php 	}
-	} elseif(in_array($column->dbType, ['timestamp','datetime','date'])) {
+	} else if(in_array($column->dbType, ['timestamp','datetime','date'])) {
 		$publicAttribute = $column->name;
 		if(!in_array($publicAttribute, $publicAttributes)) {
 			$publicAttributes[] = $publicAttribute;?>
@@ -807,19 +811,20 @@ endforeach;
 	 */
 	public static function getInfo($id, $column=null)
 	{
-		if($column != null) {
-			$model = self::find();
-			if(is_array($column))
-				$model->select($column);
-			else
-				$model->select([$column]);
-			$model = $model->where(['<?php echo $primaryKey;?>' => $id])->one();
-			return is_array($column) ? $model : $model->$column;
-			
-		} else {
-			$model = self::findOne($id);
-			return $model;
-		}
+        if ($column != null) {
+            $model = self::find();
+            if (is_array($column)) {
+                $model->select($column);
+            } else {
+                $model->select([$column]);
+            }
+            $model = $model->where(['<?php echo $primaryKey;?>' => $id])->one();
+            return is_array($column) ? $model : $model->$column;
+            
+        } else {
+            $model = self::findOne($id);
+            return $model;
+        }
 	}
 <?php
 if($tableType != Generator::TYPE_VIEW && ($generator->useGetFunction || $useGetFunctionCondition)) {
@@ -839,14 +844,16 @@ if($i18nRelation)
 	echo "\t\t\$model->leftJoin(sprintf('%s $i18nRelation', SourceMessage::tableName()), 't.$attributeName=$i18nRelation.id');\n";
 	
 if($publishCondition) {?>
-		if($publish != null)
-			$model->andWhere(['t.publish' => $publish]);
+        if ($publish != null) {
+            $model->andWhere(['t.publish' => $publish]);
+        }
 
 <?php }?>
 		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : 't.'.$attributeName;?> ASC')->all();
 
-		if($array == true)
-			return \yii\helpers\ArrayHelper::map($model, '<?php echo $primaryKey;?>', '<?php echo $i18n && preg_match('/(name|title)/', $attributeName) ? $attributeName.'_i' : $attributeName;?>');
+        if ($array == true) {
+            return \yii\helpers\ArrayHelper::map($model, '<?php echo $primaryKey;?>', '<?php echo $i18n && preg_match('/(name|title)/', $attributeName) ? $attributeName.'_i' : $attributeName;?>');
+        }
 
 		return $model;
 	}
@@ -865,18 +872,20 @@ foreach ($tableSchema->columns as $column) {
 	{
 		$moduleName = "module name";
 		$module = strtolower(Yii::$app->controller->module->id);
-		if(($module = Yii::$app->moduleManager->getModule($module)) != null);
-			$moduleName = strtolower($module->getName());
+        if (($module = Yii::$app->moduleManager->getModule($module)) != null) {
+            $moduleName = strtolower($module->getName());
+        }
 
 		$items = array(
 			1 => Yii::t('app', 'Yes, the public can view {module} unless they are made private.', ['module' => $moduleName]),
 			0 => Yii::t('app', 'No, the public cannot view {module}.', ['module' => $moduleName]),
 		);
 
-		if($value !== null)
-			return $items[$value];
-		else
-			return $items;
+        if ($value !== null) {
+            return $items[$value];
+        } else {
+            return $items;
+        }
 	}
 <?php }
 
@@ -908,10 +917,11 @@ if(is_array($column->enumValues)) {
 }?>
 		);
 
-		if($value !== null)
-			return $items[$value];
-		else
-			return $items;
+        if ($value !== null) {
+            return $items[$value];
+        } else {
+            return $items;
+        }
 	}
 <?php }
 }
@@ -1024,26 +1034,27 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 	 */
 	public function beforeValidate()
 	{
-		if(parent::beforeValidate()) {
+        if (parent::beforeValidate()) {
 <?php if($uploadCondition) {
 	$beforeValidate = 1;
 	foreach($tableSchema->columns as $column) {
 		$commentArray = explode(',', $column->comment);
 		if($column->type == 'text' && in_array('file', $commentArray)) {
 			$fileType = lcfirst(Inflector::singularize(Inflector::id2camel($column->name, '_')).'FileType');?>
-			// $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
-				$<?php echo $fileType;?> = ['jpg', 'jpeg', 'png', 'bmp', 'gif'];
-				if(!in_array(strtolower($this-><?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
-					$this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', [
-						'name' => $this-><?php echo $column->name;?>->name,
-						'extensions' => $this->formatFileType($<?php echo $fileType;?>, false),
-					]));
-				}
-			} /* else {
-				if($this->isNewRecord || (!$this->isNewRecord && $this->old_<?php echo $column->name;?> == ''))
-					$this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', ['attribute' => $this->getAttributeLabel('<?php echo $column->name;?>')]));
-			} */
+            // $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+            if ($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
+                $<?php echo $fileType;?> = ['jpg', 'jpeg', 'png', 'bmp', 'gif'];
+                if (!in_array(strtolower($this-><?php echo $column->name;?>->getExtension()), $<?php echo $fileType;?>)) {
+                    $this->addError('<?php echo $column->name;?>', Yii::t('app', 'The file {name} cannot be uploaded. Only files with these extensions are allowed: {extensions}', [
+                        'name' => $this-><?php echo $column->name;?>->name,
+                        'extensions' => $this->formatFileType($<?php echo $fileType;?>, false),
+                    ]));
+                }
+            } /* else {
+                if ($this->isNewRecord || (!$this->isNewRecord && $this->old_<?php echo $column->name;?> == '')) {
+                    $this->addError('<?php echo $column->name;?>', Yii::t('app', '{attribute} cannot be blank.', ['attribute' => $this->getAttributeLabel('<?php echo $column->name;?>')]));
+                }
+            } */
 
 <?php 	}
 	}
@@ -1055,15 +1066,15 @@ foreach($tableSchema->columns as $column) {
 		$beforeValidate = 1;
 		if(in_array($column->name, array('creation_id','user_id'))) {
 			$creationCondition = 1;
-			echo "\t\t\tif(\$this->isNewRecord) {\n";
-			echo "\t\t\t\tif(\$this->{$column->name} == null)\n";
+			echo "\t\t\tif (\$this->isNewRecord) {\n";
+			echo "\t\t\t\tif (\$this->{$column->name} == null)\n";
 			echo "\t\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		} else {
 			if($creationCondition)
 				echo "\t\t\t} else {\n";
 			else
-				echo "\t\t\tif(!\$this->isNewRecord) {\n";
-			echo "\t\t\t\tif(\$this->{$column->name} == null)\n";
+				echo "\t\t\tif (!\$this->isNewRecord) {\n";
+			echo "\t\t\t\tif (\$this->{$column->name} == null)\n";
 			echo "\t\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
 		}
 	}
@@ -1080,7 +1091,7 @@ foreach($tableSchema->columns as $column) {
 <?php }
 }
 echo !$beforeValidate ? "\t\t\t// Create action\n" : '';?>
-		}
+        }
 		return true;
 	}
 <?php }
@@ -1127,41 +1138,42 @@ $beforeSave = 1;?>
 		$location = Inflector::slug($module.' '.$controller);
 
 <?php }?>
-		if(parent::beforeSave($insert)) {
+        if (parent::beforeSave($insert)) {
 <?php if($uploadCondition) {
 $beforeSave = 1;?>
-			if(!$insert) {
+            if (!$insert) {
 <?php if($generator->uploadPath['subfolder']) {?>
-				$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
+                $uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
 <?php } else {?>
-				$uploadPath = self::getUploadPath();
+                $uploadPath = self::getUploadPath();
 <?php }?>
-				$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
-				$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
+                $verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
+                $this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
 <?php foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) {?>
-				// $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-				if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
+                // $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+                if ($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 <?php if($generator->uploadPath['subfolder']) {?>
-					$fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+                    $fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
 <?php } else {?>
-					$fileName = join('-', [time(), UuidHelper::uuid(), $this-><?php echo $primaryKey;?>]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+                    $fileName = join('-', [time(), UuidHelper::uuid(), $this-><?php echo $primaryKey;?>]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
 <?php }?>
-					if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName]))) {
-						if($this->old_<?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>])))
-							rename(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'-'.time().'_change_'.$this->old_<?php echo $column->name;?>]));
-						$this-><?php echo $column->name;?> = $fileName;
-					}
-				} else {
-					if($this-><?php echo $column->name;?> == '')
-						$this-><?php echo $column->name;?> = $this->old_<?php echo $column->name;?>;
-				}
+                    if ($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName]))) {
+                        if ($this->old_<?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>]))) {
+                            rename(join('/', [$uploadPath, $this->old_<?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'-'.time().'_change_'.$this->old_<?php echo $column->name;?>]));
+                        }
+                        $this-><?php echo $column->name;?> = $fileName;
+                    }
+                } else {
+                    if ($this-><?php echo $column->name;?> == '')
+                        $this-><?php echo $column->name;?> = $this->old_<?php echo $column->name;?>;
+                }
 
 <?php }
 }?>
-			}
+            }
 <?php }
 
 foreach($tableSchema->columns as $column) {
@@ -1170,22 +1182,23 @@ foreach($tableSchema->columns as $column) {
 		$beforeSave = 1;
 		$publicAttribute = $column->name.'_i';
 		$publicAttributeLocation = preg_match('/(name|title)/', $column->name) ? '_title' : (preg_match('/(desc|description)/', $column->name) ? ($column->name != 'description' ? '_description' : '_'.$column->name) : '_'.$column->name);?>
-			if($insert || (!$insert && !$this-><?php echo $column->name;?>)) {
-				$<?php echo $column->name;?> = new SourceMessage();
-				$<?php echo $column->name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
-				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
-				if($<?php echo $column->name;?>->save())
-					$this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
+            if ($insert || (!$insert && !$this-><?php echo $column->name;?>)) {
+                $<?php echo $column->name;?> = new SourceMessage();
+                $<?php echo $column->name;?>->location = $location.'<?php echo $publicAttributeLocation;?>';
+                $<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
+                if ($<?php echo $column->name;?>->save()) {
+                    $this-><?php echo $column->name;?> = $<?php echo $column->name;?>->id;
+                }
 <?php if($slugCondition && $i18n && preg_match('/(name|title)/', $column->name)) {?>
 
-				$this->slug = Inflector::slug($this-><?php echo $publicAttribute;?>);
+                $this->slug = Inflector::slug($this-><?php echo $publicAttribute;?>);
 <?php }?>
 
-			} else {
-				$<?php echo $column->name;?> = SourceMessage::findOne($this-><?php echo $column->name;?>);
-				$<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
-				$<?php echo $column->name;?>->save();
-			}
+            } else {
+                $<?php echo $column->name;?> = SourceMessage::findOne($this-><?php echo $column->name;?>);
+                $<?php echo $column->name;?>->message = $this-><?php echo $publicAttribute;?>;
+                $<?php echo $column->name;?>->save();
+            }
 
 <?php }
 }
@@ -1208,28 +1221,28 @@ foreach($tableSchema->columns as $column) {
 		$beforeSave = 1;
 		$relationName =  $generator->setRelation($column->name);
 		$publicAttribute = $relationName.ucwords('body');?>
-			if($insert) {
-				$<?php echo $publicAttribute;?> = Inflector::slug($this-><?php echo $publicAttribute;?>);
-				if($this-><?php echo $column->name;?> == 0) {
-					$<?php echo $relationName;?> = CoreTags::find()
-						->select(['<?php echo $column->name;?>'])
-						->andWhere(['body' => $<?php echo $publicAttribute;?>])
-						->one();
-						
-					if($<?php echo $relationName;?> != null)
-						$this-><?php echo $column->name;?> = $<?php echo $relationName;?>-><?php echo $column->name;?>;
-					else {
-						$data = new CoreTags();
-						$data->body = $this-><?php echo $publicAttribute;?>;
-						if($data->save())
-							$this-><?php echo $column->name;?> = $data-><?php echo $column->name;?>;
-					}
-				}
-			}
+            if ($insert) {
+                $<?php echo $publicAttribute;?> = Inflector::slug($this-><?php echo $publicAttribute;?>);
+                if ($this-><?php echo $column->name;?> == 0) {
+                    $<?php echo $relationName;?> = CoreTags::find()
+                        ->select(['<?php echo $column->name;?>'])
+                        ->andWhere(['body' => $<?php echo $publicAttribute;?>])
+                        ->one();
+                        
+                    if ($<?php echo $relationName;?> != null) {
+                        $this-><?php echo $column->name;?> = $<?php echo $relationName;?>-><?php echo $column->name;?>;
+                    } else {
+                        $data = new CoreTags();
+                        $data->body = $this-><?php echo $publicAttribute;?>;
+                        if($data->save())
+                            $this-><?php echo $column->name;?> = $data-><?php echo $column->name;?>;
+                    }
+                }
+            }
 <?php }
 }
 echo !$beforeSave ? "\t\t\t// Create action\n" : '';?>
-		}
+        }
 		return true;
 	}
 <?php 
@@ -1258,24 +1271,25 @@ if($generator->uploadPath['subfolder']) {?>
 		$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
 		$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
-		if($insert) {
+        if ($insert) {
 <?php foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text'  && in_array('file', $commentArray)) {?>
-			// $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
-			if($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
+            // $this-><?php echo $column->name;?> = UploadedFile::getInstance($this, '<?php echo $column->name;?>');
+            if ($this-><?php echo $column->name;?> instanceof UploadedFile && !$this-><?php echo $column->name;?>->getHasError()) {
 <?php if($generator->uploadPath['subfolder']) {?>
-				$fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+                $fileName = join('-', [time(), UuidHelper::uuid()]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
 <?php } else {?>
-				$fileName = join('-', [time(), UuidHelper::uuid(), $this-><?php echo $primaryKey;?>]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
+                $fileName = join('-', [time(), UuidHelper::uuid(), $this-><?php echo $primaryKey;?>]).'.'.strtolower($this-><?php echo $column->name;?>->getExtension()); 
 <?php }?>
-				if($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName])))
-					self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' => $this-><?php echo $primaryKey;?>]);
-			}
+                if ($this-><?php echo $column->name;?>->saveAs(join('/', [$uploadPath, $fileName]))) {
+                    self::updateAll(['<?php echo $column->name;?>' => $fileName], ['<?php echo $primaryKey;?>' => $this-><?php echo $primaryKey;?>]);
+                }
+            }
 
 <?php }
 }?>
-		}
+        }
 <?php }
 echo !$afterSave ? "\t\t// Create action\n" : '';?>
 	}
@@ -1290,9 +1304,9 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 	 */
 	public function beforeDelete()
 	{
-		if(parent::beforeDelete()) {
-			// Create action
-		}
+        if (parent::beforeDelete()) {
+            // Create action
+        }
 		return true;
 	}
 <?php 
@@ -1323,8 +1337,9 @@ if($generator->uploadPath['subfolder']) {?>
 <?php foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->type == 'text' && in_array('file', $commentArray)) {?>
-		if($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this-><?php echo $column->name;?>])))
-			rename(join('/', [$uploadPath, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'-'.time().'_deleted_'.$this-><?php echo $column->name;?>]));
+        if ($this-><?php echo $column->name;?> != '' && file_exists(join('/', [$uploadPath, $this-><?php echo $column->name;?>]))) {
+            rename(join('/', [$uploadPath, $this-><?php echo $column->name;?>]), join('/', [$verwijderenPath, $this-><?php echo $primaryKey;?>.'-'.time().'_deleted_'.$this-><?php echo $column->name;?>]));
+        }
 
 <?php 	}
 	}

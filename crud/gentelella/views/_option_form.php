@@ -58,8 +58,9 @@ JS;
 	<?= "<?php echo " ?>Html::beginForm(Url::to(['/'.$route]), 'get', ['name' => 'gridoption']);
 		$columns = [];
 		foreach($model->templateColumns as $key => $column) {
-			if($key == '_no')
-				continue;
+            if ($key == '_no') {
+                continue;
+            }
 			$columns[$key] = $key;
 		}
 	?>

@@ -86,14 +86,14 @@ use yii\widgets\DetailView;
 <?php
 echo $jsonCondition ? "use ".ltrim('yii\helpers\Json', '\\').";\n" : '';?>
 
-if(!$small) {
-$this->params['breadcrumbs'][] = ['label' => <?php echo $generator->generateString($functionLabel) ?>, 'url' => ['index']];
-$this->params['breadcrumbs'][] = $model-><?php echo $generator->getNameAttribute(); ?>;
+if (!$small) {
+    $this->params['breadcrumbs'][] = ['label' => <?php echo $generator->generateString($functionLabel) ?>, 'url' => ['index']];
+    $this->params['breadcrumbs'][] = $model-><?php echo $generator->getNameAttribute(); ?>;
 
-$this->params['menu']['content'] = [
-	['label' => <?php echo $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?php echo $urlParams ?>]), 'icon' => 'pencil', 'htmlOptions' => ['class' => 'btn btn-primary']],
-	['label' => <?php echo $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?php echo $urlParams ?>]), 'htmlOptions' => ['data-confirm' => <?php echo $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method' => 'post', 'class' => 'btn btn-danger'], 'icon' => 'trash'],
-];
+    $this->params['menu']['content'] = [
+        ['label' => <?php echo $generator->generateString('Update') ?>, 'url' => Url::to(['update', <?php echo $urlParams ?>]), 'icon' => 'pencil', 'htmlOptions' => ['class' => 'btn btn-primary']],
+        ['label' => <?php echo $generator->generateString('Delete') ?>, 'url' => Url::to(['delete', <?php echo $urlParams ?>]), 'htmlOptions' => ['data-confirm' => <?php echo $generator->generateString('Are you sure you want to delete this item?') ?>, 'data-method' => 'post', 'class' => 'btn btn-danger'], 'icon' => 'trash'],
+    ];
 } ?>
 
 <div class="<?php echo Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-view">
@@ -151,10 +151,11 @@ if($foreignCondition || in_array('user', $commentArray) || ((!$column->autoIncre
 <?php if($foreignCondition && !$foreignUserCondition) {
 	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin';?>
 		'value' => function ($model) {
-			$<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
-			if($<?php echo $publicAttribute;?> != '-')
-				return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id' => $model-><?php echo $column->name;?>], ['title' => $<?php echo $publicAttribute;?>, 'class' => 'modal-btn']);
-			return $<?php echo $publicAttribute;?>;
+            $<?php echo $publicAttribute;?> = isset($model-><?php echo $relationFixedName;?>) ? $model-><?php echo $relationFixedName;?>-><?php echo $relationAttribute;?> : '-';
+            if ($<?php echo $publicAttribute;?> != '-') {
+                return Html::a($<?php echo $publicAttribute;?>, ['<?php echo $controller;?>/view', 'id' => $model-><?php echo $column->name;?>], ['title' => $<?php echo $publicAttribute;?>, 'class' => 'modal-btn']);
+            }
+            return $<?php echo $publicAttribute;?>;
 		},
 		'format' => 'html',
 <?php } else {
