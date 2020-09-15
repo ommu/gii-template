@@ -250,8 +250,9 @@ if(in_array('pdf', $commentArray)) {?>
 		'value' => serialize($model-><?php echo $column->name;?>),
 <?php elseif(in_array('json', $commentArray)):?>
 		'value' => function ($model) {
-            if (is_array($model-><?php echo $column->name;?>) && empty($model-><?php echo $column->name;?>))
+            if (is_array($model-><?php echo $column->name;?>) && empty($model-><?php echo $column->name;?>)) {
                 return '-';
+            }
             return Json::encode($model-><?php echo $column->name;?>);
 		},
 <?php else:?>
