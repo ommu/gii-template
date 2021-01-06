@@ -188,7 +188,7 @@ class Generator extends \ommu\gii\Generator
 
         if (!empty($this->searchModelClass)) {
             $searchModel = Yii::getAlias('@' . str_replace('\\', '/', ltrim($this->searchModelClass, '\\') . '.php'));
-            $files[] = new CodeFile($searchModel, $this->render('search.php'));
+            $files[] = new CodeFile($searchModel, $this->render('search.php', array('relations'=>$relation->getRelations())));
         }
 
         $viewPath = $this->getViewPath();
@@ -798,7 +798,16 @@ echo \$form->field(\$model, '$attribute')
         }
         foreach ($tableSchema->columns as $column): 
         if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
-            $publishConditions[] = "if (isset(\$params['trash'])) {\n\t\t\t\$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);\n\t\t} else {\n\t\t\tif (!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == '')) {\n\t\t\t\t\$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);\n\t\t\t } else {\n\t\t\t\t\$query->andFilterWhere(['t.$column->name' => \$this->$column->name]);\n\t\t\t}\n\t\t}";
+            $data = "if (isset(\$params['trash'])) {
+            \$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);
+        } else {
+            if (!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == '')) {
+                \$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);
+            } else {
+                \$query->andFilterWhere(['t.$column->name' => \$this->$column->name]);
+            }
+        }";
+            $publishConditions[] = $data;
         }
         endforeach;
         $publicVariables = [];

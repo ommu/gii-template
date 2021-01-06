@@ -25,6 +25,14 @@ $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 
 $yaml = $generator->loadYaml('author.yaml');
 
+$hasManyRelation = [];
+foreach ($relations as $name => $relation) {
+	if(!$relation[2])
+		continue;
+    $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
+    $hasManyRelation[Inflector::singularize($relationName)] = $relationName;
+}
+
 echo "<?php\n";
 ?>
 /**
@@ -149,6 +157,9 @@ foreach ($tableSchema->columns as $column) {
 }
 
 foreach($rules as $rule):
+if ($rule->ruleType == 'integer' && !empty($hasManyRelation)) {
+    $rule->columns = ArrayHelper::merge($rule->columns, array_flip($hasManyRelation));
+}
 if(!empty($rule->columns)):
     // Jika public var ada merge ke safe rule columns
     if ($rule->ruleType == 'safe' && !empty($arrayRelations)) {
@@ -202,9 +213,9 @@ endforeach;?>
 if(!empty($arrayRelations)):
 	$propertyFields = ArrayHelper::map($arrayRelations, 'relationAlias', 'relation');
 foreach ($propertyFields as $key => $val):
-	$relations[] = $val.' '.$key;
+	$relationAlias[] = $val.' '.$key;
 endforeach;?>
-		$query->joinWith([<?php echo "\n\t\t\t// '" .implode("', \n\t\t\t// '", $relations). "'\n\t\t";?>]);<?php echo "\n";?>
+		$query->joinWith([<?php echo "\n\t\t\t// '" .implode("', \n\t\t\t// '", $relationAlias). "'\n\t\t";?>]);<?php echo "\n";?>
 <?php foreach ($arrayRelations as $val) {
     if ($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'user') {
         continue;
@@ -212,18 +223,27 @@ endforeach;?>
 	$smallintCondition = ($val['propertySearch'] == $val['property']) ? false : true ; ?>
         if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>', '-<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>'])) || (isset($params['<?php echo $val['propertySearch'];?>']) && $params['<?php echo $val['propertySearch'];?>'] != '')) {
 <?php if ($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'member') {?>
-            $query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>', 'user user']);
+            $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>', 'user user']);
         }
 <?php } else {?>
-            $query = $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>']);
+            $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>']);
         }
 <?php }
 }
+
+if (!empty($hasManyRelation)) {
+    foreach ($hasManyRelation as $key => $val) {?>
+        if (isset($params['<?php echo $key;?>']) && $params['<?php echo $key;?>'] != '') {
+            $query->joinWith(['<?php echo $val;?> <?php echo $val;?>']);
+        }
+<?php }
+}
+
 echo "\n";?>
-		$query = $query->groupBy(['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
+		$query->groupBy(['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
 <?php endif;?>
 
-		// add conditions that should always apply here
+        // add conditions that should always apply here
 		$dataParams = [
 			'query' => $query,
 		];
@@ -264,7 +284,29 @@ if(!empty($arrayRelations)) {
         }
 
 		// grid filtering conditions
-		<?php echo implode("\n\t\t", $searchConditions); ?>
+        <?php 
+        $searchConditions = $searchConditions;
+        $likeIndex = count($searchConditions) - 1;
+        $likeSearchConditions = $searchConditions[$likeIndex];
+        unset($searchConditions[$likeIndex]);
+        
+        if (!empty($hasManyRelation)) {
+            foreach ($hasManyRelation as $key => $val) {
+                $data = "if (isset(\$params['$key']) && \$params['$key'] != '') {
+            if (\$this->$key == 1) {
+                \$query->andWhere(['is not', '$val.id', null]);
+            } else if (\$this->$key == 0) {
+                \$query->andWhere(['is', '$val.id', null]);
+            }
+        }\n";
+                array_push($searchConditions, $data);
+            }
+        }
+
+        array_push($searchConditions, $likeSearchConditions);
+
+        echo implode("\n\t\t", $searchConditions);
+        //print_r($searchConditions); ?>
 
 		return $dataProvider;
 	}
