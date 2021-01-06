@@ -105,9 +105,9 @@ class Generator extends \ommu\gii\Generator
             'searchModelClass' => 'Search Model Class',
             'enablePjax' => 'Enable Pjax',
             'attachRBACFilter' => 'Attach RBAC filter',
-			'uploadPathSubfolder'=>'Use Subfolder (PrimaryKey) in Upload Path',
-            'link'=>'Link Repository',
-            'useModified'=>'Use Modified Info',
+			'uploadPathSubfolder' => 'Use Subfolder (PrimaryKey) in Upload Path',
+            'link' => 'Link Repository',
+            'useModified' => 'Use Modified Info',
         ]);
     }
 
@@ -357,8 +357,10 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}{
 \t->hint($label)";
 			//} else if($attribute == 'publish' && $column->comment == '') {
 			} else if($attribute == 'publish') {
-				return "if(\$model->isNewRecord && !\$model->getErrors())
+				return "
+if (\$model->isNewRecord && !\$model->getErrors()) {
 \t\$model->publish = 1;
+}
 echo \$form->field(\$model, '$attribute')
 \t->checkbox()
 \t->label(\$model->getAttributeLabel('$attribute'))";
@@ -367,7 +369,7 @@ echo \$form->field(\$model, '$attribute')
 				$functionName = ucfirst($relationName);
 				return "\$$relationName = \$model::get$functionName();
 echo \$form->field(\$model, '$attribute')
-\t->dropDownList(\$$relationName, ['prompt'=>''])
+\t->dropDownList(\$$relationName, ['prompt' => ''])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else {
@@ -379,7 +381,7 @@ echo \$form->field(\$model, '$attribute')
 
 		if ($column->name === 'email') {	// 02 //oke
 			return "echo \$form->field(\$model, '$attribute')
-\t->textInput(['type'=>'email'])
+\t->textInput(['type' => 'email'])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 		}
 
@@ -388,11 +390,11 @@ echo \$form->field(\$model, '$attribute')
 			// dari pada html5.
 // 			if($this->useJuiDatePicker) {
 // 				return "echo \$form->field(\$model, '$attribute')
-// \t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type'=>'date', 'class'=>'form-control']])
+// \t->widget(\yii\jui\DatePicker::classname(), ['dateFormat' => Yii::\$app->formatter->dateFormat, 'options' => ['type' => 'date', 'class' => 'form-control']])
 // \t->label(\$model->getAttributeLabel('$attribute'))";
 // 			} else {
 				return "echo \$form->field(\$model, '$attribute')
-\t->textInput(['type'=>'date'])
+\t->textInput(['type' => 'date'])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 			// }
 		}
@@ -401,9 +403,9 @@ echo \$form->field(\$model, '$attribute')
 			if(in_array('file', $commentArray)) {	// 04.1
 				$relationName = $this->setRelation($attribute);
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [\$model::getUploadPath(false), \$model->$primaryKey])" : "\$model::getUploadPath(false)";
-				$previewFile = "Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class'=>'d-block border border-width-3 mb-3']).\$model->{$attribute}.'<hr/>'";
+				$previewFile = "Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class' => 'd-block border border-width-3 mb-3']).\$model->{$attribute}.'<hr/>'";
 				if(in_array('pdf', $commentArray))
-					$previewFile = "Html::a(\$model->old_{$attribute}, Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['title'=>\$model->old_{$attribute}, 'target'=>'_blank', 'class'=>'d-inline-block mb-3'])";
+					$previewFile = "Html::a(\$model->old_{$attribute}, Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['title'=>\$model->old_{$attribute}, 'target' => '_blank', 'class' => 'd-inline-block mb-3'])";
 				return "\$uploadPath = $uploadPath;
 \$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? $previewFile : '';
 echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<div>'.\$$relationName.'</div>{input}{error}{hint}{endWrapper}'])
@@ -441,7 +443,7 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<
 			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
 			return "\$$relationName = \$model::get$functionName();
 echo \$form->field(\$model, '$attribute')
-\t->dropDownList(\$$relationName, ['prompt'=>''])
+\t->dropDownList(\$$relationName, ['prompt' => ''])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 		}
 
@@ -458,12 +460,12 @@ echo \$form->field(\$model, '$attribute')
 				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
 				return "\$$relationName = $relationClassName::get$functionName();
 echo \$form->field(\$model, '$attribute')
-\t->dropDownList(\$$relationName, ['prompt'=>''])
+\t->dropDownList(\$$relationName, ['prompt' => ''])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else {
 				return "echo \$form->field(\$model, '$attribute')
-\t->$input(['type'=>'number', 'min'=>'1'])
+\t->$input(['type' => 'number', 'min' => '1'])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 			}
 		}
@@ -471,8 +473,10 @@ echo \$form->field(\$model, '$attribute')
 		if($attribute == 'license') {
 			$label = $this->generateString('Enter the your license key that is provided to you when you purchased this plugin. If you do not know your license key, please contact support team.');
 			$label2 = $this->generateString('Format: XXXX-XXXX-XXXX-XXXX');
-			return "if(\$model->isNewRecord && !\$model->getErrors())
-	\$model->$attribute = \$model->licenseCode();
+            return "
+if (\$model->isNewRecord && !\$model->getErrors()) {
+\t\$model->$attribute = \$model->licenseCode();
+}
 echo \$form->field(\$model, '$attribute')
 \t->$input(['maxlength'=>true])
 \t->label(\$model->getAttributeLabel('$attribute'))
@@ -539,7 +543,7 @@ echo \$form->field(\$model, '$attribute')
 				$functionName = Inflector::singularize($this->setRelation($relationClassName, true));
 				return "\$$relationName = $relationClassName::get$functionName();
 		echo \$form->field(\$model, '$attribute')
-			->dropDownList(\$$relationName, ['prompt'=>''])";
+			->dropDownList(\$$relationName, ['prompt' => ''])";
 			}
 			return "echo \$form->field(\$model, '$attribute')";
 
@@ -555,7 +559,7 @@ echo \$form->field(\$model, '$attribute')
 			$functionName = ucfirst($this->setRelation($dropDownOptionKey));
 			return "\$$relationName = \$model::get$functionName();
 			echo \$form->field(\$model, '$attribute')
-			->dropDownList(\$$relationName, ['prompt'=>''])";
+			->dropDownList(\$$relationName, ['prompt' => ''])";
 
 		} else {
 			if($i18n) {
@@ -568,10 +572,10 @@ echo \$form->field(\$model, '$attribute')
 						$functionName = ucfirst($relationName);
 						return "\$$relationName = \$model::get$functionName();
 			echo \$form->field(\$model, '$attribute')
-			->dropDownList(\$$relationName, ['prompt'=>''])";
+			->dropDownList(\$$relationName, ['prompt' => ''])";
 					} else
 						return "echo \$form->field(\$model, '$attribute')
-			->dropDownList(\$model->filterYesNo(), ['prompt'=>''])";
+			->dropDownList(\$model->filterYesNo(), ['prompt' => ''])";
 				} else
 					return "echo \$form->field(\$model, '$attribute')";
 			}
@@ -794,7 +798,7 @@ echo \$form->field(\$model, '$attribute')
         }
         foreach ($tableSchema->columns as $column): 
         if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
-            $publishConditions[] = "if(isset(\$params['trash']))\n\t\t\t\$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);\n\t\telse {\n\t\t\tif(!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == ''))\n\t\t\t\t\$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);\n\t\t\telse\n\t\t\t\t\$query->andFilterWhere(['t.$column->name' => \$this->$column->name]);\n\t\t}";
+            $publishConditions[] = "if (isset(\$params['trash'])) {\n\t\t\t\$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);\n\t\t} else {\n\t\t\tif (!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == '')) {\n\t\t\t\t\$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);\n\t\t\t } else {\n\t\t\t\t\$query->andFilterWhere(['t.$column->name' => \$this->$column->name]);\n\t\t\t}\n\t\t}";
         }
         endforeach;
         $publicVariables = [];

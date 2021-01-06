@@ -99,8 +99,9 @@ if(!empty($arrayRelation)) {
 			$render = '@ommu/users/views/member/admin_view';
 		else if($arrayRelation['table'] == 'ommu_members')
 			$render = '@ommu/member/views/manage/admin/admin_view'; ?>
-<?php echo "<?php ";?>if($<?php echo $arrayRelation[$key]['relation'];?> != null)
-	echo $this->render('<?php echo $render;?>', ['model' => $<?php echo $arrayRelation[$key]['relation'];?>, 'small' => true]); ?>
+<?php echo "<?php ";?>if ($<?php echo $arrayRelation[$key]['relation'];?> != null) {
+	echo $this->render('<?php echo $render;?>', ['model' => $<?php echo $arrayRelation[$key]['relation'];?>, 'small' => true]);
+} ?>
 
 <?php }
 }

@@ -138,16 +138,16 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 	 */
 	public function behaviors()
 	{
-		return [
+        return [
 <?php if($generator->attachRBACFilter): ?>
-			'access' => [
-				'class' => AccessControl::className(),
-			],
+            'access' => [
+                'class' => AccessControl::className(),
+            ],
 <?php endif; ?>
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => [
-					'delete' => ['POST'],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'delete' => ['POST'],
 <?php if(!$primaryKeyTriggerCondition) {
 foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
@@ -167,9 +167,9 @@ foreach ($tableSchema->columns as $column):
 	endif;
 endforeach;
 }?>
-				],
-			],
-		];
+                ],
+            ],
+        ];
 	}
 
 	/**
@@ -177,7 +177,7 @@ endforeach;
 	 */
 	public function actionIndex()
 	{
-		return $this->redirect(['manage']);
+        return $this->redirect(['manage']);
 	}
 
 	/**
@@ -187,19 +187,19 @@ endforeach;
 	public function actionManage()
 	{
 <?php if (!empty($generator->searchModelClass)): ?>
-		$searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
-		$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-		$gridColumn = Yii::$app->request->get('GridColumn', null);
-		$cols = [];
+        $gridColumn = Yii::$app->request->get('GridColumn', null);
+        $cols = [];
         if ($gridColumn != null && count($gridColumn) > 0) {
-            foreach($gridColumn as $key => $val) {
+            foreach ($gridColumn as $key => $val) {
                 if ($gridColumn[$key] == 1) {
                     $cols[] = $key;
                 }
             }
         }
-		$columns = $searchModel->getGridColumn($cols);
+        $columns = $searchModel->getGridColumn($cols);
 <?php if(!empty($arrayRelation)) {
 	echo "\n";
 	foreach($arrayRelation as $key => $val) {?>
@@ -243,7 +243,7 @@ endforeach;
 	 */
 	public function actionCreate()
 	{
-		$model = new <?= $modelClass ?>();
+        $model = new <?= $modelClass ?>();
 
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
@@ -319,7 +319,7 @@ endforeach;
 	 */
 	public function actionView(<?= $actionParams ?>)
 	{
-		$model = $this->findModel(<?= $actionParams ?>);
+        $model = $this->findModel(<?= $actionParams ?>);
 
 <?php if($generator->enableI18N) {
 	$pageTitle[Inflector::camel2id($attributeName)] = "\$model->$relationAttributeName";

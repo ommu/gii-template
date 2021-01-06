@@ -61,7 +61,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	/**
 	 * {@inheritdoc}
 	 */
-	public function published() 
+	public function published()
 	{
 		return $this->andWhere(['t.<?php echo $column->name;?>' => 1]);
 	}
@@ -69,7 +69,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	/**
 	 * {@inheritdoc}
 	 */
-	public function unpublish() 
+	public function unpublish()
 	{
 		return $this->andWhere(['t.<?php echo $column->name;?>' => 0]);
 	}
@@ -77,7 +77,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	/**
 	 * {@inheritdoc}
 	 */
-	public function deleted() 
+	public function deleted()
 	{
 		return $this->andWhere(['t.<?php echo $column->name;?>' => 2]);
 	}
@@ -86,7 +86,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->queryBaseClass, '\\
 	/**
 	 * {@inheritdoc}
 	 */
-	public function headlined() 
+	public function headlined()
 	{
 		return $this->andWhere(['t.publish' => 1])
 			->andWhere(['t.<?php echo $column->name;?>' => 1]);

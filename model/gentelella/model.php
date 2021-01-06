@@ -284,6 +284,14 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 
+foreach ($relations as $name => $relation) {
+	if(!$relation[2])
+		continue;
+	$relationName = ($relation[2] ? lcfirst(Inflector::singularize($generator->setRelation($name, true))) : $generator->setRelation($name));
+    if(!in_array($relationName, $searchPublicVariables))
+        $searchPublicVariables[$relationName] = ucwords(strtolower($relationName));
+}
+
 if(!empty($inputPublicVariables) || !empty($searchPublicVariables))
 	echo "\n";
 
@@ -368,15 +376,8 @@ foreach ($labels as $name => $label) {
 
 if(!empty($inputPublicVariables)) {
 	foreach ($inputPublicVariables as $key=>$val) {
-		echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
+        echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
 	}
-}
-
-foreach ($relations as $name => $relation) {
-	if(!$relation[2])
-		continue;
-	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
-	echo "\t\t\t'$relationName' => " . $generator->generateString(ucwords($relationName)) . ",\n";
 }
 
 if(!empty($searchPublicVariables)) {
@@ -405,21 +406,22 @@ foreach ($relations as $name => $relation) {
 	{
 <?php if($relation[2]) {?>
         if ($count == false) {
-            <?= preg_replace($patternClass, '', $relation[0]) . "\n\n" ?>
+            <?= preg_replace($patternClass, '', $relation[0]) . "\n" ?>
         }
+
 <?php } else {?>
 		<?= preg_replace($patternClass, '', $relation[0]) . "\n" ?>
 <?php }?>
 <?php if($relation[2]) {?>
 		$model = <?php echo $relation[1];?>::find()
-			->alias('t')
-			->where(<?php echo $relation[3];?>);
+            ->alias('t')
+            ->where(<?php echo $relation[3];?>);
 <?php if($publishRltnCondition) {?>
         if ($publish == 0) {
             $model->unpublish();
-        } else if($publish == 1) {
+        } else if ($publish == 1) {
             $model->published();
-        } else if($publish == 2) {
+        } else if ($publish == 2) {
             $model->deleted();
         }
 <?php }?>
@@ -503,7 +505,7 @@ if($queryClassName):
 	 */
 	public function init()
 	{
-		parent::init();
+        parent::init();
 
         if (!(Yii::$app instanceof \app\components\Application)) {
             return;
@@ -693,13 +695,13 @@ foreach ($relations as $name => $relation) {
 		$publishRltnCondition = 1;
 	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
 	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin'; ?>
-		$this->templateColumns['<?php echo $relationName;?>'] = [
-			'attribute' => '<?php echo $relationName;?>',
+		$this->templateColumns['<?php echo Inflector::singularize($relationName);?>'] = [
+			'attribute' => '<?php echo Inflector::singularize($relationName);?>',
 			'value' => function($model, $key, $index, $column) {
 				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
 				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo $relationName;?>', ['count' => $<?php echo lcfirst($relationName);?>]), 'data-pjax' => 0]);
 			},
-			'filter' => false,
+			'filter' => $this->filterYesNo(),
 			'contentOptions' => ['class' => 'text-center'],
 			'format' => 'raw',
 		];
@@ -820,7 +822,7 @@ endforeach;
             }
             $model = $model->where(['<?php echo $primaryKey;?>' => $id])->one();
             return is_array($column) ? $model : $model->$column;
-            
+
         } else {
             $model = self::findOne($id);
             return $model;
@@ -1009,6 +1011,13 @@ foreach ($tableSchema->columns as $column) {
 		}
 		echo "\t\t// \$this->$publicAttribute = isset(\$this->{$relationFixedName}) ? \$this->{$relationFixedName}->{$relationAttribute} : '-';\n";
 	}
+}
+
+foreach ($relations as $name => $relation) {
+	if(!$relation[2])
+		continue;
+    $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
+    echo "\t\t\$this->".Inflector::singularize(lcfirst($relationName))." = \$this->get".ucfirst($relationName)."(true) ? 1 : 0;\n";
 }?>
 	}
 <?php }
@@ -1065,34 +1074,37 @@ foreach($tableSchema->columns as $column) {
 		$userValidateCondition = 1;
 		$beforeValidate = 1;
 		if(in_array($column->name, array('creation_id','user_id'))) {
-			$creationCondition = 1;
-			echo "\t\t\tif (\$this->isNewRecord) {\n";
-			echo "\t\t\t\tif (\$this->{$column->name} == null)\n";
-			echo "\t\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
-		} else {
-			if($creationCondition)
-				echo "\t\t\t} else {\n";
-			else
-				echo "\t\t\tif (!\$this->isNewRecord) {\n";
-			echo "\t\t\t\tif (\$this->{$column->name} == null)\n";
-			echo "\t\t\t\t\t\$this->{$column->name} = !Yii::\$app->user->isGuest ? Yii::\$app->user->id : null;\n";
-		}
+			$creationCondition = 1;?>
+            if ($this->isNewRecord) {
+                if ($this-><?php echo $column->name;?> == null) {
+                    $this-><?php echo $column->name;?> = !Yii::$app->user->isGuest ? Yii::$app->user->id : null;
+                }
+<?php } else {
+    if($creationCondition) {?>
+            } else {
+<?php } else {?>
+            if (!$this->isNewRecord) {
+<?php }?>
+                if ($this-><?php echo $column->name;?> == null) {
+                    $this-><?php echo $column->name;?> = !Yii::$app->user->isGuest ? Yii::$app->user->id : null;
+                }
+<?php   }
 	}
 }
-if($userValidateCondition)
-	echo "\t\t\t}\n";
-
+if($userValidateCondition) {?>
+            }
+<?php }
 
 foreach($tableSchema->columns as $column) {
 	$nameArray = explode('_', $column->name);
 	if(in_array('ip', $nameArray)) {
 		$beforeValidate = 1;?>
-			$this-><?php echo $column->name;?> = $_SERVER['REMOTE_ADDR'];
+            $this-><?php echo $column->name;?> = $_SERVER['REMOTE_ADDR'];
 <?php }
 }
 echo !$beforeValidate ? "\t\t\t// Create action\n" : '';?>
         }
-		return true;
+        return true;
 	}
 <?php }
 
@@ -1105,11 +1117,11 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 	 */
 	public function afterValidate()
 	{
-		parent::afterValidate();
+        parent::afterValidate();
 
-		// Create action
-		
-		return true;
+        // Create action
+        
+        return true;
 	}
 <?php 
 endif;
@@ -1131,11 +1143,11 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 	{
 <?php if($i18n) {
 $beforeSave = 1;?>
-		$module = strtolower(Yii::$app->controller->module->id);
-		$controller = strtolower(Yii::$app->controller->id);
-		$action = strtolower(Yii::$app->controller->action->id);
+        $module = strtolower(Yii::$app->controller->module->id);
+        $controller = strtolower(Yii::$app->controller->id);
+        $action = strtolower(Yii::$app->controller->action->id);
 
-		$location = Inflector::slug($module.' '.$controller);
+        $location = Inflector::slug($module.' '.$controller);
 
 <?php }?>
         if (parent::beforeSave($insert)) {
@@ -1167,8 +1179,9 @@ $beforeSave = 1;?>
                         $this-><?php echo $column->name;?> = $fileName;
                     }
                 } else {
-                    if ($this-><?php echo $column->name;?> == '')
+                    if ($this-><?php echo $column->name;?> == '') {
                         $this-><?php echo $column->name;?> = $this->old_<?php echo $column->name;?>;
+                    }
                 }
 
 <?php }
@@ -1206,10 +1219,9 @@ foreach($tableSchema->columns as $column) {
 foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger') {
-		$beforeSave = 1;
-		echo "\t\t\t\$this->$column->name = Yii::\$app->formatter->asDate(\$this->$column->name, 'php:Y-m-d');\n";	//Y-m-d H:i:s
-
-	} else if($column->type == 'text' && in_array('serialize', $commentArray)) {
+		$beforeSave = 1; ?>
+            $this-><?php echo $column->name;?> = Yii::$app->formatter->asDate($this-><?php echo $column->name;?>, 'php:Y-m-d');
+<?php } else if($column->type == 'text' && in_array('serialize', $commentArray)) {
 		$beforeSave = 1;
 		echo "\t\t\t\$this->$column->name = serialize(\$this->$column->name);\n";
 
@@ -1243,7 +1255,7 @@ foreach($tableSchema->columns as $column) {
 }
 echo !$beforeSave ? "\t\t\t// Create action\n" : '';?>
         }
-		return true;
+        return true;
 	}
 <?php 
 endif;
@@ -1259,17 +1271,17 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 	 */
 	public function afterSave($insert, $changedAttributes)
 	{
-		parent::afterSave($insert, $changedAttributes);
+        parent::afterSave($insert, $changedAttributes);
 
 <?php if($uploadCondition) {
 $afterSave = 1;
 if($generator->uploadPath['subfolder']) {?>
-		$uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
+        $uploadPath = join('/', [self::getUploadPath(), $this-><?php echo $primaryKey;?>]);
 <?php } else {?>
-		$uploadPath = self::getUploadPath();
+        $uploadPath = self::getUploadPath();
 <?php }?>
-		$verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
-		$this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
+        $verwijderenPath = join('/', [self::getUploadPath(), 'verwijderen']);
+        $this->createUploadDirectory(self::getUploadPath()<?php echo $generator->uploadPath['subfolder'] ? ', $this->'.$primaryKey : '';?>);
 
         if ($insert) {
 <?php foreach($tableSchema->columns as $column) {
@@ -1307,7 +1319,7 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
         if (parent::beforeDelete()) {
             // Create action
         }
-		return true;
+        return true;
 	}
 <?php 
 endif;
@@ -1323,7 +1335,7 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 	 */
 	public function afterDelete()
 	{
-		parent::afterDelete();
+        parent::afterDelete();
 
 <?php if($uploadCondition) {
 	$afterDelete = 1;

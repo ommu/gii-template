@@ -55,22 +55,22 @@ JS;
 ?>
 
 <div class="grid-form">
-	<?= "<?php echo " ?>Html::beginForm(Url::to(['/'.$route]), 'get', ['name' => 'gridoption']);
-		$columns = [];
-		foreach($model->templateColumns as $key => $column) {
+    <?= "<?php echo " ?>Html::beginForm(Url::to(['/'.$route]), 'get', ['name' => 'gridoption']);
+        $columns = [];
+        foreach ($model->templateColumns as $key => $column) {
             if ($key == '_no') {
                 continue;
             }
-			$columns[$key] = $key;
-		}
-	?>
-		<ul>
-		<?= "\t<?php " ?>foreach($columns as $key => $val): ?> 
-			<li>
-		<?= "\t\t<?php echo " ?>Html::checkBox(sprintf("GridColumn[%s]", $key), in_array($key, $gridColumns) ? true : false, ['id' => 'GridColumn_'.$key]); ?>
-		<?= "\t\t<?php echo " ?>Html::label($model->getAttributeLabel($val), 'GridColumn_'.$val); ?>
-			</li>
-		<?= "\t<?php " ?>endforeach; ?>
-		</ul>
-	<?= "<?php echo " ?>Html::endForm(); ?>
+            $columns[$key] = $key;
+        }
+    ?>
+        <ul>
+            <?= "<?php " ?>foreach($columns as $key => $val) { ?> 
+            <li>
+                <?= "<?php echo " ?>Html::checkBox(sprintf("GridColumn[%s]", $key), in_array($key, $gridColumns) ? true : false, ['id' => 'GridColumn_'.$key]); ?>
+                <?= "<?php echo " ?>Html::label($model->getAttributeLabel($val), 'GridColumn_'.$val); ?>
+            </li>
+            <?= "<?php " ?>} ?>
+        </ul>
+    <?= "<?php echo " ?>Html::endForm(); ?>
 </div>
