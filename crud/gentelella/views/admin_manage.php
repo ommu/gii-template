@@ -78,7 +78,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <?php if(!$primaryKeyTriggerCondition):?>
 $this->params['menu']['content'] = [
-	['label' => <?= $generator->generateString('Add '.$functionLabel) ?>, 'url' => Url::to(['create']), 'icon' => 'plus-square', 'htmlOptions' => ['class' => 'btn btn-success']],
+	['label' => <?= $generator->generateString('Add '.$functionLabel) ?>, 'url' => Url::to(['create']), 'icon' => 'plus-square', 'htmlOptions' => ['class' => 'btn btn-primary']],
 ];
 <?php endif;
 if(!empty($generator->searchModelClass)): ?>
