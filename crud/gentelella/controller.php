@@ -72,20 +72,20 @@ echo "<?php\n";
  * <?= $controllerClass ?> implements the CRUD actions for <?= $modelClass ?> model.
  * Reference start
  * TOC :
- *	Index
- *	Manage
- *	Create
- *	Update
- *	View
- *	Delete
+ *  Index
+ *  Manage
+ *  Create
+ *  Update
+ *  View
+ *  Delete
 <?php if(!$primaryKeyTriggerCondition) {
 if(array_key_exists('publish', $tableSchema->columns)): ?>
- *	RunAction
+ *  RunAction
 <?php endif;
 foreach ($tableSchema->columns as $column): 
 	if(in_array($column->name, ['publish','headline'])):
 		$actionName = Inflector::id2camel($column->name, '_');
-		echo " *	$actionName\n";
+		echo " *  $actionName\n";
 	endif;
 endforeach;
 foreach ($tableSchema->columns as $column): 
@@ -96,12 +96,12 @@ foreach ($tableSchema->columns as $column):
 		
 	if($column->dbType == 'tinyint(1)' && $column->comment != ''):
 		$actionName = Inflector::id2camel($column->name, '_');
-		echo " *	$actionName\n";
+		echo " *  $actionName\n";
 	endif;
 endforeach;
 }?>
  *
- *	findModel
+ *  findModel
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>

@@ -23,7 +23,7 @@ echo "<?php\n";
  * Reference start
  * TOC :
 <?php foreach ($generator->getActionIDs() as $action): ?>
- *	<?= Inflector::id2camel($action)."\n" ?>
+ *  <?= Inflector::id2camel($action)."\n" ?>
 <?php endforeach; ?>
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>

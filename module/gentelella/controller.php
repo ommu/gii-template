@@ -21,7 +21,7 @@ echo "<?php\n";
  * Default controller for the `<?= $generator->moduleID ?>` module
  * Reference start
  * TOC :
- *	Index
+ *  Index
  *
  * @author <?php echo $yaml['author'];?> <?php echo '<'.$yaml['email'].'>'."\n";?>
  * @contact <?php echo $yaml['contact']."\n";?>
