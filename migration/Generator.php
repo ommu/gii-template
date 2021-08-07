@@ -340,7 +340,9 @@ class Generator extends \ommu\gii\Generator
 		$relations = [];
 		foreach ($db->getSchema()->getTableSchemas($schemaName) as $table) {
 			$tableName = $table->name;
+            $i = 0;
 			foreach ($table->foreignKeys as $refs) {
+                $i++;
 				$refTable = $refs[0];
 				$refTableName = $this->generateTableName($refTable);
 				unset($refs[0]);
@@ -348,7 +350,7 @@ class Generator extends \ommu\gii\Generator
 				$fks = implode(']], [[', array_keys($refs));
 				$pks = implode(']], [[', array_values($refs));
 
-				$relation = "FOREIGN KEY ([[$fks]]) REFERENCES $refTableName ([[$pks]]) ON DELETE CASCADE ON UPDATE CASCADE";
+				$relation = "CONSTRAINT {$tableName}_ibfk_{$i} FOREIGN KEY ([[$fks]]) REFERENCES $refTableName ([[$pks]]) ON DELETE CASCADE ON UPDATE CASCADE";
 				$relations[$tableName][$refTable] = $relation;
 			}
 		}
