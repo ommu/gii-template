@@ -32,7 +32,8 @@ class Generator extends \ommu\gii\Generator
 	public function init()
 	{
 		parent::init();
-		$this->migrationTime = gmdate('ymd_H0101');
+        date_default_timezone_set('Asia/Jakarta');
+		$this->migrationTime = date('ymd_His');
 	}
 
 	/**
@@ -292,8 +293,19 @@ class Generator extends \ommu\gii\Generator
 					$extra .= '\\\''.$column->defaultValue.'\\\'';
 			}
 
-			if ($column->comment)
+			if ($column->comment) {
+                $comments = explode(',', trim($column->comment));
+				if (in_array('on_update', $comments)) {
+                    if ($column->defaultValue !== null) {
+                        $extra .= ' ON UPDATE ';
+                        if ($column->defaultValue instanceof Expression) {
+                            $extra .= $column->defaultValue;
+                        }
+                    }
+                }
+
 				$extra .= ' COMMENT \\\''.$column->comment.'\\\'';
+            }
 
 			if (!empty($extra))
 				$type = "$type . {$quote}$extra{$quote}";

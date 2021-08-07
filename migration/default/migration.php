@@ -39,10 +39,9 @@ class <?= $migrationName ?> extends \yii\db\Migration
 			$tableOptions = 'CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE=InnoDB';
 		}
 <?php foreach ($tables as $table): ?>
-		
 		$tableName = Yii::$app->db->tablePrefix . '<?= $table['name'] ?>';
-		if(!Yii::$app->db->getTableSchema($tableName, true)) {
-			$this->createTable('<?= $table['name'] ?>', [
+		if (!Yii::$app->db->getTableSchema($tableName, true)) {
+			$this->createTable($tableName, [
 <?php foreach ($table['columns'] as $column => $definition): ?>
 				<?= "'$column' => $definition"?>,
 <?php endforeach;?>
@@ -59,8 +58,9 @@ class <?= $migrationName ?> extends \yii\db\Migration
 
 	public function down()
 	{
+		$tableName = Yii::$app->db->tablePrefix . '<?= $table['name'] ?>';
 <?php foreach (array_reverse($tables) as $table): ?>
-		$this->dropTable('<?= $table['name'] ?>');
+		$this->dropTable($tableName);
 <?php endforeach;?>
 	}
 }
