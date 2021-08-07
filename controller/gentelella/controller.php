@@ -41,6 +41,7 @@ echo "<?php\n";
 
 namespace <?= $generator->getControllerNamespace() ?>;
 
+use Yii;
 use <?= ltrim($generator->baseClass, '\\') ?>;
 <?php if($generator->attachRBACFilter): ?>
 use mdm\admin\components\AccessControl;

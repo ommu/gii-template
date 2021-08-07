@@ -49,6 +49,8 @@ foreach($foreignKeys as $key => $val) {
 		$namespace = 'app\models\Users';
 	else if($val == 'ommu_members')
 		$namespace = 'ommu\member\models\Members';
+	else if($val == 'ommu_core_tags')
+		$namespace = 'app\models\CoreTags';
 	else {
 		$module = $tableSchema->columns[$key]->comment;
 		if($module)
@@ -207,6 +209,14 @@ endforeach;
             $<?php echo $arrayRelation[$key]['relation'];?> = <?php echo '\\'.ltrim($arrayRelation[$key]['namespace'], '\\');?>::findOne($<?php echo $arrayRelation[$key]['relation'];?>);
         }
 <?php }
+}
+foreach ($tableSchema->columns as $column) {
+    if(in_array($column->name, ['tag_id'])) {
+        $relationName = $generator->setRelation($column->name);?>
+        if (($<?php echo $relationName;?> = Yii::$app->request->get('<?php echo $relationName;?>')) != null) {
+            $<?php echo $relationName;?> = \app\models\CoreTags::findOne($<?php echo $relationName;?>);
+        }
+<?php }
 }?>
 
 		$this->view->title = <?php echo $generator->generateString(Inflector::pluralize($shortLabel));?>;
@@ -219,6 +229,12 @@ endforeach;
 <?php if(!empty($arrayRelation)) {
 	foreach($arrayRelation as $key => $val) {?>
 			'<?php echo $arrayRelation[$key]['relation'];?>' => $<?php echo $arrayRelation[$key]['relation'];?>,
+<?php }
+}
+foreach ($tableSchema->columns as $column) {
+    if(in_array($column->name, ['tag_id'])) {
+        $relationName = $generator->setRelation($column->name);?>
+            '<?php echo $relationName;?>' => $<?php echo $relationName;?>,
 <?php }
 }?>
 		]);
