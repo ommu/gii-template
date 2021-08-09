@@ -233,8 +233,11 @@ endforeach;?>
 
 if (!empty($hasManyRelation)) {
     foreach ($hasManyRelation as $key => $val) {?>
-        if (isset($params['<?php echo $key;?>']) && $params['<?php echo $key;?>'] != '') {
+        if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $key;?>', '-<?php echo $key;?>'])) || (isset($params['<?php echo $key;?>']) && $params['<?php echo $key;?>'] != '')) {
             $query->joinWith(['<?php echo $val;?> <?php echo $val;?>']);
+            if (isset($params['sort']) && in_array($params['sort'], ['<?php echo $key;?>', '-<?php echo $key;?>'])) {
+                $query->select(['t.*', 'count(<?php echo $val;?>.id) as <?php echo $key;?>']);
+            }
         }
 <?php }
 }
@@ -265,6 +268,15 @@ if(!empty($arrayRelations)) {
 			'asc' => ['<?php echo $val;?>' => SORT_ASC],
 			'desc' => ['<?php echo $val;?>' => SORT_DESC],
 		];
+<?php }
+}
+
+if (!empty($hasManyRelation)) {
+    foreach ($hasManyRelation as $key => $val) {?>
+        $attributes['<?php echo $key;?>'] = [
+            'asc' => ['<?php echo $key;?>' => SORT_ASC],
+            'desc' => ['<?php echo $key;?>' => SORT_DESC],
+        ];
 <?php }
 }?>
 		$dataProvider->setSort([
