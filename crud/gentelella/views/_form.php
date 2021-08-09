@@ -17,6 +17,8 @@ $controllerClass = StringHelper::basename($generator->controllerClass);
 $modelClass = StringHelper::basename($generator->modelClass);
 $label = Inflector::camel2words($modelClass);
 
+$functionLabel = ucwords($generator->shortLabel($modelClass));
+
 $tableSchema = $generator->tableSchema;
 $primaryKey = $generator->getPrimaryKey($tableSchema);
 $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
@@ -80,8 +82,9 @@ foreach ($tableSchema->columns as $column) {
 		$relationClassName = $generator->generateClassName($relationTableName);
 		echo "use ".$generator->replaceModel($relationClassName).";\n";
 	}
-}
-if($redactorCondition) {?>
+}?>
+use yii\helpers\ArrayHelper;
+<?php if($redactorCondition) {?>
 
 $redactorOptions = [
 	'imageManagerJson' => ['/redactor/upload/image-json'],
@@ -142,8 +145,14 @@ foreach ($tableSchema->columns as $column) {
 } ?>
 <hr/>
 
-<?php echo "<?php ";?>echo $form->field($model, 'submitButton')
-	->submitButton(); ?>
+<?php echo "<?php ";?>$submitButtonOption = [];
+if (!$model->isNewRecord && Yii::$app->request->isAjax) {
+    $submitButtonOption = ArrayHelper::merge($submitButtonOption, [
+        'backTo' => Html::a(Html::tag('span', '&laquo;', ['class' => 'mr-1']).Yii::t('app', 'Back to detail'), ['view', 'id'=>$model->primaryKey], ['title'=>Yii::t('app', 'Detail <?php echo $functionLabel;?>'), 'class' => 'ml-4 modal-btn']),
+    ]);
+}
+echo $form->field($model, 'submitButton')
+	->submitButton($submitButtonOption); ?>
 
 <?= "<?php " ?>ActiveForm::end(); ?>
 
