@@ -362,7 +362,7 @@ class Generator extends \ommu\gii\Generator
 				$foreignCondition = 1;
 
 			$commentArray = explode(',', $column->comment);
-            if ($foreignCondition || (!$column->allowNull && $column->defaultValue === null && $column->comment != 'trigger' && !in_array($column->name, array('creation_id','modified_id','slug'))) || in_array('user', $commentArray) || in_array($column->name, ['user_id','member_id'])) {
+            if ($foreignCondition || (!$column->allowNull && $column->defaultValue === null && !in_array('trigger', $commentArray) && !in_array($column->name, array('creation_id','modified_id','slug'))) || in_array('user', $commentArray) || in_array($column->name, ['user_id','member_id'])) {
                 $types['required'][] = $column->name;
             }
             switch ($column->type) {
@@ -424,7 +424,7 @@ class Generator extends \ommu\gii\Generator
 					$types['required'] = array_diff($types['required'], array($column->name));
 				$types['safe'][]=$column->name;
 			}
-			if($column->comment == 'trigger') {
+            if(in_array('trigger', $commentArray)) {
 				if(!empty($types['safe']))
 					$types['safe'] = array_diff($types['safe'], array($column->name));
 			}

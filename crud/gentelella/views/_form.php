@@ -123,7 +123,7 @@ foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($column->name[0] == '_')
 		continue;
-	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || $column->comment == 'trigger' || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || in_array($column->name, array('creation_id','modified_id','updated_id','slug')))
+	if($column->autoIncrement || $column->isPrimaryKey || $column->phpType === 'boolean' || in_array('trigger', $commentArray) || ($column->dbType == 'tinyint(1)' && $column->name != 'permission') || in_array($column->name, array('creation_id','modified_id','updated_id','slug')))
 		continue;
 
 	if (in_array($column->name, $safeAttributes))

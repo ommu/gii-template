@@ -1031,7 +1031,8 @@ if($uploadCondition)
 foreach($tableSchema->columns as $column)
 {
 	$nameArray = explode('_', $column->name);
-	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']) && $column->comment != 'trigger')
+	$commentArray = explode(',', $column->comment);
+	if(in_array($column->name, ['creation_id','modified_id','user_id','updated_id']) && !in_array('trigger', $commentArray))
 		$bvEvents = 1;
 	if(in_array('ip', $nameArray))
 		$bvEvents = 1;
@@ -1070,7 +1071,8 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 }
 
 foreach($tableSchema->columns as $column) {
-	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && $column->comment != 'trigger') {
+	$commentArray = explode(',', $column->comment);
+	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && !in_array('trigger', $commentArray)) {
 		$userValidateCondition = 1;
 		$beforeValidate = 1;
 		if(in_array($column->name, array('creation_id','user_id'))) {
@@ -1131,7 +1133,8 @@ $beforeSave = 0;
 if($tagCondition || $uploadCondition || $serializeCondition || $jsonCondition || $i18n)
 	$bsEvents = 1;
 foreach($tableSchema->columns as $column) {
-	if((in_array($column->type, ['date','datetime']) && $column->comment != 'trigger'))
+	$commentArray = explode(',', $column->comment);
+	if((in_array($column->type, ['date','datetime']) && !in_array('trigger', $commentArray)))
 		$bsEvents = 1;
 }
 if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($generator->generateEvents || $bsEvents)): ?>
@@ -1218,7 +1221,7 @@ foreach($tableSchema->columns as $column) {
 
 foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
-	if(in_array($column->type, ['date','datetime']) && $column->comment != 'trigger') {
+	if(in_array($column->type, ['date','datetime']) && !in_array('trigger', $commentArray)) {
 		$beforeSave = 1; ?>
             $this-><?php echo $column->name;?> = Yii::$app->formatter->asDate($this-><?php echo $column->name;?>, 'php:Y-m-d');
 <?php } else if($column->type == 'text' && in_array('serialize', $commentArray)) {
