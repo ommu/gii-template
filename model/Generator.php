@@ -753,7 +753,7 @@ class Generator extends \ommu\gii\Generator
 			if($forSelect == false)
 				$pairs[] = "'$a' => '$b'";
 			else
-				$pairs[] = "'$a' => \$this->$b";
+				$pairs[] = "'t.$a' => \$this->$b";
         }
 
         return '[' . implode(', ', $pairs) . ']';

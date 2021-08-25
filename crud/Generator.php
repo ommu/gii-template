@@ -414,24 +414,24 @@ echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<
 
 			} else if(in_array('redactor', $commentArray)) {	// 04.2
 				return "echo \$form->field(\$model, '$attribute')
-\t->textarea(['rows'=>6, 'cols'=>50])
+\t->textarea(['rows' => 6, 'cols' => 50])
 \t->widget(Redactor::className(), ['clientOptions' => \$redactorOptions])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else if(in_array('text', $commentArray)) {	// 04.3
-				$maxlength = $i18n ? ', \'maxlength\'=>true' : '';
+				$maxlength = $i18n ? ', \'maxlength\' => true' : '';
 				return "echo \$form->field(\$model, '$attribute')
-\t->textarea(['rows'=>6, 'cols'=>50$maxlength])
+\t->textarea(['rows' => 6, 'cols' => 50$maxlength])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 
 			} else {	// 04.4
 				if($i18n) {	// 04.4.1
 					return "echo \$form->field(\$model, '$attribute')
-\t->textInput(['maxlength'=>true])
+\t->textInput(['maxlength' => true])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 				} else {	// 04.4.2
 					return "echo \$form->field(\$model, '$attribute')
-\t->textarea(['rows'=>6, 'cols'=>50])
+\t->textarea(['rows' => 6, 'cols' => 50])
 \t->label(\$model->getAttributeLabel('$attribute'))";
 				}
 			}
@@ -478,13 +478,13 @@ if (\$model->isNewRecord && !\$model->getErrors()) {
 \t\$model->$attribute = \$model->licenseCode();
 }
 echo \$form->field(\$model, '$attribute')
-\t->$input(['maxlength'=>true])
+\t->$input(['maxlength' => true])
 \t->label(\$model->getAttributeLabel('$attribute'))
 \t->hint($label.'<br/>'.$label2)";
 		}
 
 				return "echo \$form->field(\$model, '$attribute')
-\t->$input(['maxlength'=>true])
+\t->$input(['maxlength' => true])
 \t->label(\$model->getAttributeLabel('$attribute'))";
     }
 
@@ -906,18 +906,18 @@ echo \$form->field(\$model, '$attribute')
         $pks = $class::primaryKey();
         if (count($pks) === 1) {
             if (is_subclass_of($class, 'yii\mongodb\ActiveRecord')) {
-                return "'id'=>(string)\$model->{$pks[0]}";
+                return "'id' => (string)\$model->{$pks[0]}";
             }
 
-            return "'id'=>\$model->{$pks[0]}";
+            return "'id' => \$model->{$pks[0]}";
         }
 
         $params = [];
         foreach ($pks as $pk) {
             if (is_subclass_of($class, 'yii\mongodb\ActiveRecord')) {
-                $params[] = "'$pk'=>(string)\$model->$pk";
+                $params[] = "'$pk' => (string)\$model->$pk";
             } else {
-                $params[] = "'$pk'=>\$model->$pk";
+                $params[] = "'$pk' => \$model->$pk";
             }
         }
 
