@@ -36,6 +36,7 @@
 	},
 	"require": {
 		"php": "~7.0",
+        "symfony/yaml": "^2.8.11|^3|^4",
 		"yiisoft/yii2": "~2.0.13",
 		"yiisoft/yii2-gii": "*",
 		"yiisoft/yii2-jui": "^2.0",
