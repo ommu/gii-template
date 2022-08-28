@@ -45,6 +45,7 @@ $serializeCondition = 0;
 $jsonCondition = 0;
 $useGetFunctionCondition = 0;
 $primaryKeyTriggerCondition = 0;
+$uuidCondition = 0;
 
 $relationArray = [];
 $inputPublicVariables = [];
@@ -140,7 +141,10 @@ foreach ($tableSchema->columns as $column) {
 		$serializeCondition = 1;
 
 	if($tableType != Generator::TYPE_VIEW && $column->type == 'text' && in_array('json', $commentArray))
-		$jsonCondition = 1;?>
+		$jsonCondition = 1;
+
+	if($tableType != Generator::TYPE_VIEW && $column->type == 'char' && in_array('uuid', $commentArray))
+		$uuidCondition = 1;?>
  * @property <?= "{$column->phpType} \${$column->name}\n" ?>
 <?php }
 
@@ -209,7 +213,7 @@ echo $i18n || $tagCondition || $slugCondition ? "use ".ltrim('yii\helpers\Inflec
 echo $uploadCondition ? "use ".ltrim('yii\web\UploadedFile', '\\').";\n" : '';
 echo $slugCondition ? "use ".ltrim('yii\behaviors\SluggableBehavior', '\\').";\n" : '';
 echo $jsonCondition ? "use ".ltrim('yii\helpers\Json', '\\').";\n" : '';
-echo $uploadCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
+echo $uploadCondition || $uuidCondition ? "use ".ltrim('thamtech\uuid\helpers\UuidHelper', '\\').";\n" : '';
 echo $tagCondition ? "use ".ltrim('app\models\CoreTags', '\\').";\n" : '';
 echo $i18n ? "use ".ltrim('app\models\SourceMessage', '\\').";\n" : '';
 echo $userCondition ? "use ".ltrim('app\models\Users', '\\').";\n" : '';
@@ -1026,6 +1030,7 @@ $bvEvents = 0;
 $beforeValidate = 0;
 $creationCondition = 0;
 $userValidateCondition = 0;
+$isNewRecord = 0;
 if($uploadCondition)
 	$bvEvents = 1;
 foreach($tableSchema->columns as $column)
@@ -1072,10 +1077,14 @@ if($tableType != Generator::TYPE_VIEW && !$primaryKeyTriggerCondition && ($gener
 
 foreach($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
-	if(in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && !in_array('trigger', $commentArray)) {
+	if((in_array($column->name, ['creation_id','modified_id','updated_id','user_id']) && !in_array('trigger', $commentArray)) ||
+        ($column->type == 'char' && in_array('uuid', $commentArray))) {
 		$userValidateCondition = 1;
 		$beforeValidate = 1;
-		if(in_array($column->name, array('creation_id','user_id'))) {
+        if ($column->type == 'char' && in_array('uuid', $commentArray)) {?>
+            $this->id = UuidHelper::uuid();
+        
+<?php } else if(in_array($column->name, array('creation_id','user_id'))) {
 			$creationCondition = 1;?>
             if ($this->isNewRecord) {
                 if ($this-><?php echo $column->name;?> == null) {
