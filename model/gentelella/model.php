@@ -151,9 +151,10 @@ foreach ($tableSchema->columns as $column) {
 if (!empty($relations) || $relationCondition) {?>
  *
  * The followings are the available model relations:
-<?php foreach ($relations as $name => $relation) {
+<?php 
+foreach ($relations as $name => $relation) {
 	$relationModel = preg_replace($patternClass, '', $relation[1]);
-	$relationArray[] = $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));?>
+	$relationArray[] = $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : (isset($relation[4]) ? lcfirst($generator->setRelation($relation[1], true)): $generator->setRelation($name)));?>
  * @property <?= $relationModel . ($relation[2] ? '[]' : '') . ' $' . $relationName ."\n" ?>
 <?php }
 foreach ($tableSchema->columns as $column) {
@@ -229,9 +230,8 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
 {
 <?php echo $tinyCondition || $licenseCondition || $primaryKeyTriggerCondition ? "\tuse \\".ltrim('\ommu\traits\UtilityTrait', '\\').";\n" : '';?>
 <?php echo $uploadCondition ? "\tuse \\".ltrim('\ommu\traits\FileTrait', '\\').";\n" : '';?>
-<?php echo $tinyCondition || $licenseCondition || $primaryKeyTriggerCondition || $uploadCondition ? "\n" : '';?>
-	public $gridForbiddenColumn = [];
-<?php 
+<?php echo $tinyCondition || $licenseCondition || $primaryKeyTriggerCondition || $uploadCondition ? "\n" : '';
+
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if($tableType != Generator::TYPE_VIEW && in_array('trigger[delete]', $commentArray)) {
@@ -291,12 +291,14 @@ foreach ($tableSchema->columns as $column) {
 foreach ($relations as $name => $relation) {
 	if(!$relation[2])
 		continue;
-	$relationName = ($relation[2] ? lcfirst(Inflector::singularize($generator->setRelation($name, true))) : $generator->setRelation($name));
+	$relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
+    $relationNameLabel = ucwords(strtolower($relationName));
+    $relationName = Inflector::singularize(lcfirst('o'. $relationName));
     if(!in_array($relationName, $searchPublicVariables))
-        $searchPublicVariables[$relationName] = ucwords(strtolower($relationName));
-}
-
-if(!empty($inputPublicVariables) || !empty($searchPublicVariables))
+        $searchPublicVariables[$relationName] = $relationNameLabel;
+}?>
+    public $gridForbiddenColumn = ['<?php echo join('\', \'', array_flip($searchPublicVariables));?>'];
+<?php if(!empty($inputPublicVariables) || !empty($searchPublicVariables))
 	echo "\n";
 
 if(!empty($inputPublicVariables)) {
@@ -394,7 +396,7 @@ if(!empty($searchPublicVariables)) {
 <?php 
 $relationArray = [];
 foreach ($relations as $name => $relation) {
-	$relationArray[] = $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
+	$relationArray[] = $relationName = ($relation[2] ? $generator->setRelation($name, true) : (isset($relation[4]) ? lcfirst($generator->setRelation($relation[1], true)): $generator->setRelation($name)));
 	$publishRltnCondition = 0;
 	if(preg_match('/(%s.publish)/', $relation[0]))
 		$publishRltnCondition = 1;?>
@@ -697,15 +699,16 @@ foreach ($relations as $name => $relation) {
 	$publishRltnCondition = 0;
 	if(preg_match('/(%s.publish)/', $relation[0]))
 		$publishRltnCondition = 1;
-	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
-	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin'; ?>
-		$this->templateColumns['<?php echo Inflector::singularize($relationName);?>'] = [
-			'attribute' => '<?php echo Inflector::singularize($relationName);?>',
+	$relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
+    $controller = Inflector::singularize(lcfirst($relationName));
+	$controller = $controller != $generator->getModuleName() ? $controller : 'admin'; ?>
+		$this->templateColumns['<?php echo Inflector::singularize(lcfirst('o'. $relationName));?>'] = [
+			'attribute' => '<?php echo Inflector::singularize(lcfirst('o'. $relationName));?>',
 			'value' => function($model, $key, $index, $column) {
 				$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
 				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo $relationName;?>', ['count' => $<?php echo lcfirst($relationName);?>]), 'data-pjax' => 0]);
 			},
-			'filter' => $this->filterYesNo(),
+			'filter' => false,
 			'contentOptions' => ['class' => 'text-center'],
 			'format' => 'raw',
 		];
@@ -1020,8 +1023,16 @@ foreach ($tableSchema->columns as $column) {
 foreach ($relations as $name => $relation) {
 	if(!$relation[2])
 		continue;
-    $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
-    echo "\t\t\$this->".Inflector::singularize(lcfirst($relationName))." = \$this->get".ucfirst($relationName)."(true) ? 1 : 0;\n";
+    $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
+    echo "\t\t// \$this->".Inflector::singularize(lcfirst($relationName))." = \$this->get".ucfirst($relationName)."(true) ? 1 : 0;\n";
+}
+
+foreach ($relations as $name => $relation) {
+	if(!$relation[2])
+		continue;
+    $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name)); 
+    $relationGridColumn = Inflector::singularize(lcfirst($relationName));
+    echo "\t\t\$this->".Inflector::singularize(lcfirst('o'. $relationName))." = isset(\$this->grid) ? \$this->grid->{$relationGridColumn} : 0;\n";
 }?>
 	}
 <?php }

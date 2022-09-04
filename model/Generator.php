@@ -52,8 +52,24 @@ class Generator extends \ommu\gii\Generator
 		'directory' => 'main',
 	];
 	public $useGetFunction = false;
+    public $generateGridMigration = false;
+	public $gridMigrationPath = '@app/migrations';
+	public $gridMigrationName;
+	public $gridMigrationTime;
+	public $gridTableName;
+    public $gridMigrationClass;
 	public $link='https://www.ommu.id';
 	public $useModified = false;
+
+	/**
+	 * @inheritdoc
+	 */
+	public function init()
+	{
+		parent::init();
+        date_default_timezone_set('Asia/Jakarta');
+		$this->gridMigrationTime = date('ymd_His');
+	}
 
     /**
      * {@inheritdoc}
@@ -77,12 +93,13 @@ class Generator extends \ommu\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass', 'link'], 'filter', 'filter' => 'trim'],
+            [['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass', 'gridMigrationPath', 'gridMigrationName', 'gridMigrationTime', 'gridTableName', 'link'], 'filter', 'filter' => 'trim'],
             [['ns', 'queryNs'], 'filter', 'filter' => function ($value) { return trim($value, '\\'); }],
             [['db', 'ns', 'tableName', 'baseClass', 'queryNs', 'queryBaseClass', 'uploadPath', 'link'], 'required'],
             [['db', 'modelClass', 'queryClass'], 'match', 'pattern' => '/^\w+$/', 'message' => 'Only word characters are allowed.'],
             [['ns', 'baseClass', 'queryNs', 'queryBaseClass'], 'match', 'pattern' => '/^[\w\\\\]+$/', 'message' => 'Only word characters and backslashes are allowed.'],
-            [['tableName'], 'match', 'pattern' => '/^([\w ]+\.)?([\w\* ]+)$/', 'message' => 'Only word characters, and optionally spaces, an asterisk and/or a dot are allowed.'],
+            [['tableName', 'gridTableName'], 'match', 'pattern' => '/^([\w ]+\.)?([\w\* ]+)$/', 'message' => 'Only word characters, and optionally spaces, an asterisk and/or a dot are allowed.'],
+			[['gridMigrationTime'], 'match', 'pattern' => '/^(\d{6}_\d{6})/', 'message' => 'Only format xxxxxx_xxxxxx are allowed.'],
             [['db'], 'validateDb'],
             [['ns', 'queryNs'], 'validateNamespace'],
             [['tableName'], 'validateTableName'],
@@ -90,7 +107,7 @@ class Generator extends \ommu\gii\Generator
             [['baseClass'], 'validateClass', 'params' => ['extends' => ActiveRecord::className()]],
             [['queryBaseClass'], 'validateClass', 'params' => ['extends' => ActiveQuery::className()]],
             [['generateRelations'], 'in', 'range' => [self::RELATIONS_NONE, self::RELATIONS_ALL, self::RELATIONS_ALL_INVERSE]],
-            [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery', 'generateRelationsFromCurrentSchema', 'generateEvents', 'useGetFunction', 'useModified'], 'boolean'],
+            [['generateLabelsFromComments', 'useTablePrefix', 'useSchemaName', 'generateQuery', 'generateRelationsFromCurrentSchema', 'generateEvents', 'useGetFunction', 'generateGridMigration', 'useModified'], 'boolean'],
             [['enableI18N'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
         ]);
@@ -120,6 +137,11 @@ class Generator extends \ommu\gii\Generator
 			'uploadPath[directory]'=>'Upload Path (Directories)',
 			'uploadPath[subfolder]'=>'Use Subfolder with PrimaryKey',
 			'useGetFunction'=>'Use Get Function',
+            'generateGridMigration' => 'Generate GridMigration',
+			'gridMigrationPath' => 'GridMigration Path',
+			'gridMigrationName' => 'GridMigration Name',
+			'gridMigrationTime' => 'GridMigration Time',
+			'gridTableName' => 'GridTable Name',
 			'link'=>'Link Repository',
 			'useModified'=>'Use Modified Info',
         ]);
@@ -167,6 +189,14 @@ class Generator extends \ommu\gii\Generator
 			'uploadPath[directory]' => '...',
 			'uploadPath[subfolder]' => '...',
 			'useGetFunction' => 'Use simple GET function in models. <code>default: false</code>',
+            'generateGridMigration' => 'This indicates whether to generate GridMigration',
+			'gridMigrationPath' => 'Path to store generated file, e.g., <code>@app/migrations</code>',
+			'gridMigrationName' => 'The name of the new migration. This should only contain letters, digits and/or underscores.',
+			'gridMigrationTime' => 'Time of the new migration. This should only has format <code>yymmdd_hhiiss</code>.',
+			'gridTableName' => 'This is the name of the DB table that the new ActiveRecord class is associated with, e.g. <code>post</code>.
+				The table name may consist of the DB schema part if needed, e.g. <code>public.post</code>.
+				The table name may end with asterisk to match multiple table names, e.g. <code>tbl_*</code>
+				will match tables who name starts with <code>tbl_</code>.',
             'link' => 'This is link (URL Address) your repository.',
             'useModified' => 'Use source-code modified info in generator. <code>default: false</code>',
         ]);
@@ -203,7 +233,7 @@ class Generator extends \ommu\gii\Generator
      */
     public function stickyAttributes()
     {
-        return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass', 'useTablePrefix', 'generateQuery', 'link']);
+        return array_merge(parent::stickyAttributes(), ['ns', 'db', 'baseClass', 'generateRelations', 'generateLabelsFromComments', 'queryNs', 'queryBaseClass', 'useTablePrefix', 'gridMigrationTime', 'gridTableName', 'link']);
     }
 
     /**
@@ -239,12 +269,18 @@ class Generator extends \ommu\gii\Generator
         $files = [];
         $relations = $this->generateRelations();
 		$db = $this->getDbConnection();
+
+        $this->gridMigrationPath = str_replace('models', 'migrations', '@' . str_replace('\\', '/', $this->ns));
+        // $this->gridTableName = str_replace('models', 'migrations', '@' . str_replace('\\', '/', $this->ns));
+
         foreach ($this->getTableNames() as $tableName) {
             // model :
             $modelClassName = $this->generateClassName($tableName);
             $queryClassName = ($this->generateQuery) ? $this->generateQueryClassName($modelClassName) : false;
-            $tableSchema = $db->getTableSchema($tableName);
 
+            $gridMigrationClassName = ($this->generateGridMigration) ? $this->generateGridMigrationClassName() : false;
+
+            $tableSchema = $db->getTableSchema($tableName);
             $_tblName       = $this->generateTableName($tableName);
             $tableType      = $this->getTableType($_tblName);
             $viewPrimaryKey = $this->getMysqlViewColumn($_tblName);
@@ -272,6 +308,17 @@ class Generator extends \ommu\gii\Generator
                 $files[] = new CodeFile(
                     Yii::getAlias('@' . str_replace('\\', '/', $this->queryNs)) . '/' . $queryClassName . '.php',
                     $this->render('query.php', $params)
+                );
+            }
+
+            // migration :
+            if ($gridMigrationClassName) {
+                $params['migrationName'] = $gridMigrationClassName;
+                $params['gridTableName'] = $this->gridTableName;
+                $file = rtrim(Yii::getAlias($this->gridMigrationPath), '/')."/{$gridMigrationClassName}.php";
+                $files[] = new CodeFile(
+                    $file,
+                    $this->render('migration.php', $params)
                 );
             }
         }
@@ -1009,11 +1056,7 @@ class Generator extends \ommu\gii\Generator
                 break;
             }
         }
-		$className = Inflector::id2camel($schemaName.$className, '_');
-		if(preg_match('/Swt/', $className))
-			$className = preg_replace('(Swt)', '', $className);
-		else
-			$className = preg_replace('(Ommu)', '', $className);
+        $className = $this->defaultReplace($schemaName.$className);
 
         return $this->classNames[$fullTableName] = $className;
     }
@@ -1245,6 +1288,17 @@ class Generator extends \ommu\gii\Generator
 		return $tableSchema; 
 	}
 
+	public function defaultReplace($className) 
+	{
+		$className = Inflector::id2camel($className, '_');
+		if(preg_match('/Swt/', $className))
+			$className = preg_replace('(Swt)', '', $className);
+		else
+			$className = preg_replace('(Ommu)', '', $className);
+
+		return $className;
+	}
+
 	public function getModuleName() 
 	{
 		$ns = explode('models', $this->ns);
@@ -1257,4 +1311,12 @@ class Generator extends \ommu\gii\Generator
 	{
 		return join('\\', [str_replace($this->getModuleName(), $module, $this->ns), $modelClass]);
 	}
+
+    protected function generateGridMigrationClassName()
+    {
+        $gridMigrationName = $this->defaultReplace($this->gridTableName);
+
+        $gridMigrationClassName = join('_', ['m'.$this->gridMigrationTime, $this->getModuleName().'_module', 'createTable', $gridMigrationName]);
+        return $gridMigrationClassName;
+    }
 }

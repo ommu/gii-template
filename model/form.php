@@ -84,6 +84,19 @@ echo $form->field($generator, 'uploadPath[subfolder]')
 echo $form->field($generator, 'useGetFunction')
 	->checkbox()
 	->label($generator->getAttributeLabel('useGetFunction'));
+
+echo $form->field($generator, 'generateGridMigration')
+	->checkbox()
+	->label($generator->getAttributeLabel('generateGridMigration'));
+
+echo $form->field($generator, 'gridTableName', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])
+	->label($generator->getAttributeLabel('gridTableName'));
+
+echo $form->field($generator, 'gridMigrationTime', ['template' => '{label}{beginWrapper}{input}{error}{endWrapper}{hint}'])
+	->label($generator->getAttributeLabel('gridMigrationTime'))
+	->widget('yii\widgets\MaskedInput', [
+		'mask' => '999999_999999'
+	]);
 	
 echo $form->field($generator, 'useModified')
 	->checkbox()
