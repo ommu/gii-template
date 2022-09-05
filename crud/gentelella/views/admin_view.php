@@ -302,13 +302,14 @@ foreach ($relations as $name => $relation) {
 	$publishRltnCondition = 0;
 	if(preg_match('/(%s.publish)/', $relation[0]))
 		$publishRltnCondition = 1;
-	$relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
-	$controller = Inflector::singularize($relationName) != $generator->getModuleName() ? Inflector::singularize($relationName) : 'admin'; ?>
+	$relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
+    $controller = Inflector::singularize(lcfirst($relationName));
+	$controller = $controller != $generator->getModuleName() ? $controller : 'admin'; ?>
 	[
-		'attribute' => '<?php echo Inflector::singularize($relationName);?>',
+		'attribute' => '<?php echo Inflector::singularize(lcfirst('o'. $relationName));?>',
 		'value' => function ($model) {
-			$<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
-			return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo $relationName;?>', ['count' => $<?php echo lcfirst($relationName);?>])]);
+			$<?php echo lcfirst($relationName);?> = $model-><?php echo Inflector::singularize(lcfirst('o'. $relationName));?>;
+			return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo lcfirst($relationName);?>', ['count' => $<?php echo lcfirst($relationName);?>])]);
 		},
 		'format' => 'html',
 		'visible' => !$small,

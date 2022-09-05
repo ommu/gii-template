@@ -26,11 +26,25 @@ $foreignKeys = $generator->getForeignKeys($tableSchema->foreignKeys);
 $yaml = $generator->loadYaml('author.yaml');
 
 $hasManyRelation = [];
+$arrayRelations = [];
 foreach ($relations as $name => $relation) {
-	if(!$relation[2])
+	if(!$relation[2] && !isset($relation[4]))
 		continue;
-    $relationName = ($relation[2] ? lcfirst($generator->setRelation($name, true)) : $generator->setRelation($name));
-    $hasManyRelation[Inflector::singularize($relationName)] = $relationName;
+
+    if ($relation[2]) {
+        $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
+        $hasManyRelation[Inflector::singularize(lcfirst('o'. $relationName))] = $relationName;
+    } else {
+        $relationName = ($relation[2] ? $generator->setRelation($name, true) : (isset($relation[4]) ? lcfirst($generator->setRelation($relation[1], true)): $generator->setRelation($name)));
+		$arrayRelations[$relationName]['relation'] = $relationName;
+		$arrayRelations[$relationName]['relationAlias'] = $relationName;
+		$propertyNameFilter = ArrayHelper::map($arrayRelations, 'property', 'property');
+		if(!in_array($propertyName, $propertyNameFilter))
+			$arrayRelations[$relationName]['propertySearch'] = $arrayRelations[$relationName]['property'] = $propertyName;
+		$propertyFieldFilter = ArrayHelper::map($arrayRelations, 'propertyField', 'propertyField');
+		if(!in_array($propertyName, $propertyFieldFilter))
+			$arrayRelations[$relationName]['propertyField'] = join('.', [$relationName, 'message']);
+    }
 }
 
 echo "<?php\n";
@@ -69,8 +83,6 @@ class <?= $searchModelClass ?> extends <?= (isset($modelAlias) ? $modelAlias : $
 	{
 		return [
 <?php
-$arrayRelations = [];
-
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
 	if(in_array('trigger[delete]', $commentArray)) {
@@ -156,7 +168,7 @@ foreach ($tableSchema->columns as $column) {
 	}
 }
 
-foreach($rules as $rule):
+foreach($rules as $rule):   
 if ($rule->ruleType == 'integer' && !empty($hasManyRelation)) {
     $rule->columns = ArrayHelper::merge($rule->columns, array_flip($hasManyRelation));
 }
@@ -217,7 +229,7 @@ foreach ($propertyFields as $key => $val):
 endforeach;?>
 		$query->joinWith([<?php echo "\n\t\t\t// '" .implode("', \n\t\t\t// '", $relationAlias). "'\n\t\t";?>]);<?php echo "\n";?>
 <?php foreach ($arrayRelations as $val) {
-    if ($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'user') {
+    if (($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'user') || $val['relationAlias'] == 'grid') {
         continue;
     }
 	$smallintCondition = ($val['propertySearch'] == $val['property']) ? false : true ; ?>
@@ -233,12 +245,12 @@ endforeach;?>
 
 if (!empty($hasManyRelation)) {
     foreach ($hasManyRelation as $key => $val) {?>
-        if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $key;?>', '-<?php echo $key;?>'])) || (isset($params['<?php echo $key;?>']) && $params['<?php echo $key;?>'] != '')) {
-            $query->joinWith(['<?php echo $val;?> <?php echo $val;?>']);
-            if (isset($params['sort']) && in_array($params['sort'], ['<?php echo $key;?>', '-<?php echo $key;?>'])) {
-                $query->select(['t.*', 'count(<?php echo $val;?>.id) as <?php echo $key;?>']);
-            }
-        }
+        // if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $key;?>', '-<?php echo $key;?>'])) || (isset($params['<?php echo $key;?>']) && $params['<?php echo $key;?>'] != '')) {
+        //     $query->joinWith(['<?php echo lcfirst($val);?> <?php echo lcfirst($val);?>']);
+        //     if (isset($params['sort']) && in_array($params['sort'], ['<?php echo $key;?>', '-<?php echo $key;?>'])) {
+        //         $query->select(['t.*', 'count(<?php echo lcfirst($val);?>.id) as <?php echo $key;?>']);
+        //     }
+        // }
 <?php }
 }
 
@@ -274,8 +286,8 @@ if(!empty($arrayRelations)) {
 if (!empty($hasManyRelation)) {
     foreach ($hasManyRelation as $key => $val) {?>
         $attributes['<?php echo $key;?>'] = [
-            'asc' => ['<?php echo $key;?>' => SORT_ASC],
-            'desc' => ['<?php echo $key;?>' => SORT_DESC],
+            'asc' => ['grid.<?php echo Inflector::singularize(lcfirst($val));?>' => SORT_ASC],
+            'desc' => ['grid.<?php echo Inflector::singularize(lcfirst($val));?>' => SORT_DESC],
         ];
 <?php }
 }?>
@@ -304,13 +316,14 @@ if (!empty($hasManyRelation)) {
         
         if (!empty($hasManyRelation)) {
             foreach ($hasManyRelation as $key => $val) {
+                $value = lcfirst($val);
                 $data = "if (isset(\$params['$key']) && \$params['$key'] != '') {
             if (\$this->$key == 1) {
-                \$query->andWhere(['is not', '$val.id', null]);
+                \$query->andWhere(['is not', '$value.id', null]);
             } else if (\$this->$key == 0) {
-                \$query->andWhere(['is', '$val.id', null]);
+                \$query->andWhere(['is', '$value.id', null]);
             }
-        }\n";
+        }";
                 array_push($searchConditions, $data);
             }
         }
