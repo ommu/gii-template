@@ -28,8 +28,9 @@ $yaml = $generator->loadYaml('author.yaml');
 $hasManyRelation = [];
 $arrayRelations = [];
 foreach ($relations as $name => $relation) {
-	if(!$relation[2] && !isset($relation[4]))
+	if(!$relation[2] && !isset($relation[4])) {
 		continue;
+    }
 
     if ($relation[2]) {
         $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
@@ -179,6 +180,7 @@ if(!empty($rule->columns)):
         if ($memberUserCondition) {
             unset($propertySearch['userDisplayname']);
         }
+        unset($propertySearch['']);
         $rule->columns = \yii\helpers\ArrayHelper::merge($rule->columns, $propertySearch);
     }
 
@@ -275,7 +277,10 @@ if(!empty($arrayRelations)) {
     if ($memberUserCondition) {
         unset($propertyFields['userDisplayname']);
     }
-	foreach ($propertyFields as $key => $val) {?>
+	foreach ($propertyFields as $key => $val) {
+        if ($key == '' && $val == '') {
+            continue;
+        } ?>
 		$attributes['<?php echo $key;?>'] = [
 			'asc' => ['<?php echo $val;?>' => SORT_ASC],
 			'desc' => ['<?php echo $val;?>' => SORT_DESC],
