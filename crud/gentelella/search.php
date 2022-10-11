@@ -170,7 +170,7 @@ foreach ($tableSchema->columns as $column) {
 }
 
 foreach($rules as $rule):   
-if ($rule->ruleType == 'integer' && !empty($hasManyRelation)) {
+if ($rule->ruleType == 'integer' && !empty($hasManyRelation) && $generator->generateGridMigration) {
     $rule->columns = ArrayHelper::merge($rule->columns, array_flip($hasManyRelation));
 }
 if(!empty($rule->columns)):
@@ -221,7 +221,8 @@ endforeach;?>
         if (!($column && is_array($column))) {
             $query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t');
         } else {
-            $query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t')->select($column);
+            $query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find()->alias('t')
+                ->select($column);
         }
 <?php
 if(!empty($arrayRelations)):
@@ -229,13 +230,36 @@ if(!empty($arrayRelations)):
 foreach ($propertyFields as $key => $val):
 	$relationAlias[] = $val.' '.$key;
 endforeach;?>
-		$query->joinWith([<?php echo "\n\t\t\t// '" .implode("', \n\t\t\t// '", $relationAlias). "'\n\t\t";?>]);<?php echo "\n";?>
-<?php foreach ($arrayRelations as $val) {
+		$query->joinWith([<?php echo "\n\t\t\t// '" .implode("', \n\t\t\t// '", $relationAlias). "'\n\t\t";?>]);<?php echo "\n";
+
+if (!empty($hasManyRelation) && $generator->generateGridMigration) {
+    $keySort = [];
+    $keySearch = [];
+    foreach ($hasManyRelation as $key => $val) {
+        array_push($keySort, $key);
+        array_push($keySort, '-'.$key);
+        array_push($keySearch, $key);
+    }?>
+        if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo implode("', '", $keySort)?>'])) || <?php echo count($keySearch) > 1 ? "(\n" : "\n";?>
+<?php 
+$i = 0;
+foreach ($keySearch as $val) {
+    $i++;?>
+            (isset($params['<?php echo $val;?>']) && $params['<?php echo $val;?>'] != '')<?php echo $i < count($keySearch) ? " ||\n" : "\n";?>
+<?php }?>
+        <?php echo count($keySearch) > 1 ? ")" : '';?>) {
+            $query->joinWith(['grid grid']);
+        }
+<?php }
+
+foreach ($arrayRelations as $val) {
     if (($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'user') || $val['relationAlias'] == 'grid') {
         continue;
     }
 	$smallintCondition = ($val['propertySearch'] == $val['property']) ? false : true ; ?>
-        if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>', '-<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>'])) || (isset($params['<?php echo $val['propertySearch'];?>']) && $params['<?php echo $val['propertySearch'];?>'] != '')) {
+        if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>', '-<?php echo $smallintCondition ? $val['property'] : $val['propertySearch'];?>'])) || 
+            (isset($params['<?php echo $val['propertySearch'];?>']) && $params['<?php echo $val['propertySearch'];?>'] != '')
+        ) {
 <?php if ($memberUserCondition && $val['relation'] == $val['relationAlias'] && $val['relationAlias'] == 'member') {?>
             $query->joinWith(['<?php echo $val['relation'];?> <?php echo $val['relationAlias'];?>', 'user user']);
         }
@@ -245,7 +269,7 @@ endforeach;?>
 <?php }
 }
 
-if (!empty($hasManyRelation)) {
+/* if (!empty($hasManyRelation)) {
     foreach ($hasManyRelation as $key => $val) {?>
         // if ((isset($params['sort']) && in_array($params['sort'], ['<?php echo $key;?>', '-<?php echo $key;?>'])) || (isset($params['<?php echo $key;?>']) && $params['<?php echo $key;?>'] != '')) {
         //     $query->joinWith(['<?php echo lcfirst($val);?> <?php echo lcfirst($val);?>']);
@@ -254,7 +278,7 @@ if (!empty($hasManyRelation)) {
         //     }
         // }
 <?php }
-}
+} */
 
 echo "\n";?>
 		$query->groupBy(['<?php echo $generator->getPrimaryKey($tableSchema);?>']);
@@ -288,7 +312,7 @@ if(!empty($arrayRelations)) {
 <?php }
 }
 
-if (!empty($hasManyRelation)) {
+if (!empty($hasManyRelation) && $generator->generateGridMigration) {
     foreach ($hasManyRelation as $key => $val) {?>
         $attributes['<?php echo $key;?>'] = [
             'asc' => ['grid.<?php echo Inflector::singularize(lcfirst($val));?>' => SORT_ASC],
@@ -318,15 +342,15 @@ if (!empty($hasManyRelation)) {
         $likeIndex = count($searchConditions) - 1;
         $likeSearchConditions = $searchConditions[$likeIndex];
         unset($searchConditions[$likeIndex]);
-        
-        if (!empty($hasManyRelation)) {
+
+        if (!empty($hasManyRelation) && $generator->generateGridMigration) {
             foreach ($hasManyRelation as $key => $val) {
-                $value = lcfirst($val);
+                $value = Inflector::singularize(lcfirst($val));
                 $data = "if (isset(\$params['$key']) && \$params['$key'] != '') {
             if (\$this->$key == 1) {
-                \$query->andWhere(['is not', '$value.id', null]);
+                \$query->andWhere(['<>', 'grid.$value', 0]);
             } else if (\$this->$key == 0) {
-                \$query->andWhere(['is', '$value.id', null]);
+                \$query->andWhere(['=', 'grid.$value', 0]);
             }
         }";
                 array_push($searchConditions, $data);

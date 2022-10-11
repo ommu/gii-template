@@ -269,10 +269,11 @@ if(in_array('file', $commentArray) && in_array('pdf', $commentArray)):?>
 	],
 <?php } else {
 	if(in_array('trigger[delete]', $commentArray)) {
+        $publicAttributeRelation = $generator->i18nRelation($column->name);
 		$publicAttribute = $column->name.'_i';?>
 	[
 		'attribute' => '<?php echo $publicAttribute;?>',
-		'value' => $model-><?php echo $publicAttribute;?>,
+		'value' => isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '',
 <?php if(in_array('redactor', $commentArray)):?>
 		'format' => 'html',
 <?php endif;?>
@@ -296,8 +297,12 @@ if($format == 'text') {?>
 }
 
 foreach ($relations as $name => $relation) {
-	if(!$relation[2])
+    if (!$generator->generateGridMigration) {
+        continue;
+    }
+	if(!$relation[2]) {
 		continue;
+    }
 
 	$publishRltnCondition = 0;
 	if(preg_match('/(%s.publish)/', $relation[0]))
@@ -308,7 +313,7 @@ foreach ($relations as $name => $relation) {
 	[
 		'attribute' => '<?php echo Inflector::singularize(lcfirst('o'. $relationName));?>',
 		'value' => function ($model) {
-			$<?php echo lcfirst($relationName);?> = $model-><?php echo Inflector::singularize(lcfirst('o'. $relationName));?>;
+			$<?php echo lcfirst($relationName);?> = $model->grid-><?php echo Inflector::singularize(lcfirst($relationName));?>;
 			return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo lcfirst($relationName);?>', ['count' => $<?php echo lcfirst($relationName);?>])]);
 		},
 		'format' => 'html',

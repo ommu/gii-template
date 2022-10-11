@@ -43,6 +43,10 @@ echo $form->field($generator, 'attachRBACFilter')
 echo $form->field($generator, 'uploadPathSubfolder')
 	->checkbox()
 	->label($generator->getAttributeLabel('uploadPathSubfolder'));
+
+echo $form->field($generator, 'generateGridMigration')
+	->checkbox()
+	->label($generator->getAttributeLabel('generateGridMigration'));
 	
 echo $form->field($generator, 'useModified')
     ->checkbox()

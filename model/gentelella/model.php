@@ -50,6 +50,7 @@ $uuidCondition = 0;
 $relationArray = [];
 $inputPublicVariables = [];
 $searchPublicVariables = [];
+$hasManyPublicVariables = [];
 $arrayAttributeName = [];
 
 if($tableType == Generator::TYPE_VIEW)
@@ -294,10 +295,14 @@ foreach ($relations as $name => $relation) {
 	$relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name));
     $relationNameLabel = ucwords(strtolower($relationName));
     $relationName = Inflector::singularize(lcfirst('o'. $relationName));
-    if(!in_array($relationName, $searchPublicVariables))
+    if(!in_array($relationName, $searchPublicVariables)) {
         $searchPublicVariables[$relationName] = $relationNameLabel;
+        if ($relation[2]) {
+            array_push($hasManyPublicVariables, $relationName);
+        }
+    }
 }?>
-    public $gridForbiddenColumn = ['<?php echo join('\', \'', array_flip($searchPublicVariables));?>'];
+    public $gridForbiddenColumn = ['<?php echo join('\', \'', $generator->generateGridMigration ? array_flip($searchPublicVariables) : array_diff(array_flip($searchPublicVariables), $hasManyPublicVariables));?>'];
 <?php if(!empty($inputPublicVariables) || !empty($searchPublicVariables))
 	echo "\n";
 
@@ -308,6 +313,9 @@ if(!empty($inputPublicVariables)) {
 }
 if(!empty($searchPublicVariables)) {
 	foreach ($searchPublicVariables as $key=>$val) {
+        if (!$generator->generateGridMigration && in_array($key, $hasManyPublicVariables)) {
+            continue;
+        }
 		echo "\tpublic $$key;\n";
 	}
 }?>
@@ -388,6 +396,9 @@ if(!empty($inputPublicVariables)) {
 
 if(!empty($searchPublicVariables)) {
 	foreach ($searchPublicVariables as $key=>$val) {
+        if (!$generator->generateGridMigration && in_array($key, $hasManyPublicVariables)) {
+            continue;
+        }
 		echo "\t\t\t'$key' => " . $generator->generateString($val) . ",\n";
 	}
 } ?>
@@ -451,7 +462,8 @@ if($i18n) {
 	 */
 	public function get<?php echo ucfirst($relationName);?>()
 	{
-		return $this->hasOne(SourceMessage::className(), ['id' => '<?php echo $column->name;?>']);
+		return $this->hasOne(SourceMessage::className(), ['id' => '<?php echo $column->name;?>'])
+            ->select(['id', 'message']);
 	}
 <?php		}
 		}
@@ -472,9 +484,11 @@ foreach ($tableSchema->columns as $column) {
 			$relationArray[] = $relationName;
 			$relationModelClass = 'Users';
 			$relationAttribute = 'user_id';
+            $relationAttributeSelected = ['user_id', 'displayname'];
 			if($column->name == 'tag_id') {
 				$relationModelClass = 'CoreTags';
 				$relationAttribute = 'tag_id';
+                $relationAttributeSelected = ['id', 'body'];
 			}
 			if($column->name == 'member_id') {
 				$relationModelClass = 'Members';
@@ -486,7 +500,8 @@ foreach ($tableSchema->columns as $column) {
 	 */
 	public function get<?php echo ucfirst($relationName);?>()
 	{
-		return $this->hasOne(<?php echo $relationModelClass;?>::className(), ['<?php echo $relationAttribute;?>' => '<?php echo $column->name;?>']);
+		return $this->hasOne(<?php echo $relationModelClass;?>::className(), ['<?php echo $relationAttribute;?>' => '<?php echo $column->name;?>'])
+            ->select(['<?php echo implode($relationAttributeSelected, "', '")?>']);
 	}
 <?php 	}
 	}
@@ -667,7 +682,7 @@ if ($memberUserCondition && $column->name == 'member_id') {?>
 			'attribute' => '<?php echo $publicAttribute;?>',
 			'value' => function($model, $key, $index, $column) {
 <?php if($translateCondition) {?>
-				return $model-><?php echo $publicAttribute;?>;
+				return isset($model-><?php echo $publicAttributeRelation;?>) ? $model-><?php echo $publicAttributeRelation;?>->message : '';
 <?php } else {
 	if($column->type == 'text' && in_array('serialize', $commentArray)) {?>
 				return serialize($model-><?php echo $publicAttribute;?>);
@@ -693,8 +708,12 @@ if ($memberUserCondition && $column->name == 'member_id') {?>
 }
 
 foreach ($relations as $name => $relation) {
-	if(!$relation[2])
+    if (!$generator->generateGridMigration) {
+        continue;
+    }
+	if(!$relation[2]) {
 		continue;
+    }
 
 	$publishRltnCondition = 0;
 	if(preg_match('/(%s.publish)/', $relation[0]))
@@ -706,7 +725,7 @@ foreach ($relations as $name => $relation) {
 			'attribute' => '<?php echo Inflector::singularize(lcfirst('o'. $relationName));?>',
 			'value' => function($model, $key, $index, $column) {
 				// $<?php echo lcfirst($relationName);?> = $model->get<?php echo ucfirst($relationName);?>(true);
-				$<?php echo lcfirst($relationName);?> = $model-><?php echo Inflector::singularize(lcfirst('o'. $relationName));?>;
+				$<?php echo lcfirst($relationName);?> = $model->grid-><?php echo Inflector::singularize(lcfirst($relationName));?>;
 				return Html::a($<?php echo lcfirst($relationName);?>, ['<?php echo $controller;?>/manage', '<?php echo $generator->setRelation($relation[4]);?>' => $model->primaryKey<?php echo $publishRltnCondition ? ', \'publish\' => 1' : '';?>], ['title' => Yii::t('app', '{count} <?php echo lcfirst($relationName);?>', ['count' => $<?php echo lcfirst($relationName);?>]), 'data-pjax' => 0]);
 			},
 			'filter' => false,
@@ -862,7 +881,7 @@ if($publishCondition) {?>
 		$model = $model->orderBy('<?php echo $i18nRelation ? $i18nRelation.'.message' : 't.'.$attributeName;?> ASC')->all();
 
         if ($array == true) {
-            return \yii\helpers\ArrayHelper::map($model, '<?php echo $primaryKey;?>', '<?php echo $i18n && preg_match('/(name|title)/', $attributeName) ? $attributeName.'_i' : $attributeName;?>');
+            return \yii\helpers\ArrayHelper::map($model, '<?php echo $primaryKey;?>', '<?php echo $i18n && preg_match('/(name|title)/', $attributeName) ? $i18nRelation.'.message' : $attributeName;?>');
         }
 
 		return $model;
@@ -987,7 +1006,7 @@ if($tableType != Generator::TYPE_VIEW && $afEvents) {?>
 		if(in_array('trigger[delete]', $commentArray)) {
 			$publicAttribute = $column->name.'_i';
 			$publicAttributeRelation = $generator->i18nRelation($column->name);
-			echo "\t\t\$this->$publicAttribute = isset(\$this->{$publicAttributeRelation}) ? \$this->{$publicAttributeRelation}->message : '';\n";
+			echo "\t\t// \$this->$publicAttribute = isset(\$this->{$publicAttributeRelation}) ? \$this->{$publicAttributeRelation}->message : '';\n";
 		}
 	}
 }
@@ -1029,11 +1048,15 @@ foreach ($relations as $name => $relation) {
 }
 
 foreach ($relations as $name => $relation) {
-	if(!$relation[2])
+    if (!$generator->generateGridMigration) {
+        continue;
+    }
+	if(!$relation[2]) {
 		continue;
+    }
     $relationName = ($relation[2] ? $generator->setRelation($name, true) : $generator->setRelation($name)); 
     $relationGridColumn = Inflector::singularize(lcfirst($relationName));
-    echo "\t\t\$this->".Inflector::singularize(lcfirst('o'. $relationName))." = isset(\$this->grid) ? \$this->grid->{$relationGridColumn} : 0;\n";
+    echo "\t\t// \$this->".Inflector::singularize(lcfirst('o'. $relationName))." = isset(\$this->grid) ? \$this->grid->{$relationGridColumn} : 0;\n";
 }?>
 	}
 <?php }

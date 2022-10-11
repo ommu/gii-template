@@ -41,6 +41,7 @@ class Generator extends \ommu\gii\Generator
     public $searchModelClass = '';
     public $attachRBACFilter = true;
 	public $uploadPathSubfolder = false;
+    public $generateGridMigration = false;
     public $link='https://www.ommu.id';
     public $useModified = false;
     
@@ -85,7 +86,7 @@ class Generator extends \ommu\gii\Generator
             [['controllerClass', 'searchModelClass'], 'validateNewClass'],
             [['indexWidgetType'], 'in', 'range' => ['grid', 'list']],
             [['modelClass'], 'validateModelClass'],
-            [['enableI18N', 'enablePjax', 'attachRBACFilter', 'useModified'], 'boolean'],
+            [['enableI18N', 'enablePjax', 'attachRBACFilter', 'uploadPathSubfolder', 'generateGridMigration', 'useModified'], 'boolean'],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
             [['viewPath', 'attachRBACFilter', 'uploadPathSubfolder'], 'safe'],
         ]);
@@ -106,6 +107,7 @@ class Generator extends \ommu\gii\Generator
             'enablePjax' => 'Enable Pjax',
             'attachRBACFilter' => 'Attach RBAC filter',
 			'uploadPathSubfolder' => 'Use Subfolder (PrimaryKey) in Upload Path',
+            'generateGridMigration' => 'Generate GridMigration',
             'link' => 'Link Repository',
             'useModified' => 'Use Modified Info',
         ]);
@@ -137,6 +139,7 @@ class Generator extends \ommu\gii\Generator
                 sorting, filtering and pagination without page refreshing.',
             'attachRBACFilter' => 'Attach RBAC filter to controller. <code>default: true</code>',
 			'uploadPathSubfolder' => '...',
+            'generateGridMigration' => 'This indicates whether to generate GridMigration',
             'link' => 'This is link (URL Address) your repository.',
             'useModified' => 'Use source-code modified info in generator. <code>default: false</code>',
         ]);
@@ -798,14 +801,14 @@ echo \$form->field(\$model, '$attribute')
         }
         foreach ($tableSchema->columns as $column): 
         if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
-            $data = "if (isset(\$params['trash'])) {
-            \$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);
+            $data = "if (!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == '')) {
+            \$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);
         } else {
-            if (!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == '')) {
-                \$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);
-            } else {
-                \$query->andFilterWhere(['t.$column->name' => \$this->$column->name]);
-            }
+            \$query->andFilterWhere(['t.publish' => \$this->$column->name]);
+        }
+
+        if (isset(\$params['trash']) && \$params['trash'] == 1) {
+            \$query->andFilterWhere(['NOT IN', 't.$column->name', [0,1]]);
         }";
             $publishConditions[] = $data;
         }

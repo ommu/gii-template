@@ -190,7 +190,8 @@ endforeach;
 	{
 <?php if (!empty($generator->searchModelClass)): ?>
         $searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $queryParams = Yii::$app->request->queryParams;
+		$dataProvider = $searchModel->search($queryParams);
 
         $gridColumn = Yii::$app->request->get('GridColumn', null);
         $cols = [];
@@ -460,6 +461,20 @@ if (count($pks) === 1) {
 }
 ?>
         if (($model = <?= $modelClass ?>::findOne(<?= $condition ?>)) !== null) {
+<?php 
+$translateCondition = 0;
+foreach ($tableSchema->columns as $column) {
+    if($column->comment != '') {
+        $commentArray = explode(',', $column->comment);
+        if(in_array('trigger[delete]', $commentArray)) {
+            $translateCondition = 1;
+            $publicAttributeRelation = $generator->i18nRelation($column->name);
+            $publicAttribute = $column->name.'_i';?>
+            $model-><?php echo $publicAttribute;?> = $model-><?php echo $publicAttributeRelation;?>->message;
+<?php   } 
+    }
+}
+echo $translateCondition = "\n";?>
             return $model;
         }
 
