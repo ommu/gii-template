@@ -330,7 +330,7 @@ class Generator extends \ommu\gii\Generator
             }
         }
         $column = $tableSchema->columns[$attribute];
-		$commentArray = explode(',', $column->comment);
+		$commentArray = explode(',', trim($column->comment));
 		$modelClass = StringHelper::basename($this->modelClass);
 		$primaryKey = $this->getPrimaryKey($tableSchema);
 		$foreignKeys = $this->getForeignKeys($tableSchema->foreignKeys);
@@ -407,11 +407,12 @@ echo \$form->field(\$model, '$attribute')
 				$relationName = $this->setRelation($attribute);
 				$uploadPath = $this->uploadPathSubfolder ? "join('/', [\$model::getUploadPath(false), \$model->$primaryKey])" : "\$model::getUploadPath(false)";
 				$previewFile = "Html::img(Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['alt'=>\$model->old_{$attribute}, 'class' => 'd-block border border-width-3 mb-3']).\$model->{$attribute}.'<hr/>'";
-				if(in_array('pdf', $commentArray))
-					$previewFile = "Html::a(\$model->old_{$attribute}, Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['title'=>\$model->old_{$attribute}, 'target' => '_blank', 'class' => 'd-inline-block mb-3'])";
+				if(in_array('pdf', $commentArray)) {
+					$previewFile = "'<hr/>'.Html::a(\$model->old_{$attribute}, Url::to(join('/', ['@webpublic', \$uploadPath, \$model->old_{$attribute}])), ['title'=>\$model->old_{$attribute}, 'target' => '_blank', 'class' => 'd-inline-block mb-3'])";
+                }
 				return "\$uploadPath = $uploadPath;
 \$$relationName = !\$model->isNewRecord && \$model->old_{$attribute} != '' ? $previewFile : '';
-echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}<div>'.\$$relationName.'</div>{input}{error}{hint}{endWrapper}'])
+echo \$form->field(\$model, '$attribute', ['template' => '{label}{beginWrapper}{input}{error}{hint}<div>'.\$$relationName.'</div>{endWrapper}'])
 \t->fileInput()
 \t->label(\$model->getAttributeLabel('$attribute'))";
 

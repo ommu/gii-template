@@ -488,7 +488,7 @@ foreach ($tableSchema->columns as $column) {
 			if($column->name == 'tag_id') {
 				$relationModelClass = 'CoreTags';
 				$relationAttribute = 'tag_id';
-                $relationAttributeSelected = ['id', 'body'];
+                $relationAttributeSelected = ['tag_id', 'body'];
 			}
 			if($column->name == 'member_id') {
 				$relationModelClass = 'Members';

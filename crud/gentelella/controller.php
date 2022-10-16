@@ -349,6 +349,7 @@ foreach ($tableSchema->columns as $column) {
 		$this->view->keywords = '';
 		return $this->oRender('admin_view', [
 			'model' => $model,
+			'small' => false,
 		]);
 	}
 
