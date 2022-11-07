@@ -29,23 +29,26 @@ $foreignCondition = 0;
 $getFunctionCondition = 0;
 $permissionCondition = 0;
 $enumCondition = 0;
+$publishCondition = 0;
 foreach ($tableSchema->columns as $column) {
 	$commentArray = explode(',', $column->comment);
-	if(in_array('redactor', $commentArray))
+	if (in_array('redactor', $commentArray))
 		$redactorCondition = 1;
-	if(in_array('file', $commentArray))
+	if (in_array('file', $commentArray))
 		$uploadCondition = 1;
-	if(!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
+	if (!empty($foreignKeys) && array_key_exists($column->name, $foreignKeys)) {
 		$foreignCondition = 1;
-		if(preg_match('/(smallint)/', $column->type))
+		if (preg_match('/(smallint)/', $column->type))
 			$smallintCondition = 1;
 	}
-	if($column->comment != '' && $column->comment[0] == '"')
+	if ($column->comment != '' && $column->comment[0] == '"')
 		$getFunctionCondition = 1;
-	if($column->name == 'permission')
+	if ($column->name == 'permission')
 		$permissionCondition = 1;
 	if (is_array($column->enumValues) && count($column->enumValues) > 0)
 		$enumCondition = 1;
+	if ($column->dbType == 'tinyint(1)' && $column->name == 'publish')
+		$publishCondition = 1;
 }
 
 $yaml = $generator->loadYaml('author.yaml');
@@ -143,7 +146,21 @@ foreach ($tableSchema->columns as $column) {
 	if($column->dbType == 'tinyint(1)' && $column->name == 'publish')
 		echo "<?php " . $generator->generateActiveField($column->name) . "; ?>\n\n";
 } ?>
+<?php echo "<?php";?> if (($stayInHere = Yii::$app->request->get('stayInHere')) != null) {
+    $model->stayInHere = $stayInHere;
+}
+if (!Yii::$app->request->isAjax) {
+    echo $form->field($model, 'stayInHere')
+        ->checkbox()
+        ->label(Yii::t('app', 'Stay on this page after I click {message}.', ['message' => $model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update')])); <?php echo $publishCondition ? "?>\n" : '';?>
+<?php if (!$publishCondition) {?>
+<?php echo "\n"?>
+} ?>
+<?php }?>
 <hr/>
+<?php if ($publishCondition) {?>
+<?php echo "<?php";?> }?>
+<?php }?>
 
 <?php echo "<?php ";?>$submitButtonOption = [];
 if (!$model->isNewRecord && Yii::$app->request->isAjax) {

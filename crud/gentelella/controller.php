@@ -270,6 +270,9 @@ foreach ($tableSchema->columns as $column) {
 
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success created.');?>);
+                if ($model->stayInHere) {
+                    return $this->redirect(['create', 'stayInHere' => $model->stayInHere]);
+                }
                 return $this->redirect(['manage']);
                 //return $this->redirect(['view', <?= $urlParams ?>]);
 
@@ -306,6 +309,9 @@ foreach ($tableSchema->columns as $column) {
 
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', <?php echo $generator->generateString(Inflector::titleize($label).' success updated.');?>);
+                if ($model->stayInHere) {
+                    return $this->redirect(['update', 'id' => $model->id, 'stayInHere' => $model->stayInHere]);
+                }
                 return $this->redirect(['manage']);
 
             } else {

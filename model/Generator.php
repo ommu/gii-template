@@ -490,6 +490,8 @@ class Generator extends \ommu\gii\Generator
 				$types['safe'][]=$columnName;
 			}
 		}
+        $types['integer'][] = 'stayInHere';
+        $types['safe'][] = 'stayInHere';
 
 		$typeRules = ['required','integer','string','serialize','json','number','double','boolean','safe'];
 

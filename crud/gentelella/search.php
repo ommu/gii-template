@@ -39,12 +39,6 @@ foreach ($relations as $name => $relation) {
         $relationName = ($relation[2] ? $generator->setRelation($name, true) : (isset($relation[4]) ? lcfirst($generator->setRelation($relation[1], true)): $generator->setRelation($name)));
 		$arrayRelations[$relationName]['relation'] = $relationName;
 		$arrayRelations[$relationName]['relationAlias'] = $relationName;
-		$propertyNameFilter = ArrayHelper::map($arrayRelations, 'property', 'property');
-		if(!in_array($propertyName, $propertyNameFilter))
-			$arrayRelations[$relationName]['propertySearch'] = $arrayRelations[$relationName]['property'] = $propertyName;
-		$propertyFieldFilter = ArrayHelper::map($arrayRelations, 'propertyField', 'propertyField');
-		if(!in_array($propertyName, $propertyFieldFilter))
-			$arrayRelations[$relationName]['propertyField'] = join('.', [$relationName, 'message']);
     }
 }
 

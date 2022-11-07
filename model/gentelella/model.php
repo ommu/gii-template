@@ -303,6 +303,8 @@ foreach ($relations as $name => $relation) {
     }
 }?>
     public $gridForbiddenColumn = ['<?php echo join('\', \'', $generator->generateGridMigration ? array_flip($searchPublicVariables) : array_diff(array_flip($searchPublicVariables), $hasManyPublicVariables));?>'];
+
+    public $stayInHere;
 <?php if(!empty($inputPublicVariables) || !empty($searchPublicVariables))
 	echo "\n";
 
@@ -387,6 +389,7 @@ foreach ($labels as $name => $label) {
 		continue;
 	echo "\t\t\t'$name' => " . $generator->generateString($label) . ",\n";
 }
+echo "\t\t\t'stayInHere' => Yii::t('app', 'stayInHere'),\n";
 
 if(!empty($inputPublicVariables)) {
 	foreach ($inputPublicVariables as $key=>$val) {
@@ -478,6 +481,7 @@ foreach ($tableSchema->columns as $column) {
 
 	$commentArray = explode(',', $column->comment);
 	if(in_array('user', $commentArray) || in_array($column->name, ['creation_id','modified_id','user_id','updated_id','tag_id','member_id'])) {
+        $relationAttributeSelected = [];
 		$relationName = $generator->setRelation($column->name);
 		$relationName = $generator->setRelationFixed($relationName, $tableSchema->columns);
 		if(!in_array($relationName, $relationArray)) {
@@ -501,9 +505,9 @@ foreach ($tableSchema->columns as $column) {
 	public function get<?php echo ucfirst($relationName);?>()
 	{
 		return $this->hasOne(<?php echo $relationModelClass;?>::className(), ['<?php echo $relationAttribute;?>' => '<?php echo $column->name;?>'])
-            ->select(['<?php echo implode($relationAttributeSelected, "', '")?>']);
+            ->select(['<?php echo $relationAttributeSelected ? implode("', '", $relationAttributeSelected) : '';?>']);
 	}
-<?php 	}
+<?php   }
 	}
 }
 

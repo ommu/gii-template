@@ -95,10 +95,11 @@ $this->params['menu']['option'] = [
 if(!empty($arrayRelation)) {
 	foreach($arrayRelation as $key => $val) {
 		$render = join('/', ['',$arrayRelation[$key]['relation'], 'admin_view']);
-		if($arrayRelation['table'] == 'ommu_users')
+		if($arrayRelation[$key]['table'] == 'ommu_users') {
 			$render = '@ommu/users/views/member/admin_view';
-		else if($arrayRelation['table'] == 'ommu_members')
-			$render = '@ommu/member/views/manage/admin/admin_view'; ?>
+		} else if($arrayRelation[$key]['table'] == 'ommu_members') {
+			$render = '@ommu/member/views/manage/admin/admin_view';
+        } ?>
 <?php echo "<?php ";?>if ($<?php echo $arrayRelation[$key]['relation'];?> != null) {
 	echo $this->render('<?php echo $render;?>', ['model' => $<?php echo $arrayRelation[$key]['relation'];?>, 'small' => true]);
 } ?>
