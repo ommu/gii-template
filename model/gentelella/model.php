@@ -1285,7 +1285,7 @@ foreach($tableSchema->columns as $column) {
 		$relationName =  $generator->setRelation($column->name);
 		$publicAttribute = $relationName.ucwords('body');?>
             if ($insert) {
-                $<?php echo $publicAttribute;?> = Inflector::slug($this-><?php echo $publicAttribute;?>);
+                $<?php echo $publicAttribute;?> = Inflector::camelize($this-><?php echo $publicAttribute;?>);
                 if ($this-><?php echo $column->name;?> == 0) {
                     $<?php echo $relationName;?> = CoreTags::find()
                         ->select(['<?php echo $column->name;?>'])
