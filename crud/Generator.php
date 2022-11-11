@@ -802,7 +802,7 @@ echo \$form->field(\$model, '$attribute')
         }
         foreach ($tableSchema->columns as $column): 
         if($column->dbType == 'tinyint(1)' && $column->name == 'publish') {
-            $data = "if (!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == '')) {
+            $data = "if ((!isset(\$params['$column->name']) || (isset(\$params['$column->name']) && \$params['$column->name'] == '')) && !\$this->$column->name) {
             \$query->andFilterWhere(['IN', 't.$column->name', [0,1]]);
         } else {
             \$query->andFilterWhere(['t.publish' => \$this->$column->name]);
