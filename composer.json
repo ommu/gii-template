@@ -8,8 +8,7 @@
 		"generator",
 		"template",
 		"crud",
-		"ommu",
-		"ommu-platform"
+		"ommu"
 	],
 	"homepage": "https://github.com/ommu/gii-template",
 	"type": "ommu-library",
@@ -26,8 +25,8 @@
 	"authors": [
 		{
 			"name": "Putra Sudaryanto",
-			"email": "putra@ommu.co",
-			"homepage": "https://ommu.co",
+			"email": "putra@ommu.id",
+			"homepage": "https://ommu.id",
 			"role": "Creator"
 		}
 	],
