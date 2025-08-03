@@ -3,14 +3,12 @@
 	"description": "Gii Generator Template from OMMU",
 	"type": "ommu-library",
 	"keywords": [
-		"yii",
 		"yii2",
 		"library",
 		"gii",
 		"generator",
 		"template",
 		"crud",
-		"ommu",
 		"ommu2"
 	],
 	"license": "Apache-2.0",
