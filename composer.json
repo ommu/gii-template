@@ -4,13 +4,14 @@
 	"type": "ommu-library",
 	"keywords": [
 		"yii",
+		"yii2",
 		"library",
 		"gii",
 		"generator",
 		"template",
 		"crud",
 		"ommu",
-		"ommu-platform"
+		"ommu2"
 	],
 	"license": "Apache-2.0",
 	"homepage": "https://github.com/ommu/gii-template",
